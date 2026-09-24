@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { UserPlusIcon } from '@lucide/svelte';
-	import { roles } from '$lib/mock/session';
+	import { roles } from '$lib/roles';
 
 	let { data, form } = $props();
 

@@ -1,5 +1,5 @@
 import { error, type Cookies } from '@sveltejs/kit';
-import type { Role, SessionUser } from '$lib/mock/session';
+import type { Role, SessionUser } from '$lib/roles';
 import { findUserById } from './users';
 import { getDb } from './db';
 import { getSessionSecret } from './secret';

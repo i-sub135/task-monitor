@@ -1,5 +1,5 @@
-import { formatJakarta } from '../mock/time.ts';
-import { roles, type Role } from '../mock/session.ts';
+import { formatJakarta } from '../time.ts';
+import { roles, type Role } from '../roles.ts';
 import { Prisma, type PrismaClient } from './generated/prisma/client.ts';
 import type { UserRole, UserStatus } from './generated/prisma/enums.ts';
 
@@ -112,8 +112,17 @@ async function update(db: PrismaClient, id: string, data: { status?: UserStatus;
 	}
 }
 
-export function setUserStatus(db: PrismaClient, id: string, status: string): Promise<UpdateResult> | UpdateResult {
+export function setUserStatus(
+	db: PrismaClient,
+	id: string,
+	status: string,
+	actorId: string
+): Promise<UpdateResult> | UpdateResult {
 	if (status !== 'active' && status !== 'non-active') return { ok: false, status: 400, error: 'Status tidak valid' };
+	// Biar gak ada yang ngunci dirinya sendiri (dan semua admin) di luar aplikasi.
+	if (status === 'non-active' && id === actorId) {
+		return { ok: false, status: 400, error: 'Kamu tidak bisa menonaktifkan akunmu sendiri' };
+	}
 	return update(db, id, { status: statusToDb[status] });
 }
 

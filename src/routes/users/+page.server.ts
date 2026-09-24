@@ -33,7 +33,12 @@ export const actions: Actions = {
 	setStatus: async ({ request, locals }) => {
 		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: FORBIDDEN });
 		const form = await request.formData();
-		const result = await setUserStatus(getDb(), String(form.get('id') ?? ''), String(form.get('status') ?? ''));
+		const result = await setUserStatus(
+			getDb(),
+			String(form.get('id') ?? ''),
+			String(form.get('status') ?? ''),
+			locals.user!.id
+		);
 		if (!result.ok) return fail(result.status, { rowError: result.error });
 		return { updated: true };
 	},

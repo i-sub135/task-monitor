@@ -1,15 +1,16 @@
+import { randomUUID } from 'node:crypto';
 import { fail, redirect } from '@sveltejs/kit';
-import { addTask, type TaskType } from '$lib/mock/tasks';
+import { checkUploads, removeStored, storeFiles, type StoredFile } from '$lib/server/attachments';
+import { getDb } from '$lib/server/db';
+import { logger } from '$lib/server/logger';
+import { createTask } from '$lib/server/tasks';
+import type { TaskType } from '$lib/tasks';
 import type { Actions } from './$types';
-
-const MAX_FILES = 5;
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
-
-const isAllowedMime = (mime: string) => mime.startsWith('image/') || mime === 'application/pdf';
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
 		if (!locals.user) redirect(303, '/');
+
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();
 		const description = String(form.get('description') ?? '').trim();
@@ -23,24 +24,34 @@ export const actions: Actions = {
 		else if (title.length > 120) errors.title = 'Judul maksimal 120 karakter';
 		if (!description) errors.description = 'Deskripsi wajib diisi';
 		if (type !== 'bug' && type !== 'feature') errors.type = 'Pilih bug atau feature';
-		if (files.length > MAX_FILES) errors.attachments = `Maksimal ${MAX_FILES} lampiran`;
-		else if (files.some((f) => f.size > MAX_FILE_BYTES)) errors.attachments = 'Maksimal 5 MB per file';
-		else if (files.some((f) => !isAllowedMime(f.type))) errors.attachments = 'Hanya gambar atau PDF';
 
-		if (Object.keys(errors).length > 0) {
+		const uploads = await checkUploads(files);
+		if (!uploads.ok) errors.attachments = uploads.error;
+
+		if (Object.keys(errors).length > 0 || !uploads.ok) {
 			return fail(400, { errors, values: { title, description, type } });
 		}
 
-		// Mock: cuma nyimpen nama + mime, isi file gak disimpan.
-		const task = addTask(
-			{
+		// File ditulis dulu, baru DB. Kalau transaksi gagal, file yang udah ditulis dihapus lagi.
+		const id = randomUUID();
+		let stored: StoredFile[] = [];
+		try {
+			stored = await storeFiles(id, uploads.files);
+			await createTask(getDb(), {
+				id,
 				title,
 				description,
 				type: type as TaskType,
-				attachments: files.map((f) => ({ name: f.name, mime: f.type }))
-			},
-			locals.user
-		);
-		redirect(303, `/task/${task.id}`);
+				userId: locals.user.id,
+				attachments: stored
+			});
+		} catch (e) {
+			await removeStored(id, stored).catch(() => undefined);
+			logger.error('task.create.failed', { error: e instanceof Error ? e.message : String(e) });
+			const saveErrors: Record<string, string> = { form: 'Gagal menyimpan task. Coba lagi.' };
+			return fail(500, { errors: saveErrors, values: { title, description, type } });
+		}
+
+		redirect(303, `/task/${id}`);
 	}
 };

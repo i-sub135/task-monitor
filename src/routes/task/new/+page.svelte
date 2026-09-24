@@ -19,7 +19,8 @@
 	let previews = $state<Preview[]>([]);
 	let fileInput = $state<HTMLInputElement>();
 
-	const isAllowed = (f: File) => f.type.startsWith('image/') || f.type === 'application/pdf';
+	const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'application/pdf'];
+	const isAllowed = (f: File) => ALLOWED_TYPES.includes(f.type);
 
 	function revokeAll() {
 		for (const p of previews) if (p.url) URL.revokeObjectURL(p.url);
@@ -33,7 +34,7 @@
 			size: f.size,
 			url: f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined,
 			error: !isAllowed(f)
-				? 'Hanya gambar atau PDF'
+				? 'Hanya PNG, JPG, GIF, WEBP, atau PDF'
 				: f.size > MAX_FILE_BYTES
 					? 'Lebih dari 5 MB'
 					: undefined
@@ -69,7 +70,7 @@
 >
 	<div>
 		<h1 class="h3">Task baru</h1>
-		<p class="text-sm opacity-70">Mock: task disimpan di memori server dan hilang kalau server restart.</p>
+		<p class="text-sm opacity-70">Task masuk ke kolom Request dan bisa dilihat semua orang.</p>
 	</div>
 
 	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug dan feature">
@@ -148,10 +149,10 @@
 			type="file"
 			name="attachments"
 			multiple
-			accept="image/*,application/pdf"
+			accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
 			onchange={onPick}
 		/>
-		<p class="text-xs opacity-70">Maksimal 5 file, 5 MB per file. Gambar atau PDF.</p>
+		<p class="text-xs opacity-70">Maksimal 5 file, 5 MB per file. PNG, JPG, GIF, WEBP, atau PDF.</p>
 		{#if tooMany}<span class="text-error-500 text-sm">Maksimal {MAX_FILES} lampiran</span>{/if}
 		{#if form?.errors?.attachments}<span class="text-error-500 text-sm"
 				>{form.errors.attachments}</span
@@ -184,6 +185,10 @@
 			</button>
 		{/if}
 	</div>
+
+	{#if form?.errors?.form}
+		<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.errors.form}</div>
+	{/if}
 
 	<div class="flex justify-end gap-3 pt-2">
 		<a href="/board" class="btn hover:preset-tonal">Batal</a>

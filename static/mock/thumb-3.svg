@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
-  <rect width="320" height="180" fill="#9ccfd8"/>
-  <rect x="24" y="24" width="272" height="20" rx="4" fill="#31748f" opacity="0.55"/>
-  <rect x="24" y="60" width="120" height="96" rx="6" fill="#31748f" opacity="0.4"/>
-  <rect x="160" y="60" width="136" height="12" rx="3" fill="#31748f" opacity="0.4"/>
-  <rect x="160" y="82" width="110" height="12" rx="3" fill="#31748f" opacity="0.3"/>
-  <rect x="160" y="104" width="124" height="12" rx="3" fill="#31748f" opacity="0.3"/>
-  <text x="296" y="172" font-family="system-ui, sans-serif" font-size="10" text-anchor="end" fill="#31748f">mock: Desain</text>
-</svg>
