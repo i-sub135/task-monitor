@@ -1,7 +1,7 @@
 # TM-4 — Bikin task: form + upload lampiran
 
 **Type**: feature
-**Status**: In progress — kode jadi, sisa AC test
+**Status**: Done
 **Source**: `brainstorming.md` bagian 1 (`task`, `task_attachment`) + bagian 3 (upload)
 **Butuh**: TM-3
 
@@ -36,3 +36,4 @@
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
 - 2026-09-24 18:45 — kode jadi. Sisa AC 6: test AC 3 dan 5 belum ada (repo belum punya test framework). Batas ukuran file sekarang dari `UPLOAD_SIZE_LIMIT`. Lolos cek manual lewat Postgres sekali pakai, belum ada test permanen.
+- 2026-09-24 19:00 — beres, dipindah ke done. AC test di-skip atas keputusan Iyan (nol test otomatis di v1, dia verifikasi manual). Batas ukuran file sekarang dari `UPLOAD_SIZE_LIMIT`.

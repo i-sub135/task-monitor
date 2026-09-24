@@ -1,7 +1,7 @@
 # TM-3 — Auth: login email-only, session, guard per role
 
 **Type**: feature
-**Status**: In progress — kode jadi, sisa AC test
+**Status**: Done
 **Source**: `brainstorming.md` bagian 1 (login = cek email) + bagian 3 (hak akses)
 **Butuh**: TM-2
 
@@ -31,3 +31,4 @@
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
 - 2026-09-24 18:45 — kode jadi. Sisa AC 6: test 4 kasus belum ada (repo belum punya test framework). Spek berubah: login di `/`, admin wajib password `AUTH_ADMIN`, payload cookie `{uid, exp}`, 7 hari.
+- 2026-09-24 19:00 — beres, dipindah ke done. AC test di-skip atas keputusan Iyan (nol test otomatis di v1, dia verifikasi manual). Teks tiket di atas spek awal: login di `/`, admin wajib password `AUTH_ADMIN`, payload cookie `{uid, exp}` 7 hari (lihat `brainstorming.md` bagian 4).

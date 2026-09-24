@@ -1,7 +1,7 @@
 # TM-1 — Scaffold project
 
 **Type**: chore
-**Status**: In progress — kode jadi, sisa AC 6 (README "Jalanin")
+**Status**: Done
 **Source**: `brainstorming.md` bagian 2
 
 ## Yang dibikin
@@ -34,3 +34,4 @@ Project SvelteKit kosong yang udah bawa semua fondasi bagian 2, tanpa fitur apa 
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
 - 2026-09-24 18:45 — kode jadi (scaffold, tema rosepine, favicon, layout mobile). Sisa AC 6: README bagian "Jalanin" masih kosong. Catatan AC 3: TypeScript dipin 6.0.3 (TS 7 bikin svelte-check dan type generation rusak), jadi beda dari tabel `brainstorming.md`.
+- 2026-09-24 19:00 — beres, dipindah ke done. README bagian "Jalanin" udah diisi (AC 6). AC 3: TypeScript 6.0.3, bukan 7.0.2 di tabel lama; `brainstorming.md` udah disinkronin. Tema akhirnya `rosepine`, bukan `cerberus`.
