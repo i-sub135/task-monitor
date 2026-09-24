@@ -75,7 +75,7 @@
 
 <main
 	class="mx-auto w-full px-4 pt-6 sm:px-6 lg:px-8 {wide ? '' : 'max-w-[1600px]'} {data.user
-		? 'pb-24 md:pb-6'
+		? 'pb-14 md:pb-6'
 		: 'pb-6'}"
 >
 	{@render children()}
@@ -85,7 +85,7 @@
 {#if data.user}
 	<Navigation
 		layout="bar"
-		class="border-surface-300-700 fixed inset-x-0 bottom-0 z-40 border-t pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
+		class="border-surface-300-700 fixed inset-x-0 bottom-0 z-40 border-t pt-0.5! pb-[max(0.125rem,env(safe-area-inset-bottom))]! md:hidden"
 		aria-label="Navigasi utama"
 	>
 		<Navigation.Menu>
@@ -93,11 +93,11 @@
 				{@const active = page.url.pathname === item.href}
 				<Navigation.TriggerAnchor
 					href={item.href}
-					class="min-w-0 flex-1 {active ? 'preset-filled-primary-500' : ''}"
+					class="min-w-0 flex-1 gap-0! py-px! {active ? 'preset-filled-primary-500' : ''}"
 					aria-current={active ? 'page' : undefined}
 				>
-					<item.icon class="size-5" />
-					<Navigation.TriggerText>{item.label}</Navigation.TriggerText>
+					<item.icon class="size-4" />
+					<Navigation.TriggerText class="leading-3">{item.label}</Navigation.TriggerText>
 				</Navigation.TriggerAnchor>
 			{/each}
 		</Navigation.Menu>
