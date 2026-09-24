@@ -6,3 +6,19 @@
 
 /* Light only: dark variant hanya aktif kalau ada [data-mode="dark"], bukan ikut OS. */
 @custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
+
+/*
+ * Spacing form yang lebih lega. Skeleton bikin input/select/textarea cukup ~30px tinggi
+ * dan jarak label ke field 4px. Ditaruh di luar @layer supaya menang dari utility Skeleton,
+ * dan cuma berlaku di dalam .form-comfy supaya select kecil di tabel gak ikut.
+ */
+.form-comfy :is(.input, .textarea) {
+	padding-block: 0.75rem;
+	padding-inline: 1rem;
+}
+.form-comfy .select {
+	padding-block: 0.75rem;
+}
+.form-comfy .label > * + * {
+	margin-top: 0.5rem;
+}

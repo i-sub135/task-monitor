@@ -70,6 +70,6 @@
 	</AppBar.Toolbar>
 </AppBar>
 
-<main class="mx-auto w-full max-w-[1600px] p-4">
+<main class="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
 	{@render children()}
 </main>

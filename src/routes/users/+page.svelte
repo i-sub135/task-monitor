@@ -28,26 +28,26 @@
 	<title>Users · Task Monitor</title>
 </svelte:head>
 
-<div class="mb-4 flex items-baseline justify-between">
+<div class="mb-6 flex flex-wrap items-baseline justify-between gap-x-4">
 	<h1 class="h3">Users</h1>
 	<p class="text-sm opacity-70">{users.length} user, {activeCount} aktif (data mock)</p>
 </div>
 
 {#if form?.rowError}
-	<div class="card preset-filled-error-500 mb-4 p-3 text-sm" role="alert">{form.rowError}</div>
+	<div class="card preset-filled-error-500 mb-6 p-4 text-sm" role="alert">{form.rowError}</div>
 {/if}
 {#if form?.created}
-	<div class="card preset-filled-success-500 mb-4 p-3 text-sm" role="status">
+	<div class="card preset-filled-success-500 mb-6 p-4 text-sm" role="status">
 		User "{form.created}" ditambahkan.
 	</div>
 {/if}
 
-<div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_2fr]">
 	<form
 		method="POST"
 		action="?/create"
 		use:enhance
-		class="card preset-filled-surface-50-950 border-surface-300-700 flex h-fit flex-col gap-4 border p-5 shadow-xl"
+		class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy flex h-fit flex-col gap-5 border p-6 shadow-xl"
 	>
 		<h2 class="h5 flex items-center gap-2"><UserPlusIcon class="size-5" /> Tambah user</h2>
 

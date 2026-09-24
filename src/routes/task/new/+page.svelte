@@ -55,7 +55,7 @@
 	<title>Task baru · Task Monitor</title>
 </svelte:head>
 
-<a href="/" class="btn btn-sm hover:preset-tonal mb-4 inline-flex items-center gap-1">
+<a href="/" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
@@ -63,7 +63,7 @@
 	method="POST"
 	enctype="multipart/form-data"
 	use:enhance
-	class="card preset-filled-surface-50-950 border-surface-300-700 mx-auto flex max-w-2xl flex-col gap-5 border p-5 shadow-xl"
+	class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy mx-auto flex max-w-2xl flex-col gap-6 border p-6 shadow-xl"
 >
 	<div>
 		<h1 class="h3">Task baru</h1>
@@ -85,13 +85,13 @@
 	</label>
 
 	<fieldset class="flex flex-col gap-2">
-		<legend class="label-text mb-1 font-semibold">Tipe</legend>
+		<legend class="label-text mb-2 font-semibold">Tipe</legend>
 		<div class="flex gap-3">
-			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 p-3 has-[:checked]:preset-filled-error-500">
+			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-error-500">
 				<input class="radio" type="radio" name="type" value="bug" required checked={form?.values?.type === 'bug'} />
 				<BugIcon class="size-4" /> bug
 			</label>
-			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 p-3 has-[:checked]:preset-filled-primary-500">
+			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-primary-500">
 				<input class="radio" type="radio" name="type" value="feature" checked={form?.values?.type === 'feature'} />
 				<SparklesIcon class="size-4" /> feature
 			</label>
@@ -132,7 +132,7 @@
 			>{/if}
 
 		{#if previews.length > 0}
-			<ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+			<ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 				{#each previews as p (p.name + p.size)}
 					<li class="flex flex-col gap-1">
 						{#if p.url}
@@ -159,7 +159,7 @@
 		{/if}
 	</div>
 
-	<div class="flex justify-end gap-2">
+	<div class="flex justify-end gap-3 pt-2">
 		<a href="/" class="btn hover:preset-tonal">Batal</a>
 		<button type="submit" class="btn preset-filled-primary-500" disabled={hasFileError}>
 			Kirim request

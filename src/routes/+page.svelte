@@ -102,12 +102,12 @@
 	}
 </script>
 
-<div class="mb-2 flex items-baseline justify-between">
+<div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
 	<h1 class="h3">Board task</h1>
 	<p class="text-sm opacity-70">{tasks.length} task (data mock)</p>
 </div>
 
-<p class="mb-4 text-sm opacity-70">
+<p class="mb-6 text-sm opacity-70">
 	{#if canDrag}
 		Geser kartu ke kolom berikutnya buat ubah status. Cuma bisa maju: Request → Queue → In progress →
 		Ready to test → Done, atau Request → Rejected.
@@ -117,7 +117,7 @@
 </p>
 
 {#if form?.moveError}
-	<div class="card preset-filled-error-500 mb-4 p-3 text-sm" role="alert">{form.moveError}</div>
+	<div class="card preset-filled-error-500 mb-6 p-4 text-sm" role="alert">{form.moveError}</div>
 {/if}
 
 <form method="POST" action="?/move" bind:this={moveForm} use:enhance class="hidden">
@@ -133,7 +133,7 @@
 		<section
 			role="group"
 			aria-label="Kolom {statusLabels[status]}"
-			class="card preset-filled-surface-100-900 flex min-h-32 flex-col gap-3 p-3 transition {dragging
+			class="card preset-filled-surface-100-900 flex min-h-32 flex-col gap-4 p-4 transition {dragging
 				? valid
 					? 'ring-primary-500 ring-2'
 					: 'opacity-50'
@@ -153,7 +153,7 @@
 					draggable={isDraggable(task)}
 					ondragstart={(e) => onDragStart(e, task)}
 					ondragend={onDragEnd}
-					class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 focus-visible:outline-primary-500 flex cursor-pointer flex-col gap-2 border p-3 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline-2 {isDraggable(
+					class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 focus-visible:outline-primary-500 flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline-2 {isDraggable(
 						task
 					)
 						? 'active:cursor-grabbing'
@@ -188,10 +188,10 @@
 <dialog
 	bind:this={dialog}
 	onclose={() => (pending = null)}
-	class="card preset-filled-surface-50-950 border-surface-300-700 m-auto w-full max-w-md border p-5 shadow-2xl backdrop:bg-black/40"
+	class="card preset-filled-surface-50-950 border-surface-300-700 m-auto w-full max-w-md border p-6 shadow-2xl backdrop:bg-black/40"
 >
 	{#if pending}
-		<form onsubmit={confirmDialog} class="flex flex-col gap-3">
+		<form onsubmit={confirmDialog} class="form-comfy flex flex-col gap-4">
 			<h2 class="h4">Pindah ke {statusLabels[pending.to]}</h2>
 			<p class="text-sm opacity-70">{pending.task.title}</p>
 			<label class="label">
