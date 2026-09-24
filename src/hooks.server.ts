@@ -2,6 +2,7 @@ import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { SESSION_COOKIE, endSession, readSession } from '$lib/server/auth';
 import { getLoginPassword } from '$lib/server/secret';
+import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { guardRedirect } from '$lib/server/guard';
 import { getDb } from '$lib/server/db';
 import { logEvent, logger } from '$lib/server/logger';
@@ -11,6 +12,7 @@ import { seedAdminIfEmpty } from '$lib/server/seed';
 export const init: ServerInit = async () => {
 	try {
 		getLoginPassword();
+		getUploadLimitBytes();
 		await seedAdminIfEmpty(
 			getDb(),
 			{ email: env.SEED_ADMIN_EMAIL, name: env.SEED_ADMIN_NAME },

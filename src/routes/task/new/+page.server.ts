@@ -4,8 +4,15 @@ import { checkUploads, removeStored, storeFiles, type StoredFile } from '$lib/se
 import { getDb } from '$lib/server/db';
 import { logger } from '$lib/server/logger';
 import { createTask } from '$lib/server/tasks';
+import { getUploadLimitBytes } from '$lib/server/upload-config';
+import { MAX_FILES } from '$lib/upload-limits';
 import type { TaskType } from '$lib/tasks';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = () => ({
+	maxFiles: MAX_FILES,
+	maxFileBytes: getUploadLimitBytes()
+});
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
@@ -25,7 +32,7 @@ export const actions: Actions = {
 		if (!description) errors.description = 'Deskripsi wajib diisi';
 		if (type !== 'bug' && type !== 'feature') errors.type = 'Pilih bug atau feature';
 
-		const uploads = await checkUploads(files);
+		const uploads = await checkUploads(files, getUploadLimitBytes());
 		if (!uploads.ok) errors.attachments = uploads.error;
 
 		if (Object.keys(errors).length > 0 || !uploads.ok) {

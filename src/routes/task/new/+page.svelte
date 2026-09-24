@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { onDestroy } from 'svelte';
+	import { formatSize } from '$lib/upload-limits';
 	import {
 		ArrowLeftIcon,
 		BugIcon,
@@ -10,10 +11,10 @@
 		XIcon
 	} from '@lucide/svelte';
 
-	let { form } = $props();
+	let { form, data } = $props();
 
-	const MAX_FILES = 5;
-	const MAX_FILE_BYTES = 5 * 1024 * 1024;
+	const MAX_FILES = $derived(data.maxFiles);
+	const MAX_FILE_BYTES = $derived(data.maxFileBytes);
 
 	type Preview = { name: string; size: number; url?: string; error?: string };
 	let previews = $state<Preview[]>([]);
@@ -36,7 +37,7 @@
 			error: !isAllowed(f)
 				? 'Hanya PNG, JPG, GIF, WEBP, atau PDF'
 				: f.size > MAX_FILE_BYTES
-					? 'Lebih dari 5 MB'
+					? `Lebih dari ${formatSize(MAX_FILE_BYTES)}`
 					: undefined
 		}));
 	}
@@ -152,7 +153,7 @@
 			accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
 			onchange={onPick}
 		/>
-		<p class="text-xs opacity-70">Maksimal 5 file, 5 MB per file. PNG, JPG, GIF, WEBP, atau PDF.</p>
+		<p class="text-xs opacity-70">Maksimal {MAX_FILES} file, {formatSize(MAX_FILE_BYTES)} per file. PNG, JPG, GIF, WEBP, atau PDF.</p>
 		{#if tooMany}<span class="text-error-500 text-sm">Maksimal {MAX_FILES} lampiran</span>{/if}
 		{#if form?.errors?.attachments}<span class="text-error-500 text-sm"
 				>{form.errors.attachments}</span

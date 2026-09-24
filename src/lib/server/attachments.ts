@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { DEFAULT_UPLOAD_SIZE_LIMIT, MAX_FILES, formatSize, parseSize } from '../upload-limits.js';
 
-export const MAX_FILES = 5;
-export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+export { MAX_FILES };
 export const ATTACHMENT_DIR = 'storage/attachment';
 
 export type DetectedType = { mime: string; ext: string };
@@ -36,13 +36,18 @@ export type UploadCheck = { ok: true; files: AcceptedFile[] } | { ok: false; err
 const cleanName = (name: string) =>
 	name.replace(/[\\/\0]/g, '_').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 200) || 'file';
 
-/** Validasi di server: jumlah, ukuran, mime kiriman, dan isi file. */
-export async function checkUploads(files: File[]): Promise<UploadCheck> {
+/** Validasi di server: jumlah, ukuran, mime kiriman, dan isi file. maxFileBytes dari UPLOAD_SIZE_LIMIT. */
+export async function checkUploads(
+	files: File[],
+	maxFileBytes: number = parseSize(DEFAULT_UPLOAD_SIZE_LIMIT)
+): Promise<UploadCheck> {
 	if (files.length > MAX_FILES) return { ok: false, error: `Maksimal ${MAX_FILES} lampiran` };
 
 	const accepted: AcceptedFile[] = [];
 	for (const file of files) {
-		if (file.size > MAX_FILE_BYTES) return { ok: false, error: `"${cleanName(file.name)}" lebih dari 5 MB` };
+		if (file.size > maxFileBytes) {
+			return { ok: false, error: `"${cleanName(file.name)}" lebih dari ${formatSize(maxFileBytes)}` };
+		}
 		if (!declaredAllowed(file.type)) {
 			return { ok: false, error: `"${cleanName(file.name)}" bukan gambar atau PDF` };
 		}
