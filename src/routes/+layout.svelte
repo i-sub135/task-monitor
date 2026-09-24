@@ -26,45 +26,50 @@
 </svelte:head>
 
 <AppBar>
-	<AppBar.Toolbar class="grid-cols-[auto_1fr_auto]">
-		<AppBar.Lead>
+	<!--
+		HP: baris 1 = brand + user, baris 2 = nav (bisa digeser ke samping). Kolom pakai minmax(0, ...)
+		supaya gak ada isi yang melebihi lebar layar; kalau melebihi, browser HP ngecilin seluruh halaman.
+		Desktop: satu baris, brand | nav | user.
+	-->
+	<AppBar.Toolbar class="grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[auto_minmax(0,1fr)_auto]">
+		<AppBar.Lead class="col-start-1 row-start-1 min-w-0">
 			<a href={data.user ? '/board' : '/'} class="flex items-center gap-2">
-				<KanbanIcon class="size-6" />
-				<span class="text-xl font-bold">Task Monitor</span>
+				<KanbanIcon class="size-6 shrink-0" />
+				<span class="text-lg font-bold whitespace-nowrap sm:text-xl">Task Monitor</span>
 			</a>
 		</AppBar.Lead>
-		<AppBar.Headline>
-			<nav class="flex items-center gap-1" aria-label="Navigasi utama">
-				{#each navItems as item (item.href)}
-					{@const active = page.url.pathname === item.href}
-					<a
-						href={item.href}
-						class="btn btn-sm {active ? 'preset-filled-primary-500' : 'hover:preset-tonal'}"
-						aria-current={active ? 'page' : undefined}
-					>
-						<item.icon class="size-4" />
-						<span>{item.label}</span>
-					</a>
-				{/each}
-			</nav>
-		</AppBar.Headline>
-		<AppBar.Trail>
-			{#if data.user}
+		{#if data.user}
+			<AppBar.Headline class="col-span-2 row-start-2 min-w-0 md:col-span-1 md:col-start-2 md:row-start-1">
+				<nav class="flex items-center gap-1 overflow-x-auto" aria-label="Navigasi utama">
+					{#each navItems as item (item.href)}
+						{@const active = page.url.pathname === item.href}
+						<a
+							href={item.href}
+							class="btn btn-sm {active ? 'preset-filled-primary-500' : 'hover:preset-tonal'}"
+							aria-current={active ? 'page' : undefined}
+						>
+							<item.icon class="size-4" />
+							<span>{item.label}</span>
+						</a>
+					{/each}
+				</nav>
+			</AppBar.Headline>
+			<AppBar.Trail class="col-start-2 row-start-1 items-center md:col-start-3">
 				<div class="flex items-center gap-3 text-sm">
 					<span class="flex items-center gap-2">
-						<UserIcon class="size-5" />
-						<span>{data.user.name}</span>
+						<UserIcon class="size-5 shrink-0" />
+						<span class="hidden sm:inline">{data.user.name}</span>
 						<span class="badge preset-tonal">{data.user.role}</span>
 					</span>
 					<form method="POST" action="/logout">
-						<button type="submit" class="btn btn-sm hover:preset-tonal">
+						<button type="submit" class="btn btn-sm hover:preset-tonal" aria-label="Keluar">
 							<LogOutIcon class="size-4" />
-							<span>Keluar</span>
+							<span class="hidden sm:inline">Keluar</span>
 						</button>
 					</form>
 				</div>
-			{/if}
-		</AppBar.Trail>
+			</AppBar.Trail>
+		{/if}
 	</AppBar.Toolbar>
 </AppBar>
 
