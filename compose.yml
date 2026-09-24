@@ -6,6 +6,9 @@ services:
     build: .
     image: task-monitor:${APP_VERSION:-dev}
     restart: unless-stopped
+    # Folder storage/attachment di-mount dari host, jadi container harus jalan sebagai uid pemilik folder itu,
+    # kalau nggak upload gagal EACCES. `make docker-up` ngisi ini otomatis dari user yang manggil.
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL:?isi DATABASE_URL}

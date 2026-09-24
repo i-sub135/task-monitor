@@ -30,7 +30,7 @@ Pertama kali nyala, user admin dibikin otomatis dari `SEED_ADMIN_EMAIL` + `SEED_
 
 Production tanpa Docker: `npm run build && npm start`. Pakai `npm start`, jangan `node build` langsung, karena launcher-nya yang nerjemahin `UPLOAD_SIZE_LIMIT` ke batas request adapter-node.
 
-Docker (1 container, Postgres tetap yang eksisting lewat `DATABASE_URL`): isi `.env`, lalu `make docker-build` dan `make docker-up`. Di dalam container, Postgres di mesin host dijangkau lewat `host.docker.internal`, bukan `localhost`. Lampiran ke-mount di `./storage/attachment`. Perintah lain: `make docker-logs`, `make docker-down`.
+Docker (1 container, Postgres tetap yang eksisting lewat `DATABASE_URL`): isi `.env`, lalu `make docker-build` dan `make docker-up`. Di dalam container, Postgres di mesin host dijangkau lewat `host.docker.internal`, bukan `localhost`. Lampiran ke-mount di `./storage/attachment`; container jalan sebagai uid/gid user yang manggil `make docker-up` (kalau pakai `docker compose up` langsung, set `APP_UID` dan `APP_GID` sendiri, defaultnya 1000, biar bisa nulis ke folder itu). Perintah lain: `make docker-logs`, `make docker-down`.
 
 | Env | Wajib | Isi |
 | --- | --- | --- |

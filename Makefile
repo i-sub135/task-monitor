@@ -18,10 +18,11 @@ test:
 docker-build:
 	docker compose build
 
-# storage/attachment dibikin dulu biar dimiliki user host, bukan root (container jalan sebagai uid 1000).
+# storage/attachment dibikin dulu biar dimiliki user host, bukan root. Container jalan sebagai uid/gid user itu
+# (APP_UID/APP_GID), supaya bisa nulis lampiran ke folder yang di-mount.
 docker-up:
 	mkdir -p storage/attachment
-	docker compose up -d
+	APP_UID=$$(id -u) APP_GID=$$(id -g) docker compose up -d
 
 docker-down:
 	docker compose down
