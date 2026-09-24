@@ -1,0 +1,163 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { onDestroy } from 'svelte';
+	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, XIcon } from '@lucide/svelte';
+
+	let { form } = $props();
+
+	const MAX_FILES = 5;
+	const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+	type Preview = { name: string; size: number; url?: string; error?: string };
+	let previews = $state<Preview[]>([]);
+	let fileInput = $state<HTMLInputElement>();
+
+	const isAllowed = (f: File) => f.type.startsWith('image/') || f.type === 'application/pdf';
+
+	function revokeAll() {
+		for (const p of previews) if (p.url) URL.revokeObjectURL(p.url);
+	}
+
+	function onPick(e: Event) {
+		revokeAll();
+		const files = Array.from((e.currentTarget as HTMLInputElement).files ?? []);
+		previews = files.map((f) => ({
+			name: f.name,
+			size: f.size,
+			url: f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined,
+			error: !isAllowed(f)
+				? 'Hanya gambar atau PDF'
+				: f.size > MAX_FILE_BYTES
+					? 'Lebih dari 5 MB'
+					: undefined
+		}));
+	}
+
+	function clearFiles() {
+		revokeAll();
+		previews = [];
+		if (fileInput) fileInput.value = '';
+	}
+
+	onDestroy(revokeAll);
+
+	const tooMany = $derived(previews.length > MAX_FILES);
+	const hasFileError = $derived(tooMany || previews.some((p) => p.error));
+	const kb = (n: number) => `${Math.max(1, Math.round(n / 1024))} KB`;
+</script>
+
+<svelte:head>
+	<title>Task baru · Task Monitor</title>
+</svelte:head>
+
+<a href="/" class="btn btn-sm hover:preset-tonal mb-4 inline-flex items-center gap-1">
+	<ArrowLeftIcon class="size-4" /> Board
+</a>
+
+<form
+	method="POST"
+	enctype="multipart/form-data"
+	use:enhance
+	class="card preset-filled-surface-50-950 border-surface-300-700 mx-auto flex max-w-2xl flex-col gap-5 border p-5 shadow-xl"
+>
+	<div>
+		<h1 class="h3">Task baru</h1>
+		<p class="text-sm opacity-70">Mock: task disimpan di memori server dan hilang kalau server restart.</p>
+	</div>
+
+	<label class="label">
+		<span class="label-text font-semibold">Judul</span>
+		<input
+			class="input"
+			type="text"
+			name="title"
+			maxlength="120"
+			required
+			placeholder="Ringkas masalah atau permintaannya"
+			value={form?.values?.title ?? ''}
+		/>
+		{#if form?.errors?.title}<span class="text-error-500 text-sm">{form.errors.title}</span>{/if}
+	</label>
+
+	<fieldset class="flex flex-col gap-2">
+		<legend class="label-text mb-1 font-semibold">Tipe</legend>
+		<div class="flex gap-3">
+			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 p-3 has-[:checked]:preset-filled-error-500">
+				<input class="radio" type="radio" name="type" value="bug" required checked={form?.values?.type === 'bug'} />
+				<BugIcon class="size-4" /> bug
+			</label>
+			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 p-3 has-[:checked]:preset-filled-primary-500">
+				<input class="radio" type="radio" name="type" value="feature" checked={form?.values?.type === 'feature'} />
+				<SparklesIcon class="size-4" /> feature
+			</label>
+		</div>
+		{#if form?.errors?.type}<span class="text-error-500 text-sm">{form.errors.type}</span>{/if}
+	</fieldset>
+
+	<label class="label">
+		<span class="label-text font-semibold">Deskripsi</span>
+		<textarea
+			class="textarea"
+			name="description"
+			rows="5"
+			required
+			placeholder="Ceritakan detailnya: apa yang terjadi, di mana, seberapa sering"
+			>{form?.values?.description ?? ''}</textarea
+		>
+		{#if form?.errors?.description}<span class="text-error-500 text-sm"
+				>{form.errors.description}</span
+			>{/if}
+	</label>
+
+	<div class="flex flex-col gap-2">
+		<span class="label-text font-semibold">Lampiran</span>
+		<input
+			bind:this={fileInput}
+			class="input"
+			type="file"
+			name="attachments"
+			multiple
+			accept="image/*,application/pdf"
+			onchange={onPick}
+		/>
+		<p class="text-xs opacity-70">Maksimal 5 file, 5 MB per file. Gambar atau PDF.</p>
+		{#if tooMany}<span class="text-error-500 text-sm">Maksimal {MAX_FILES} lampiran</span>{/if}
+		{#if form?.errors?.attachments}<span class="text-error-500 text-sm"
+				>{form.errors.attachments}</span
+			>{/if}
+
+		{#if previews.length > 0}
+			<ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+				{#each previews as p (p.name + p.size)}
+					<li class="flex flex-col gap-1">
+						{#if p.url}
+							<img
+								src={p.url}
+								alt={p.name}
+								class="rounded-container border-surface-300-700 aspect-video w-full border object-cover"
+							/>
+						{:else}
+							<div
+								class="preset-outlined-surface-300-700 rounded-container flex aspect-video w-full items-center justify-center"
+							>
+								<FileTextIcon class="size-8 opacity-60" />
+							</div>
+						{/if}
+						<span class="truncate text-xs opacity-70" title={p.name}>{p.name} · {kb(p.size)}</span>
+						{#if p.error}<span class="text-error-500 text-xs">{p.error}</span>{/if}
+					</li>
+				{/each}
+			</ul>
+			<button type="button" class="btn btn-sm hover:preset-tonal self-start" onclick={clearFiles}>
+				<XIcon class="size-4" /> Kosongkan lampiran
+			</button>
+		{/if}
+	</div>
+
+	<div class="flex justify-end gap-2">
+		<a href="/" class="btn hover:preset-tonal">Batal</a>
+		<button type="submit" class="btn preset-filled-primary-500" disabled={hasFileError}>
+			Kirim request
+		</button>
+	</div>
+</form>

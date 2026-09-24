@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { BugIcon, SparklesIcon, PaperclipIcon } from '@lucide/svelte';
-	import { tasks, statusLabels, type Status } from '$lib/mock/tasks';
+	import { statusLabels, type Status } from '$lib/mock/tasks';
 
+	let { data } = $props();
+	const tasks = $derived(data.tasks);
 	const columns = Object.keys(statusLabels) as Status[];
 </script>
 

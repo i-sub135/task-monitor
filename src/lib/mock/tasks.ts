@@ -158,3 +158,31 @@ export const tasks: MockTask[] = [
 export function getTask(id: string): MockTask | undefined {
 	return tasks.find((t) => t.id === id);
 }
+
+const jakartaTime = new Intl.DateTimeFormat('sv-SE', {
+	timeZone: 'Asia/Jakarta',
+	dateStyle: 'short',
+	timeStyle: 'short'
+});
+
+export type NewTaskInput = {
+	title: string;
+	description: string;
+	type: TaskType;
+	attachments: MockAttachment[];
+};
+
+/** Mock create: hidup di memori server, hilang kalau server restart. Diganti Prisma di TM-2+. */
+export function addTask(input: NewTaskInput): MockTask {
+	const at = jakartaTime.format(new Date());
+	const task: MockTask = {
+		id: crypto.randomUUID(),
+		...input,
+		status: 'request',
+		createdBy: 'Sari',
+		createdAt: at,
+		history: [{ from: null, to: 'request', by: 'Sari', at }]
+	};
+	tasks.unshift(task);
+	return task;
+}
