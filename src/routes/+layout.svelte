@@ -12,6 +12,8 @@
 		{ href: '/task/new', label: 'Task baru', icon: PlusIcon, adminOnly: false },
 		{ href: '/users', label: 'Users', icon: UsersIcon, adminOnly: true }
 	];
+	// Board dilebarin penuh biar 6 kolom gak sempit di layar lebar. Halaman lain tetap dibatasi.
+	const wide = $derived(page.url.pathname === '/board');
 	// Kelola users cuma buat admin, jadi link-nya disembunyiin buat role lain.
 	const navItems = $derived(
 		data.user ? allNavItems.filter((i) => !i.adminOnly || data.user?.role === 'admin') : []
@@ -66,6 +68,6 @@
 	</AppBar.Toolbar>
 </AppBar>
 
-<main class="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+<main class="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 {wide ? '' : 'max-w-[1600px]'}">
 	{@render children()}
 </main>
