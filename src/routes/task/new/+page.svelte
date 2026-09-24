@@ -10,12 +10,7 @@
 		XIcon
 	} from '@lucide/svelte';
 
-	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte. Bentuknya ngikut return fail() di +page.server.ts.
-	type FormResult = {
-		errors?: Record<string, string>;
-		values?: { title: string; description: string; type: string };
-	} | null;
-	let { form }: { form?: FormResult } = $props();
+	let { form } = $props();
 
 	const MAX_FILES = 5;
 	const MAX_FILE_BYTES = 5 * 1024 * 1024;

@@ -2,17 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { UserPlusIcon } from '@lucide/svelte';
 	import { roles } from '$lib/mock/session';
-	import type { ManagedUser } from '$lib/mock/users';
 
-	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte.
-	type FormResult = {
-		errors?: Record<string, string>;
-		values?: { name: string; email: string; role: string };
-		created?: string;
-		updated?: boolean;
-		rowError?: string;
-	} | null;
-	let { data, form }: { data: { users: ManagedUser[] }; form?: FormResult } = $props();
+	let { data, form } = $props();
 
 	const users = $derived(data.users);
 	const activeCount = $derived(users.filter((u) => u.status === 'active').length);

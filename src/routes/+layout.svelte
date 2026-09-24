@@ -4,11 +4,9 @@
 	import { page } from '$app/state';
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import { KanbanIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
-	import type { Snippet } from 'svelte';
-	import { roles, type MockUser } from '$lib/mock/session';
+	import { roles } from '$lib/mock/session';
 
-	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte.
-	let { children, data }: { children: Snippet; data: { user: MockUser } } = $props();
+	let { children, data } = $props();
 
 	const allNavItems = [
 		{ href: '/', label: 'Board', icon: KanbanIcon, adminOnly: false },

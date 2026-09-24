@@ -3,16 +3,9 @@
 	import { enhance } from '$app/forms';
 	import { BugIcon, SparklesIcon, PaperclipIcon } from '@lucide/svelte';
 	import { statusLabels, transitions, type MockTask, type Status } from '$lib/mock/tasks';
-	import { canAdvance, type MockUser } from '$lib/mock/session';
+	import { canAdvance } from '$lib/mock/session';
 
-	// Tipe ditulis manual: TS 7 gak punya JS API, jadi SvelteKit gak bisa nurunin tipe `data` dari load.
-	let {
-		data,
-		form
-	}: {
-		data: { tasks: MockTask[]; user: MockUser };
-		form?: { moveError?: string; moved?: boolean } | null;
-	} = $props();
+	let { data, form } = $props();
 
 	const tasks = $derived(data.tasks);
 	const columns = Object.keys(statusLabels) as Status[];
