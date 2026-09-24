@@ -196,7 +196,7 @@
 					draggable={isDraggable(task)}
 					ondragstart={(e) => onDragStart(e, task)}
 					ondragend={onDragEnd}
-					class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 flex flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dragging?.id ===
+					class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 relative flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dragging?.id ===
 					task.id
 						? 'opacity-40'
 						: ''}"
@@ -217,7 +217,7 @@
 					<a
 						href="/task/{task.id}"
 						draggable="false"
-						class="focus-visible:outline-primary-500 font-medium hover:underline focus-visible:outline-2"
+						class="focus-visible:outline-primary-500 font-medium after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2"
 					>
 						{task.title}
 					</a>
@@ -232,7 +232,7 @@
 					</footer>
 
 					{#if canReorder(role, status)}
-						<div class="flex justify-end gap-1">
+						<div class="relative z-10 flex justify-end gap-1">
 							<button
 								type="button"
 								class="btn-icon btn-icon-sm hover:preset-tonal"
