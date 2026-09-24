@@ -25,3 +25,6 @@ vite.config.ts.timestamp-*
 # App
 /storage
 /logs
+
+# Prisma generated client
+/src/lib/server/generated

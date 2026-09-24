@@ -1,0 +1,121 @@
+// Terjemahan tabel di brainstorming.md bagian 1. Nama tabel dan kolom di DB snake_case (@@map / @map),
+// field di kode camelCase. Aturan yang gak bisa diekspresiin di schema dijaga di service:
+//   - Transisi status cuma maju, note wajib kalau status_after = rejected (TM-6)
+//   - Hak akses per role (TM-3)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/lib/server/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TaskType {
+  bug
+  feature
+
+  @@map("task_type")
+}
+
+enum TaskStatus {
+  request
+  queue
+  in_progress   @map("in-progress")
+  ready_to_test @map("ready-to-test")
+  done
+  rejected
+
+  @@map("task_status")
+}
+
+enum UserRole {
+  marketing
+  developer
+  admin
+
+  @@map("user_role")
+}
+
+enum UserStatus {
+  active
+  non_active @map("non-active")
+
+  @@map("user_status")
+}
+
+model User {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  email     String     @unique
+  role      UserRole
+  status    UserStatus @default(active)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  tasks           Task[]
+  taskHistory     TaskHistory[]
+  taskAttachments TaskAttachment[]
+
+  @@map("users")
+}
+
+model Task {
+  id          String     @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  type        TaskType
+  status      TaskStatus @default(request)
+  /// Urutan antrean, kecil = duluan. Dipakai di kolom request dan queue, diabaikan di status lain.
+  ordering    Int        @default(0)
+  createdById String     @map("created_by") @db.Uuid
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  createdBy   User             @relation(fields: [createdById], references: [id])
+  history     TaskHistory[]
+  attachments TaskAttachment[]
+
+  @@index([status, ordering])
+  @@map("task")
+}
+
+model TaskHistory {
+  id           String      @id @default(uuid()) @db.Uuid
+  taskId       String      @map("task_id") @db.Uuid
+  /// null = event pertama (task lahir)
+  statusBefore TaskStatus? @map("status_before")
+  statusAfter  TaskStatus  @map("status_after")
+  /// Wajib kalau statusAfter = rejected (dicek di service). Link hasil pas done ditaro di sini juga.
+  note         String?
+  createdById  String      @map("created_by") @db.Uuid
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  task      Task @relation(fields: [taskId], references: [id])
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([taskId])
+  @@map("task_history")
+}
+
+model TaskAttachment {
+  id          String   @id @default(uuid()) @db.Uuid
+  taskId      String   @map("task_id") @db.Uuid
+  /// Nama asli dari pengunggah
+  fileName    String   @map("file_name")
+  /// Path relatif di storage/attachment/<task_id>/<uuid>.<ext>
+  filePath    String   @map("file_path")
+  /// Label jenis file dari browser, mis. image/png. Dipakai nyaring upload dan nampilin
+  mimeType    String   @map("mime_type")
+  /// Byte
+  size        Int
+  createdById String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  task      Task @relation(fields: [taskId], references: [id])
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([taskId])
+  @@map("task_attachment")
+}
