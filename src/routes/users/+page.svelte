@@ -80,8 +80,8 @@
 		</p>
 	</form>
 
-	<div class="card preset-filled-surface-50-950 border-surface-300-700 overflow-x-auto border shadow-xl">
-		<table class="table w-full">
+	<div class="card preset-filled-surface-50-950 border-surface-300-700 h-fit overflow-x-auto border shadow-xl">
+		<table class="table w-full [&_td]:px-4 [&_td]:py-3 [&_th]:px-4 [&_th]:py-3">
 			<thead>
 				<tr>
 					<th>Nama</th>
