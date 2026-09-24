@@ -23,6 +23,11 @@ export const users: ManagedUser[] = [
 	{ id: 'u6', name: 'Rina', email: 'rina@kantor.test', role: 'marketing', status: 'active', createdAt: '2026-09-03 11:30', updatedAt: '2026-09-03 11:30' }
 ];
 
+export const findUserById = (id: string): ManagedUser | undefined => users.find((u) => u.id === id);
+
+export const findUserByEmail = (email: string): ManagedUser | undefined =>
+	users.find((u) => u.email === email.trim().toLowerCase());
+
 export type NewUserInput = { name: string; email: string; role: string };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

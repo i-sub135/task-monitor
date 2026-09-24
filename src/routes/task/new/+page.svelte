@@ -57,7 +57,7 @@
 	<title>Task baru · Task Monitor</title>
 </svelte:head>
 
-<a href="/" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
+<a href="/board" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
@@ -186,7 +186,7 @@
 	</div>
 
 	<div class="flex justify-end gap-3 pt-2">
-		<a href="/" class="btn hover:preset-tonal">Batal</a>
+		<a href="/board" class="btn hover:preset-tonal">Batal</a>
 		<button type="submit" class="btn preset-filled-primary-500" disabled={hasFileError}>
 			Kirim request
 		</button>

@@ -3,7 +3,9 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			user: import('$lib/mock/session').SessionUser | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

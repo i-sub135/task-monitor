@@ -11,7 +11,7 @@
 	<title>{task.title} · Task Monitor</title>
 </svelte:head>
 
-<a href="/" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
+<a href="/board" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 

@@ -1,20 +1,18 @@
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { addUser, setUserRole, setUserStatus, users, validateNewUser } from '$lib/mock/users';
-import { getMockUser } from '$lib/server/mock-session';
-import type { Cookies } from '@sveltejs/kit';
+import { hasRole, requireRole } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 // Kelola users cuma buat admin (brainstorming.md bagian 3). Dicek ulang di tiap action.
-const isAdmin = (cookies: Cookies) => getMockUser(cookies).role === 'admin';
 
-export const load: PageServerLoad = ({ cookies }) => {
-	if (!isAdmin(cookies)) error(403, 'Cuma admin yang bisa kelola users');
+export const load: PageServerLoad = ({ locals }) => {
+	requireRole(locals, 'admin');
 	return { users };
 };
 
 export const actions: Actions = {
-	create: async ({ request, cookies }) => {
-		if (!isAdmin(cookies)) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
+	create: async ({ request, locals }) => {
+		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
 
 		const form = await request.formData();
 		const input = {
@@ -31,16 +29,16 @@ export const actions: Actions = {
 		return { created: input.name };
 	},
 
-	setStatus: async ({ request, cookies }) => {
-		if (!isAdmin(cookies)) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
+	setStatus: async ({ request, locals }) => {
+		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
 		const form = await request.formData();
 		const result = setUserStatus(String(form.get('id') ?? ''), String(form.get('status') ?? ''));
 		if (!result.ok) return fail(result.status, { rowError: result.error });
 		return { updated: true };
 	},
 
-	setRole: async ({ request, cookies }) => {
-		if (!isAdmin(cookies)) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
+	setRole: async ({ request, locals }) => {
+		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
 		const form = await request.formData();
 		const result = setUserRole(String(form.get('id') ?? ''), String(form.get('role') ?? ''));
 		if (!result.ok) return fail(result.status, { rowError: result.error });

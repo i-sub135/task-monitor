@@ -3,18 +3,19 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
-	import { KanbanIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
-	import { roles } from '$lib/mock/session';
+	import { KanbanIcon, LogOutIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
 
 	let { children, data } = $props();
 
 	const allNavItems = [
-		{ href: '/', label: 'Board', icon: KanbanIcon, adminOnly: false },
+		{ href: '/board', label: 'Board', icon: KanbanIcon, adminOnly: false },
 		{ href: '/task/new', label: 'Task baru', icon: PlusIcon, adminOnly: false },
 		{ href: '/users', label: 'Users', icon: UsersIcon, adminOnly: true }
 	];
 	// Kelola users cuma buat admin, jadi link-nya disembunyiin buat role lain.
-	const navItems = $derived(allNavItems.filter((i) => !i.adminOnly || data.user.role === 'admin'));
+	const navItems = $derived(
+		data.user ? allNavItems.filter((i) => !i.adminOnly || data.user?.role === 'admin') : []
+	);
 </script>
 
 <svelte:head>
@@ -25,7 +26,7 @@
 <AppBar>
 	<AppBar.Toolbar class="grid-cols-[auto_1fr_auto]">
 		<AppBar.Lead>
-			<a href="/" class="flex items-center gap-2">
+			<a href={data.user ? '/board' : '/'} class="flex items-center gap-2">
 				<KanbanIcon class="size-6" />
 				<span class="text-xl font-bold">Task Monitor</span>
 			</a>
@@ -46,24 +47,21 @@
 			</nav>
 		</AppBar.Headline>
 		<AppBar.Trail>
-			<!-- Mock: ganti role buat ngetes hak akses, diganti login beneran di TM-3 -->
-			<form method="POST" action="/mock-role" class="flex items-center gap-2 text-sm">
-				<input type="hidden" name="redirectTo" value={page.url.pathname + page.url.search} />
-				<UserIcon class="size-5" />
-				<span>{data.user.name}</span>
-				<select
-					name="role"
-					class="select w-auto py-1 text-sm"
-					aria-label="Ganti role (mock)"
-					value={data.user.role}
-					onchange={(e) => e.currentTarget.form?.requestSubmit()}
-				>
-					{#each roles as r (r)}
-						<option value={r}>{r}</option>
-					{/each}
-				</select>
-				<noscript><button type="submit" class="btn btn-sm hover:preset-tonal">Ganti</button></noscript>
-			</form>
+			{#if data.user}
+				<div class="flex items-center gap-3 text-sm">
+					<span class="flex items-center gap-2">
+						<UserIcon class="size-5" />
+						<span>{data.user.name}</span>
+						<span class="badge preset-tonal">{data.user.role}</span>
+					</span>
+					<form method="POST" action="/logout">
+						<button type="submit" class="btn btn-sm hover:preset-tonal">
+							<LogOutIcon class="size-4" />
+							<span>Keluar</span>
+						</button>
+					</form>
+				</div>
+			{/if}
 		</AppBar.Trail>
 	</AppBar.Toolbar>
 </AppBar>

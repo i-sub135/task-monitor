@@ -1,5 +1,5 @@
 // Mock data, diganti query Prisma di TM-2+.
-import { canAdvance, type MockUser } from './session';
+import { canAdvance, type SessionUser } from './session';
 import { nowJakarta } from './time';
 
 export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'rejected';
@@ -198,7 +198,7 @@ export type NewTaskInput = {
 };
 
 /** Mock create: hidup di memori server, hilang kalau server restart. Diganti Prisma di TM-2+. */
-export function addTask(input: NewTaskInput, user: MockUser): MockTask {
+export function addTask(input: NewTaskInput, user: SessionUser): MockTask {
 	const at = nowJakarta();
 	const task: MockTask = {
 		id: crypto.randomUUID(),
@@ -212,7 +212,7 @@ export function addTask(input: NewTaskInput, user: MockUser): MockTask {
 	return task;
 }
 
-export type MoveInput = { id: string; to: string; note: string; user: MockUser };
+export type MoveInput = { id: string; to: string; note: string; user: SessionUser };
 export type MoveResult =
 	| { ok: true; task: MockTask }
 	| { ok: false; status: number; error: string };

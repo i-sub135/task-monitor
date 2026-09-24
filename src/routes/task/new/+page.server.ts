@@ -1,6 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { addTask, type TaskType } from '$lib/mock/tasks';
-import { getMockUser } from '$lib/server/mock-session';
 import type { Actions } from './$types';
 
 const MAX_FILES = 5;
@@ -9,7 +8,8 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const isAllowedMime = (mime: string) => mime.startsWith('image/') || mime === 'application/pdf';
 
 export const actions: Actions = {
-	default: async ({ request, cookies }) => {
+	default: async ({ request, locals }) => {
+		if (!locals.user) redirect(303, '/');
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();
 		const description = String(form.get('description') ?? '').trim();
@@ -39,7 +39,7 @@ export const actions: Actions = {
 				type: type as TaskType,
 				attachments: files.map((f) => ({ name: f.name, mime: f.type }))
 			},
-			getMockUser(cookies)
+			locals.user
 		);
 		redirect(303, `/task/${task.id}`);
 	}
