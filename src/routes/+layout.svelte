@@ -4,8 +4,11 @@
 	import { page } from '$app/state';
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import { KanbanIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
+	import type { Snippet } from 'svelte';
+	import { roles, type MockUser } from '$lib/mock/session';
 
-	let { children } = $props();
+	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte.
+	let { children, data }: { children: Snippet; data: { user: MockUser } } = $props();
 
 	const navItems = [
 		{ href: '/', label: 'Board', icon: KanbanIcon },
@@ -43,12 +46,24 @@
 			</nav>
 		</AppBar.Headline>
 		<AppBar.Trail>
-			<!-- Mock: session user belum ada, nyusul TM-3 -->
-			<div class="flex items-center gap-2 text-sm">
+			<!-- Mock: ganti role buat ngetes hak akses, diganti login beneran di TM-3 -->
+			<form method="POST" action="/mock-role" class="flex items-center gap-2 text-sm">
+				<input type="hidden" name="redirectTo" value={page.url.pathname + page.url.search} />
 				<UserIcon class="size-5" />
-				<span>Sari</span>
-				<span class="badge preset-tonal">marketing</span>
-			</div>
+				<span>{data.user.name}</span>
+				<select
+					name="role"
+					class="select w-auto py-1 text-sm"
+					aria-label="Ganti role (mock)"
+					value={data.user.role}
+					onchange={(e) => e.currentTarget.form?.requestSubmit()}
+				>
+					{#each roles as r (r)}
+						<option value={r}>{r}</option>
+					{/each}
+				</select>
+				<noscript><button type="submit" class="btn btn-sm hover:preset-tonal">Ganti</button></noscript>
+			</form>
 		</AppBar.Trail>
 	</AppBar.Toolbar>
 </AppBar>

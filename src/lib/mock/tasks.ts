@@ -1,4 +1,6 @@
 // Mock data, diganti query Prisma di TM-2+.
+import { canAdvance, type MockUser } from './session';
+
 export type Status = 'request' | 'queue' | 'in-progress' | 'done' | 'rejected';
 export type TaskType = 'bug' | 'feature';
 
@@ -27,6 +29,15 @@ export type MockTask = {
 	createdAt: string;
 	attachments: MockAttachment[];
 	history: MockHistory[];
+};
+
+/** Transisi maju doang (brainstorming.md bagian 3). done dan rejected terminal. */
+export const transitions: Record<Status, Status[]> = {
+	request: ['queue', 'rejected'],
+	queue: ['in-progress'],
+	'in-progress': ['done'],
+	done: [],
+	rejected: []
 };
 
 export const statusLabels: Record<Status, string> = {
@@ -173,16 +184,59 @@ export type NewTaskInput = {
 };
 
 /** Mock create: hidup di memori server, hilang kalau server restart. Diganti Prisma di TM-2+. */
-export function addTask(input: NewTaskInput): MockTask {
+export function addTask(input: NewTaskInput, user: MockUser): MockTask {
 	const at = jakartaTime.format(new Date());
 	const task: MockTask = {
 		id: crypto.randomUUID(),
 		...input,
 		status: 'request',
-		createdBy: 'Sari',
+		createdBy: user.name,
 		createdAt: at,
-		history: [{ from: null, to: 'request', by: 'Sari', at }]
+		history: [{ from: null, to: 'request', by: user.name, at }]
 	};
 	tasks.unshift(task);
 	return task;
+}
+
+export type MoveInput = { id: string; to: string; note: string; user: MockUser };
+export type MoveResult =
+	| { ok: true; task: MockTask }
+	| { ok: false; status: number; error: string };
+
+/** Mock transisi status: 1 baris riwayat per transisi. Diganti service Prisma di TM-2+. */
+export function moveTask({ id, to, note, user }: MoveInput): MoveResult {
+	const task = getTask(id);
+	if (!task) return { ok: false, status: 404, error: 'Task tidak ditemukan' };
+	if (!canAdvance(user.role)) {
+		return { ok: false, status: 403, error: 'Role marketing tidak bisa mengubah status' };
+	}
+
+	const statuses = Object.keys(transitions) as Status[];
+	if (!statuses.includes(to as Status)) return { ok: false, status: 400, error: 'Status tidak valid' };
+	const target = to as Status;
+
+	if (!transitions[task.status].includes(target)) {
+		return {
+			ok: false,
+			status: 400,
+			error: `Tidak bisa pindah dari ${statusLabels[task.status]} ke ${statusLabels[target]}`
+		};
+	}
+	if (target === 'rejected' && !note) {
+		return { ok: false, status: 400, error: 'Catatan wajib diisi kalau menolak task' };
+	}
+
+	const from = task.status;
+	task.status = target;
+	task.history.push({
+		from,
+		to: target,
+		by: user.name,
+		at: jakartaTime.format(new Date()),
+		...(note ? { note } : {})
+	});
+	// Pindah ke ujung array = ujung kolom tujuan. Ordering beneran nyusul di TM-5.
+	tasks.splice(tasks.indexOf(task), 1);
+	tasks.push(task);
+	return { ok: true, task };
 }
