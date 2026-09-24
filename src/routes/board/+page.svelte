@@ -155,7 +155,7 @@
 	<input type="hidden" name="position" value={reorderFields.position} />
 </form>
 
-<div class="mb-4 flex gap-1 overflow-x-auto md:hidden" role="tablist" aria-label="Kolom status">
+<div class="mb-4 flex gap-1 overflow-x-auto xs:hidden" role="tablist" aria-label="Kolom status">
 	{#each statuses as status (status)}
 		<button
 			type="button"
@@ -169,7 +169,7 @@
 	{/each}
 </div>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+<div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xl:grid-cols-6">
 	{#each statuses as status (status)}
 		{@const items = byStatus(status)}
 		{@const valid = isValidTarget(dragging, status)}
@@ -178,7 +178,7 @@
 			aria-label="Kolom {statusLabels[status]}"
 			class="card preset-filled-surface-100-900 min-h-32 flex-col gap-4 p-4 transition {activeTab === status
 				? 'flex'
-				: 'hidden'} md:flex {dragging ? (valid ? 'ring-primary-500 ring-2' : 'opacity-50') : ''} {overColumn ===
+				: 'hidden'} xs:flex {dragging ? (valid ? 'ring-primary-500 ring-2' : 'opacity-50') : ''} {overColumn ===
 			status
 				? 'bg-primary-100-900'
 				: ''}"

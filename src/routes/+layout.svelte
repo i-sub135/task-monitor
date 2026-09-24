@@ -28,10 +28,11 @@
 <AppBar>
 	<!--
 		Kolom pakai minmax(0, ...) supaya gak ada isi yang melebihi lebar layar; kalau melebihi, browser HP
-		ngecilin seluruh halaman. HP: brand | user. Desktop (md ke atas): brand | nav | user.
+		ngecilin seluruh halaman. HP (di bawah 500px): brand | user. 500px ke atas: brand | nav | user;
+		label nav baru muncul dari md (768px), di antaranya nav berupa ikon doang biar muat.
 		Nav di HP pindah ke bar bawah (Navigation layout="bar", di bawah).
 	-->
-	<AppBar.Toolbar class="grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[auto_minmax(0,1fr)_auto]">
+	<AppBar.Toolbar class="grid-cols-[minmax(0,1fr)_auto] xs:grid-cols-[auto_minmax(0,1fr)_auto]">
 		<AppBar.Lead class="col-start-1 row-start-1 min-w-0">
 			<a href={data.user ? '/board' : '/'} class="flex items-center gap-2">
 				<KanbanIcon class="size-6 shrink-0" />
@@ -39,7 +40,7 @@
 			</a>
 		</AppBar.Lead>
 		{#if data.user}
-			<AppBar.Headline class="hidden min-w-0 md:col-start-2 md:row-start-1 md:block">
+			<AppBar.Headline class="hidden min-w-0 xs:col-start-2 xs:row-start-1 xs:block">
 				<nav class="flex items-center gap-1 overflow-x-auto" aria-label="Navigasi utama">
 					{#each navItems as item (item.href)}
 						{@const active = page.url.pathname === item.href}
@@ -47,24 +48,26 @@
 							href={item.href}
 							class="btn btn-sm {active ? 'preset-filled-primary-500' : 'hover:preset-tonal'}"
 							aria-current={active ? 'page' : undefined}
+							aria-label={item.label}
+							title={item.label}
 						>
 							<item.icon class="size-4" />
-							<span>{item.label}</span>
+							<span class="hidden md:inline">{item.label}</span>
 						</a>
 					{/each}
 				</nav>
 			</AppBar.Headline>
-			<AppBar.Trail class="col-start-2 row-start-1 items-center md:col-start-3">
+			<AppBar.Trail class="col-start-2 row-start-1 items-center xs:col-start-3">
 				<div class="flex items-center gap-3 text-sm">
 					<span class="flex items-center gap-2">
 						<UserIcon class="size-5 shrink-0" />
-						<span class="hidden sm:inline">{data.user.name}</span>
+						<span class="hidden md:inline">{data.user.name}</span>
 						<span class="badge preset-tonal">{data.user.role}</span>
 					</span>
 					<form method="POST" action="/logout">
 						<button type="submit" class="btn btn-sm hover:preset-tonal" aria-label="Keluar">
 							<LogOutIcon class="size-4" />
-							<span class="hidden sm:inline">Keluar</span>
+							<span class="hidden md:inline">Keluar</span>
 						</button>
 					</form>
 				</div>
@@ -75,7 +78,7 @@
 
 <main
 	class="mx-auto w-full px-4 pt-6 sm:px-6 lg:px-8 {wide ? '' : 'max-w-[1600px]'} {data.user
-		? 'pb-14 md:pb-6'
+		? 'pb-14 xs:pb-6'
 		: 'pb-6'}"
 >
 	{@render children()}
@@ -85,7 +88,7 @@
 {#if data.user}
 	<Navigation
 		layout="bar"
-		class="border-surface-300-700 fixed inset-x-0 bottom-0 z-40 border-t pt-0.5! pb-[max(0.125rem,env(safe-area-inset-bottom))]! md:hidden"
+		class="border-surface-300-700 fixed inset-x-0 bottom-0 z-40 border-t pt-0.5! pb-[max(0.125rem,env(safe-area-inset-bottom))]! xs:hidden"
 		aria-label="Navigasi utama"
 	>
 		<Navigation.Menu>

@@ -5,6 +5,11 @@
 @import '@skeletonlabs/skeleton/themes/rosepine';
 
 /* Light only: dark variant hanya aktif kalau ada [data-mode="dark"], bukan ikut OS. */
+/* Tampilan HP = lebar di bawah 500px. Dari 500px ke atas (xs:) pakai tampilan desktop/tablet. */
+@theme {
+	--breakpoint-xs: 31.25rem;
+}
+
 @custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
 
 /*
