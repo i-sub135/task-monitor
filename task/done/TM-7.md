@@ -1,7 +1,7 @@
 # TM-7 — Kelola users (admin)
 
 **Type**: feature
-**Status**: Ready
+**Status**: Done
 **Source**: `brainstorming.md` bagian 1 (`users`) + bagian 3 (hak akses, user pertama)
 **Butuh**: TM-3
 
@@ -28,3 +28,4 @@
 ## History
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
+- 2026-09-24 18:45 — beres, dipindah ke done. AC 1–4 terpenuhi dan udah dipakai di browser Iyan. Beda dari tiket: login sekarang di `/` (bukan `/login`), admin wajib password `AUTH_ADMIN`; `/users` tampil kartu di HP dan tabel di desktop. Belum dijaga: admin bisa nurunin role dirinya sendiri.

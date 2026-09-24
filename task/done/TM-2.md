@@ -1,7 +1,7 @@
 # TM-2 — Prisma: schema, migration awal, seed admin
 
 **Type**: feature
-**Status**: Ready
+**Status**: Done
 **Source**: `brainstorming.md` bagian 1 + bagian 3 (user pertama)
 **Butuh**: TM-1
 
@@ -28,3 +28,4 @@
 ## History
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
+- 2026-09-24 18:45 — beres, dipindah ke done. AC 1–5 terpenuhi: migrate `init` + seed admin jalan di Postgres Iyan (Mac), seed idempotent (user pertama cuma kalau tabel kosong) dan cek ulang lewat Postgres sekali pakai. Beda dari tiket: enum status jadi 6 (`ready-to-test` ditambah atas permintaan Iyan), Prisma pakai driver adapter `pg`.

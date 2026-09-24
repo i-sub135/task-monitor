@@ -1,7 +1,7 @@
 # TM-5 — Papan: 5 kolom, kartu, ordering per role
 
 **Type**: feature
-**Status**: Ready
+**Status**: In progress — kode jadi, sisa AC test
 **Source**: `brainstorming.md` bagian 3 (hak akses, ordering)
 **Butuh**: TM-4
 
@@ -33,3 +33,4 @@
 ## History
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
+- 2026-09-24 18:45 — kode jadi. Sisa AC 6: test AC 2 dan 4 belum ada (repo belum punya test framework). Spek berubah: kolom jadi 6 (`ready-to-test`), papan di `/board`, reorder pakai drag.

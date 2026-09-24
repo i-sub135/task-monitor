@@ -1,7 +1,7 @@
 # TM-6 — Transisi status: maju + reject, tiap pindah = 1 baris history
 
 **Type**: feature
-**Status**: Ready
+**Status**: In progress — kode jadi, sisa AC test
 **Source**: `brainstorming.md` bagian 3 (transisi status)
 **Butuh**: TM-5
 
@@ -39,3 +39,4 @@
 ## History
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
+- 2026-09-24 18:45 — kode jadi. Sisa AC 5: test AC 1–4 belum ada (repo belum punya test framework). Spek berubah: 6 status (`in-progress → ready-to-test → done`), aturan transisi ada di `src/lib/tasks.ts` dan `src/lib/server/tasks.ts`, bukan `transition.ts`.
