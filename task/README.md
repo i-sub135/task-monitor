@@ -17,8 +17,7 @@ Kosong.
 - [TM-5](backlog/TM-5.md) — Papan 5 kolom, kartu, detail, ordering per role — Ready, AC 1–6
 - [TM-6](backlog/TM-6.md) — Transisi status maju + reject, tiap pindah = 1 baris history — Ready, AC 1–5
 - [TM-7](backlog/TM-7.md) — Kelola users (admin) — Ready, AC 1–4
-- [TM-8](backlog/TM-8.md) — Docker: image, compose, mount storage, Postgres eksisting — Ready, AC 1–5
 
 ## Done
 
-Kosong.
+- [TM-8](done/TM-8.md) — Docker: image, compose, mount storage, Postgres eksisting — Done (AC 1–5 belum dites di container)

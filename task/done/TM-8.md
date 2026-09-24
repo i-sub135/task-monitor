@@ -1,7 +1,7 @@
 # TM-8 — Docker: image, compose, mount storage, Postgres eksisting
 
 **Type**: chore
-**Status**: Ready
+**Status**: Done
 **Source**: `brainstorming.md` bagian 2 (deploy, upload)
 **Butuh**: TM-1 (bisa dikerjain paralel sama TM-2..7; final dites setelah TM-7)
 
@@ -32,3 +32,4 @@
 ## History
 
 - 2026-09-24 11:38 — ticket dibuka (Kuli Code, perintah Iyan lewat DM).
+- 2026-09-24 18:36 — kode kelar (commit 418a33c), dipindah ke done atas perintah Iyan. AC 1–5 belum dites: image belum pernah di-build/dijalanin, tes ada di Mac Iyan. Catatan: login sekarang di `/`, bukan `/login` (AC 2), dan `UPLOAD_SIZE_LIMIT` ikut compose (default 5M).
