@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { findUserByEmail } from '$lib/mock/users';
 import { startSession } from '$lib/server/auth';
+import { getDb } from '$lib/server/db';
+import { findUserByEmail } from '$lib/server/users';
 import { logEvent } from '$lib/server/logger';
 import type { Actions } from './$types';
 
@@ -16,7 +17,7 @@ export const actions: Actions = {
 
 		if (!email) return fail(400, { error: 'Email wajib diisi', email });
 
-		const user = findUserByEmail(email);
+		const user = await findUserByEmail(getDb(), email);
 		if (!user || user.status !== 'active') {
 			logEvent('auth.login.failed', { reason: 'not_found_or_inactive' });
 			return fail(400, { error: LOGIN_FAILED, email });

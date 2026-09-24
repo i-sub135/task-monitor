@@ -1,18 +1,20 @@
 import { fail } from '@sveltejs/kit';
-import { addUser, setUserRole, setUserStatus, users, validateNewUser } from '$lib/mock/users';
 import { hasRole, requireRole } from '$lib/server/auth';
+import { getDb } from '$lib/server/db';
+import { createUser, listUsers, setUserRole, setUserStatus } from '$lib/server/users';
 import type { Actions, PageServerLoad } from './$types';
 
 // Kelola users cuma buat admin (brainstorming.md bagian 3). Dicek ulang di tiap action.
+const FORBIDDEN = 'Cuma admin yang bisa kelola users';
 
-export const load: PageServerLoad = ({ locals }) => {
+export const load: PageServerLoad = async ({ locals }) => {
 	requireRole(locals, 'admin');
-	return { users };
+	return { users: await listUsers(getDb()) };
 };
 
 export const actions: Actions = {
 	create: async ({ request, locals }) => {
-		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
+		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: FORBIDDEN });
 
 		const form = await request.formData();
 		const input = {
@@ -22,25 +24,24 @@ export const actions: Actions = {
 				.toLowerCase(),
 			role: String(form.get('role') ?? '')
 		};
-		const errors = validateNewUser(input);
-		if (Object.keys(errors).length > 0) return fail(400, { errors, values: input });
 
-		addUser(input);
-		return { created: input.name };
+		const result = await createUser(getDb(), input);
+		if (!result.ok) return fail(400, { errors: result.errors, values: input });
+		return { created: result.user.name };
 	},
 
 	setStatus: async ({ request, locals }) => {
-		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
+		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: FORBIDDEN });
 		const form = await request.formData();
-		const result = setUserStatus(String(form.get('id') ?? ''), String(form.get('status') ?? ''));
+		const result = await setUserStatus(getDb(), String(form.get('id') ?? ''), String(form.get('status') ?? ''));
 		if (!result.ok) return fail(result.status, { rowError: result.error });
 		return { updated: true };
 	},
 
 	setRole: async ({ request, locals }) => {
-		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: 'Cuma admin yang bisa kelola users' });
+		if (!hasRole(locals.user, 'admin')) return fail(403, { rowError: FORBIDDEN });
 		const form = await request.formData();
-		const result = setUserRole(String(form.get('id') ?? ''), String(form.get('role') ?? ''));
+		const result = await setUserRole(getDb(), String(form.get('id') ?? ''), String(form.get('role') ?? ''));
 		if (!result.ok) return fail(result.status, { rowError: result.error });
 		return { updated: true };
 	}

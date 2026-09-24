@@ -1,6 +1,7 @@
 import { error, type Cookies } from '@sveltejs/kit';
 import type { Role, SessionUser } from '$lib/mock/session';
-import { findUserById } from '$lib/mock/users';
+import { findUserById } from './users';
+import { getDb } from './db';
 import { getSessionSecret } from './secret';
 import { signSession, verifySession } from './session';
 
@@ -28,10 +29,10 @@ export function endSession(cookies: Cookies): void {
  * Baca cookie, verifikasi tanda tangan, lalu ambil user terbaru dari store. Role dan status selalu
  * diambil ulang, bukan dipercaya dari cookie, jadi user yang dinonaktifin langsung gak sah.
  */
-export function readSession(cookies: Cookies): SessionUser | null {
+export async function readSession(cookies: Cookies): Promise<SessionUser | null> {
 	const payload = verifySession(cookies.get(SESSION_COOKIE), getSessionSecret());
 	if (!payload) return null;
-	const user = findUserById(payload.uid);
+	const user = await findUserById(getDb(), payload.uid);
 	if (!user || user.status !== 'active') return null;
 	return { id: user.id, name: user.name, role: user.role };
 }
