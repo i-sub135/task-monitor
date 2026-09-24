@@ -1,5 +1,6 @@
 // Mock data, diganti query Prisma di TM-2+.
 import { canAdvance, type MockUser } from './session';
+import { nowJakarta } from './time';
 
 export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'rejected';
 export type TaskType = 'bug' | 'feature';
@@ -189,12 +190,6 @@ export function getTask(id: string): MockTask | undefined {
 	return tasks.find((t) => t.id === id);
 }
 
-const jakartaTime = new Intl.DateTimeFormat('sv-SE', {
-	timeZone: 'Asia/Jakarta',
-	dateStyle: 'short',
-	timeStyle: 'short'
-});
-
 export type NewTaskInput = {
 	title: string;
 	description: string;
@@ -204,7 +199,7 @@ export type NewTaskInput = {
 
 /** Mock create: hidup di memori server, hilang kalau server restart. Diganti Prisma di TM-2+. */
 export function addTask(input: NewTaskInput, user: MockUser): MockTask {
-	const at = jakartaTime.format(new Date());
+	const at = nowJakarta();
 	const task: MockTask = {
 		id: crypto.randomUUID(),
 		...input,
@@ -251,7 +246,7 @@ export function moveTask({ id, to, note, user }: MoveInput): MoveResult {
 		from,
 		to: target,
 		by: user.name,
-		at: jakartaTime.format(new Date()),
+		at: nowJakarta(),
 		...(note ? { note } : {})
 	});
 	// Pindah ke ujung array = ujung kolom tujuan. Ordering beneran nyusul di TM-5.

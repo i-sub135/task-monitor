@@ -10,11 +10,13 @@
 	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte.
 	let { children, data }: { children: Snippet; data: { user: MockUser } } = $props();
 
-	const navItems = [
-		{ href: '/', label: 'Board', icon: KanbanIcon },
-		{ href: '/task/new', label: 'Task baru', icon: PlusIcon },
-		{ href: '/users', label: 'Users', icon: UsersIcon }
+	const allNavItems = [
+		{ href: '/', label: 'Board', icon: KanbanIcon, adminOnly: false },
+		{ href: '/task/new', label: 'Task baru', icon: PlusIcon, adminOnly: false },
+		{ href: '/users', label: 'Users', icon: UsersIcon, adminOnly: true }
 	];
+	// Kelola users cuma buat admin, jadi link-nya disembunyiin buat role lain.
+	const navItems = $derived(allNavItems.filter((i) => !i.adminOnly || data.user.role === 'admin'));
 </script>
 
 <svelte:head>
