@@ -2,7 +2,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
-	import { AppBar } from '@skeletonlabs/skeleton-svelte';
+	import { AppBar, Navigation } from '@skeletonlabs/skeleton-svelte';
 	import { KanbanIcon, LogOutIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
 
 	let { children, data } = $props();
@@ -27,9 +27,9 @@
 
 <AppBar>
 	<!--
-		HP: baris 1 = brand + user, baris 2 = nav (bisa digeser ke samping). Kolom pakai minmax(0, ...)
-		supaya gak ada isi yang melebihi lebar layar; kalau melebihi, browser HP ngecilin seluruh halaman.
-		Desktop: satu baris, brand | nav | user.
+		Kolom pakai minmax(0, ...) supaya gak ada isi yang melebihi lebar layar; kalau melebihi, browser HP
+		ngecilin seluruh halaman. HP: brand | user. Desktop (md ke atas): brand | nav | user.
+		Nav di HP pindah ke bar bawah (Navigation layout="bar", di bawah).
 	-->
 	<AppBar.Toolbar class="grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[auto_minmax(0,1fr)_auto]">
 		<AppBar.Lead class="col-start-1 row-start-1 min-w-0">
@@ -39,7 +39,7 @@
 			</a>
 		</AppBar.Lead>
 		{#if data.user}
-			<AppBar.Headline class="col-span-2 row-start-2 min-w-0 md:col-span-1 md:col-start-2 md:row-start-1">
+			<AppBar.Headline class="hidden min-w-0 md:col-start-2 md:row-start-1 md:block">
 				<nav class="flex items-center gap-1 overflow-x-auto" aria-label="Navigasi utama">
 					{#each navItems as item (item.href)}
 						{@const active = page.url.pathname === item.href}
@@ -73,6 +73,33 @@
 	</AppBar.Toolbar>
 </AppBar>
 
-<main class="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 {wide ? '' : 'max-w-[1600px]'}">
+<main
+	class="mx-auto w-full px-4 pt-6 sm:px-6 lg:px-8 {wide ? '' : 'max-w-[1600px]'} {data.user
+		? 'pb-24 md:pb-6'
+		: 'pb-6'}"
+>
 	{@render children()}
 </main>
+
+<!-- HP: navigasi utama jadi bar di dasar layar (pola Skeleton "bar": 3 sampai 5 tile, nempel di bawah). -->
+{#if data.user}
+	<Navigation
+		layout="bar"
+		class="border-surface-300-700 fixed inset-x-0 bottom-0 z-40 border-t pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
+		aria-label="Navigasi utama"
+	>
+		<Navigation.Menu>
+			{#each navItems as item (item.href)}
+				{@const active = page.url.pathname === item.href}
+				<Navigation.TriggerAnchor
+					href={item.href}
+					class="min-w-0 flex-1 {active ? 'preset-filled-primary-500' : ''}"
+					aria-current={active ? 'page' : undefined}
+				>
+					<item.icon class="size-5" />
+					<Navigation.TriggerText>{item.label}</Navigation.TriggerText>
+				</Navigation.TriggerAnchor>
+			{/each}
+		</Navigation.Menu>
+	</Navigation>
+{/if}
