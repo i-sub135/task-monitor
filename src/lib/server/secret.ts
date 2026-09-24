@@ -6,6 +6,13 @@ import { logger } from './logger';
 const MIN_LENGTH = 32;
 let devSecret: string | undefined;
 
+/** Password login. Wajib ada: kalau kosong, gak ada yang bisa masuk, jadi lebih baik server gak nyala. */
+export function getLoginPassword(): string {
+	const password = env.AUTH_ADMIN;
+	if (!password) throw new Error('AUTH_ADMIN belum diisi. Isi password login di .env');
+	return password;
+}
+
 /** Kunci tanda tangan cookie. Wajib ada di production; di dev dibikin acak per proses kalau env kosong. */
 export function getSessionSecret(): string {
 	const configured = env.COOKIE_SIGN_SECRET;
