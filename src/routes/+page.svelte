@@ -71,7 +71,7 @@
 					{/if}
 				</label>
 				<div class="flex justify-end gap-3">
-					<button type="button" class="btn hover:preset-tonal" onclick={() => dialog?.close()}>
+					<button type="button" class="btn preset-tonal" onclick={() => dialog?.close()}>
 						Batal
 					</button>
 					<button type="submit" class="btn preset-filled-primary-500">Masuk</button>

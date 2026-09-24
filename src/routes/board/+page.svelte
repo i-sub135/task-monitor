@@ -278,7 +278,7 @@
 				{#if noteError}<span class="text-error-500 text-sm">{noteError}</span>{/if}
 			</label>
 			<div class="flex justify-end gap-2">
-				<button type="button" class="btn hover:preset-tonal" onclick={cancelDialog}>Batal</button>
+				<button type="button" class="btn preset-tonal" onclick={cancelDialog}>Batal</button>
 				<button type="submit" class="btn preset-filled-primary-500">Simpan</button>
 			</div>
 		</form>

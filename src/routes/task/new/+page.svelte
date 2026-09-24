@@ -181,7 +181,7 @@
 					</li>
 				{/each}
 			</ul>
-			<button type="button" class="btn btn-sm hover:preset-tonal self-start" onclick={clearFiles}>
+			<button type="button" class="btn btn-sm preset-tonal self-start" onclick={clearFiles}>
 				<XIcon class="size-4" /> Kosongkan lampiran
 			</button>
 		{/if}
@@ -192,7 +192,7 @@
 	{/if}
 
 	<div class="flex justify-end gap-3 pt-2">
-		<a href="/board" class="btn hover:preset-tonal">Batal</a>
+		<a href="/board" class="btn preset-tonal">Batal</a>
 		<button type="submit" class="btn preset-filled-primary-500" disabled={hasFileError}>
 			Kirim request
 		</button>

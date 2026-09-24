@@ -65,7 +65,7 @@
 						<span class="badge preset-tonal">{data.user.role}</span>
 					</span>
 					<form method="POST" action="/logout">
-						<button type="submit" class="btn btn-sm hover:preset-tonal" aria-label="Keluar">
+						<button type="submit" class="btn btn-sm preset-tonal" aria-label="Keluar">
 							<LogOutIcon class="size-4" />
 							<span class="hidden md:inline">Keluar</span>
 						</button>
