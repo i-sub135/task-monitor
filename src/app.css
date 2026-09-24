@@ -2,4 +2,7 @@
 
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton-svelte';
-@import '@skeletonlabs/skeleton/themes/cerberus';
+@import '@skeletonlabs/skeleton/themes/rosepine';
+
+/* Light only: dark variant hanya aktif kalau ada [data-mode="dark"], bukan ikut OS. */
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
