@@ -1,7 +1,7 @@
 // Mock data, diganti query Prisma di TM-2+.
 import { canAdvance, type MockUser } from './session';
 
-export type Status = 'request' | 'queue' | 'in-progress' | 'done' | 'rejected';
+export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'rejected';
 export type TaskType = 'bug' | 'feature';
 
 export type MockHistory = {
@@ -35,7 +35,8 @@ export type MockTask = {
 export const transitions: Record<Status, Status[]> = {
 	request: ['queue', 'rejected'],
 	queue: ['in-progress'],
-	'in-progress': ['done'],
+	'in-progress': ['ready-to-test'],
+	'ready-to-test': ['done'],
 	done: [],
 	rejected: []
 };
@@ -44,6 +45,7 @@ export const statusLabels: Record<Status, string> = {
 	request: 'Request',
 	queue: 'Queue',
 	'in-progress': 'In progress',
+	'ready-to-test': 'Ready to test',
 	done: 'Done',
 	rejected: 'Rejected'
 };
@@ -123,6 +125,22 @@ export const tasks: MockTask[] = [
 		]
 	},
 	{
+		id: 'f1',
+		title: 'Gambar produk di katalog kepotong di HP',
+		description: 'Di layar HP, gambar produk di halaman katalog kepotong di sisi kanan.',
+		type: 'bug',
+		status: 'ready-to-test',
+		createdBy: 'Sari',
+		createdAt: '2026-09-22 10:30',
+		attachments: [img('katalog-hp.png', 2)],
+		history: [
+			{ from: null, to: 'request', by: 'Sari', at: '2026-09-22 10:30' },
+			{ from: 'request', to: 'queue', by: 'Budi', at: '2026-09-22 11:00' },
+			{ from: 'queue', to: 'in-progress', by: 'Budi', at: '2026-09-23 09:00' },
+			{ from: 'in-progress', to: 'ready-to-test', by: 'Budi', at: '2026-09-24 10:15' }
+		]
+	},
+	{
 		id: 'd1',
 		title: 'Fix typo di footer website',
 		description: 'Kata "Kebijakan Privasi" tertulis "Kebijakan Privasy" di footer.',
@@ -135,10 +153,11 @@ export const tasks: MockTask[] = [
 			{ from: null, to: 'request', by: 'Rina', at: '2026-09-20 11:15' },
 			{ from: 'request', to: 'queue', by: 'Budi', at: '2026-09-20 11:40' },
 			{ from: 'queue', to: 'in-progress', by: 'Budi', at: '2026-09-21 09:00' },
+			{ from: 'in-progress', to: 'ready-to-test', by: 'Budi', at: '2026-09-21 09:10' },
 			{
-				from: 'in-progress',
+				from: 'ready-to-test',
 				to: 'done',
-				by: 'Budi',
+				by: 'Rina',
 				at: '2026-09-21 09:20',
 				note: 'Sudah live: https://example.com'
 			}

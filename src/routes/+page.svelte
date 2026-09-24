@@ -110,7 +110,7 @@
 <p class="mb-4 text-sm opacity-70">
 	{#if canDrag}
 		Geser kartu ke kolom berikutnya buat ubah status. Cuma bisa maju: Request → Queue → In progress →
-		Done, atau Request → Rejected.
+		Ready to test → Done, atau Request → Rejected.
 	{:else}
 		Role marketing bisa liat board dan bikin task, tapi gak bisa ubah status.
 	{/if}
@@ -126,7 +126,7 @@
 	<input type="hidden" name="note" value={moveFields.note} />
 </form>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
 	{#each columns as status (status)}
 		{@const items = tasks.filter((t) => t.status === status)}
 		{@const valid = isValidTarget(dragging, status)}
