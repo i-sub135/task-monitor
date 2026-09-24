@@ -46,7 +46,9 @@
 			</header>
 
 			{#each items as task (task.id)}
-				<article class="card preset-outlined-surface-200-800 flex flex-col gap-2 p-3">
+				<article
+					class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-2 border p-3 shadow-xl transition-shadow hover:shadow-2xl"
+				>
 					<div class="flex items-center gap-2 text-xs">
 						{#if task.type === 'bug'}
 							<span class="badge preset-filled-error-500"><BugIcon class="size-3" /> bug</span>
