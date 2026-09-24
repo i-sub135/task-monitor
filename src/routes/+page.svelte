@@ -6,9 +6,9 @@
 	let dialog = $state<HTMLDialogElement>();
 	let password = $state('');
 
-	// Login gagal: buka lagi dialognya biar pesan error keliatan dan bisa langsung coba lagi.
+	// Akun admin: setelah "Lanjut", server minta password. Buka dialognya (juga pas password salah).
 	$effect(() => {
-		if (form?.error && dialog && !dialog.open) dialog.showModal();
+		if (form?.needsPassword && dialog && !dialog.open) dialog.showModal();
 	});
 </script>
 
@@ -17,21 +17,13 @@
 </svelte:head>
 
 <div class="mx-auto flex min-h-[60vh] w-full max-w-md flex-col justify-center">
-	<!-- Klik "Lanjut" (atau Enter di kolom email) cuma buka dialog password. Kirim beneran dari dialog. -->
 	<form
 		method="POST"
-		use:enhance={({ cancel }) => {
-			if (!dialog?.open) {
-				cancel();
-				password = '';
-				dialog?.showModal();
-				return;
-			}
-			return async ({ update }) => {
+		use:enhance={() =>
+			async ({ update }) => {
 				await update({ reset: false });
 				password = '';
-			};
-		}}
+			}}
 		class="form-comfy card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-6 border p-6 shadow-xl"
 	>
 		<div class="flex flex-col gap-2">
@@ -49,6 +41,9 @@
 				required
 				value={form?.email ?? ''}
 			/>
+			{#if form?.error && !form?.needsPassword}
+				<span class="text-error-500 text-sm" role="alert">{form.error}</span>
+			{/if}
 		</label>
 
 		<button type="submit" class="btn preset-filled-primary-500">Lanjut</button>
@@ -58,7 +53,10 @@
 			class="card preset-filled-surface-50-950 border-surface-300-700 m-auto w-full max-w-sm border p-6 shadow-2xl backdrop:bg-black/40"
 		>
 			<div class="flex flex-col gap-4">
-				<h2 class="h4">Masukkan password</h2>
+				<div class="flex flex-col gap-1">
+					<h2 class="h4">Masukkan password</h2>
+					<p class="text-sm opacity-70">Akun ini butuh password.</p>
+				</div>
 				<label class="label">
 					<span class="label-text font-semibold">Password</span>
 					<input

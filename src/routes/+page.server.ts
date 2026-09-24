@@ -2,12 +2,12 @@ import { fail, redirect } from '@sveltejs/kit';
 import { startSession } from '$lib/server/auth';
 import { getDb } from '$lib/server/db';
 import { logEvent } from '$lib/server/logger';
-import { credentialsValid } from '$lib/server/password';
+import { decideLogin } from '$lib/server/password';
 import { getLoginPassword } from '$lib/server/secret';
 import { findUserByEmail } from '$lib/server/users';
 import type { Actions } from './$types';
 
-// Pesan yang sama buat email gak ada, user non-active, dan password salah, biar gak bocorin apa pun.
+// Pesan yang sama buat password salah, email gak ada, dan user non-active, biar gak bocorin apa pun.
 const LOGIN_FAILED = 'Email atau password salah, atau akun belum aktif.';
 
 export const actions: Actions = {
@@ -19,12 +19,15 @@ export const actions: Actions = {
 		const password = String(form.get('password') ?? '');
 
 		if (!email) return fail(400, { error: 'Email wajib diisi', email });
-		if (!password) return fail(400, { error: 'Password wajib diisi', email });
 
 		const user = await findUserByEmail(getDb(), email);
-		if (!credentialsValid(user, password, getLoginPassword()) || !user) {
+		const decision = decideLogin(user, password, getLoginPassword());
+
+		// Langkah 1 buat admin (dan email yang gak dikenal, biar gak bocor): minta password lewat dialog.
+		if (decision === 'need_password') return { needsPassword: true, email };
+		if (decision === 'denied' || !user) {
 			logEvent('auth.login.failed', { reason: 'invalid_credentials' });
-			return fail(400, { error: LOGIN_FAILED, email });
+			return fail(400, { needsPassword: true, error: LOGIN_FAILED, email });
 		}
 
 		startSession(cookies, user.id);
