@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowLeftIcon, BugIcon, SparklesIcon, PaperclipIcon } from '@lucide/svelte';
+	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon } from '@lucide/svelte';
 	import { statusLabels } from '$lib/mock/tasks';
 
 	let { data } = $props();
@@ -11,7 +11,7 @@
 </svelte:head>
 
 <a href="/" class="btn btn-sm hover:preset-tonal mb-4 inline-flex items-center gap-1">
-	<ArrowLeftIcon class="size-4" /> Papan
+	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
 <div class="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
@@ -38,11 +38,31 @@
 		<section>
 			<h2 class="mb-2 font-semibold">Lampiran ({task.attachments.length})</h2>
 			{#if task.attachments.length > 0}
-				<ul class="flex flex-col gap-2">
-					{#each task.attachments as file (file)}
-						<li class="card preset-outlined-surface-300-700 flex items-center gap-2 p-2 text-sm">
-							<PaperclipIcon class="size-4" />
-							<span>{file}</span>
+				<ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+					{#each task.attachments as file (file.name)}
+						<li class="flex flex-col gap-1">
+							{#if file.mime.startsWith('image/') && file.url}
+								<a
+									href={file.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="border-surface-300-700 hover:border-primary-500 block overflow-hidden rounded-container border shadow-md transition hover:shadow-xl"
+								>
+									<img
+										src={file.url}
+										alt={file.name}
+										loading="lazy"
+										class="aspect-video w-full object-cover"
+									/>
+								</a>
+							{:else}
+								<div
+									class="preset-outlined-surface-300-700 rounded-container flex aspect-video w-full items-center justify-center"
+								>
+									<FileTextIcon class="size-8 opacity-60" />
+								</div>
+							{/if}
+							<span class="truncate text-xs opacity-70" title={file.name}>{file.name}</span>
 						</li>
 					{/each}
 				</ul>

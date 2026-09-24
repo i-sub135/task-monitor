@@ -10,6 +10,13 @@ export type MockHistory = {
 	note?: string;
 };
 
+export type MockAttachment = {
+	name: string;
+	mime: string;
+	/** Public URL of the file. Mock thumbnails live in static/mock; real ones come from storage later. */
+	url?: string;
+};
+
 export type MockTask = {
 	id: string;
 	title: string;
@@ -18,7 +25,7 @@ export type MockTask = {
 	status: Status;
 	createdBy: string;
 	createdAt: string;
-	attachments: string[];
+	attachments: MockAttachment[];
 	history: MockHistory[];
 };
 
@@ -30,6 +37,13 @@ export const statusLabels: Record<Status, string> = {
 	rejected: 'Rejected'
 };
 
+const img = (name: string, n: number): MockAttachment => ({
+	name,
+	mime: 'image/png',
+	url: `/mock/thumb-${n}.svg`
+});
+const pdf = (name: string): MockAttachment => ({ name, mime: 'application/pdf' });
+
 export const tasks: MockTask[] = [
 	{
 		id: 'a1',
@@ -40,7 +54,7 @@ export const tasks: MockTask[] = [
 		status: 'request',
 		createdBy: 'Sari',
 		createdAt: '2026-09-24 09:12',
-		attachments: ['checkout-kosong.png', 'console-error.png'],
+		attachments: [img('checkout-kosong.png', 1), img('console-error.png', 2)],
 		history: [{ from: null, to: 'request', by: 'Sari', at: '2026-09-24 09:12' }]
 	},
 	{
@@ -62,7 +76,7 @@ export const tasks: MockTask[] = [
 		status: 'queue',
 		createdBy: 'Sari',
 		createdAt: '2026-09-23 14:05',
-		attachments: ['contoh-format.pdf'],
+		attachments: [pdf('contoh-format.pdf')],
 		history: [
 			{ from: null, to: 'request', by: 'Sari', at: '2026-09-23 14:05' },
 			{ from: 'request', to: 'queue', by: 'Budi', at: '2026-09-23 16:30' }
@@ -90,7 +104,7 @@ export const tasks: MockTask[] = [
 		status: 'in-progress',
 		createdBy: 'Dimas',
 		createdAt: '2026-09-22 13:00',
-		attachments: ['desain-v2.png', 'copy.pdf', 'aset-logo.png', 'referensi.png'],
+		attachments: [img('desain-v2.png', 3), pdf('copy.pdf'), img('aset-logo.png', 4), img('referensi.png', 1)],
 		history: [
 			{ from: null, to: 'request', by: 'Dimas', at: '2026-09-22 13:00' },
 			{ from: 'request', to: 'queue', by: 'Budi', at: '2026-09-22 15:10' },
@@ -105,7 +119,7 @@ export const tasks: MockTask[] = [
 		status: 'done',
 		createdBy: 'Rina',
 		createdAt: '2026-09-20 11:15',
-		attachments: ['footer.png'],
+		attachments: [img('footer.png', 2)],
 		history: [
 			{ from: null, to: 'request', by: 'Rina', at: '2026-09-20 11:15' },
 			{ from: 'request', to: 'queue', by: 'Budi', at: '2026-09-20 11:40' },

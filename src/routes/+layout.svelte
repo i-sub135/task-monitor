@@ -8,7 +8,7 @@
 	let { children } = $props();
 
 	const navItems = [
-		{ href: '/', label: 'Papan', icon: KanbanIcon },
+		{ href: '/', label: 'Board', icon: KanbanIcon },
 		{ href: '/task/new', label: 'Task baru', icon: PlusIcon },
 		{ href: '/users', label: 'Users', icon: UsersIcon }
 	];

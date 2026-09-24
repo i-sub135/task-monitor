@@ -6,7 +6,7 @@
 </script>
 
 <div class="mb-4 flex items-baseline justify-between">
-	<h1 class="h3">Papan task</h1>
+	<h1 class="h3">Board task</h1>
 	<p class="text-sm opacity-70">{tasks.length} task (data mock)</p>
 </div>
 
