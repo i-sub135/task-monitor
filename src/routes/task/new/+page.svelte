@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { onDestroy } from 'svelte';
-	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, XIcon } from '@lucide/svelte';
+	import {
+		ArrowLeftIcon,
+		BugIcon,
+		SparklesIcon,
+		FileTextIcon,
+		InfoIcon,
+		XIcon
+	} from '@lucide/svelte';
 
 	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte. Bentuknya ngikut return fail() di +page.server.ts.
 	type FormResult = {
@@ -69,6 +76,30 @@
 		<h1 class="h3">Task baru</h1>
 		<p class="text-sm opacity-70">Mock: task disimpan di memori server dan hilang kalau server restart.</p>
 	</div>
+
+	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug dan feature">
+		<p class="flex items-center gap-2 font-semibold"><InfoIcon class="size-4" /> Ini bug atau feature?</p>
+		<ul class="flex flex-col gap-2">
+			<li class="flex gap-2">
+				<BugIcon class="mt-0.5 size-4 shrink-0" />
+				<span
+					><strong>Bug</strong>: sesuatu yang sudah ada tapi rusak atau gak jalan sebagaimana mestinya.
+					Contoh: banner gak muncul, tombol gak bisa diklik, ada salah ketik.</span
+				>
+			</li>
+			<li class="flex gap-2">
+				<SparklesIcon class="mt-0.5 size-4 shrink-0" />
+				<span
+					><strong>Feature</strong>: sesuatu yang belum ada dan kamu mau ditambah atau diubah. Contoh:
+					filter baru di laporan, halaman baru, tombol export.</span
+				>
+			</li>
+		</ul>
+		<p>
+			Patokan gampang: kalau dulu pernah jalan bener terus sekarang nggak, itu <strong>bug</strong>.
+			Kalau belum pernah ada, itu <strong>feature</strong>.
+		</p>
+	</aside>
 
 	<label class="label">
 		<span class="label-text font-semibold">Judul</span>
