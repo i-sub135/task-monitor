@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon } from '@lucide/svelte';
 	import { statusLabels, type MockTask } from '$lib/mock/tasks';
+	import { linkify } from '$lib/linkify';
 
 	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte.
 	let { data }: { data: { task: MockTask } } = $props();
@@ -82,7 +83,19 @@
 						{h.from ? `${statusLabels[h.from]} → ` : ''}{statusLabels[h.to]}
 					</p>
 					<p class="text-xs opacity-70">{h.by} · {h.at}</p>
-					{#if h.note}<p class="mt-1">{h.note}</p>{/if}
+					{#if h.note}
+						<p class="mt-1 break-words whitespace-pre-wrap">
+							{#each linkify(h.note) as seg, i (i)}
+								{#if seg.type === 'link'}
+									<a href={seg.href} target="_blank" rel="noopener noreferrer" class="anchor break-all"
+										>{seg.text}</a
+									>
+								{:else}
+									{seg.text}
+								{/if}
+							{/each}
+						</p>
+					{/if}
 				</li>
 			{/each}
 		</ol>
