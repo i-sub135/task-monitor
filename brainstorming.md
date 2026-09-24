@@ -2,6 +2,8 @@
 
 Catatan desain, dibangun bagian per bagian. Tiap bagian dikunci Iyan sebelum lanjut.
 
+Disinkronin sama kode 2026-09-24 (akhir hari). Perubahan sesudah bagian-bagian ini dikunci, semuanya atas keputusan Iyan, dirangkum di bagian 4.
+
 ## 1. Design table
 
 Dikunci 2026-09-24 11:00. Empat tabel.
@@ -14,7 +16,7 @@ Dikunci 2026-09-24 11:00. Empat tabel.
 | `title` | text | |
 | `description` | text | |
 | `type` | enum `bug` / `feature` | |
-| `status` | enum `request` / `queue` / `in-progress` / `done` / `rejected` | default `request` |
+| `status` | enum `request` / `queue` / `in-progress` / `ready-to-test` / `done` / `rejected` | default `request` |
 | `ordering` | integer | urutan antrean, kecil = duluan. Dipakai di status `queue`, di status lain diabaikan |
 | `created_by` | uuid → `users.id` | |
 | `created_at` | datetime | |
@@ -61,7 +63,7 @@ Tabel terpisah, bukan kolom di `task`: satu task bisa bawa lebih dari satu gamba
 
 ### Keputusan yang nempel di tabel
 
-- **Login = cek email doang.** Form email → ada di `users` dan `active` → session bawa `id` + `role`. Nol password, nol tabel tambahan. Konsekuensi yang disadari: siapa pun yang tau email orang lain bisa masuk sebagai dia; `created_by` = "siapa yang ngaku". Diterima buat tool internal kantor.
+- **Login = cek email, plus password khusus admin.** Form email → ada di `users` dan `active` → marketing/developer langsung masuk. Role `admin` diminta password tambahan (satu password bersama dari env `AUTH_ADMIN`, dicek lewat dialog setelah klik lanjut). Nol tabel tambahan. Konsekuensi yang disadari: siapa pun yang tau email marketing/developer bisa masuk sebagai dia; `created_by` = "siapa yang ngaku". Diterima buat tool internal kantor. Email yang gak ada dan yang non-active dapat respons yang sama.
 - **Nol `due_date`.** Marketing gak ngisi "butuh kapan".
 - **Nol `assigned_to`** di v1. Ditunda, bukan ditolak.
 - **Urutan antrean** pakai `ordering`, bukan FIFO `created_at`, biar satu task bisa didahuluin.
@@ -73,14 +75,14 @@ Dikunci 2026-09-24 11:07.
 | Lapis | Pilihan | Catatan |
 | --- | --- | --- |
 | Framework | SvelteKit 2 + Svelte 5 (runes), TypeScript, `adapter-node` | |
-| UI | Tailwind v4 + Skeleton v5 + `@lucide/svelte` | tema Skeleton belum dipilih |
+| UI | Tailwind v4 + Skeleton v5 + `@lucide/svelte` | tema Skeleton `rosepine`, light saja. Di bawah 500px = tampilan HP (nav bawah) |
 | DB | PostgreSQL **eksisting** — nol container baru, cuma bikin database baru di instance yang udah ada | enum + uuid native. Instance yang mana belum disebut |
-| ORM | Prisma 7 | `schema.prisma` = sumber tabel bagian 1, migration dari Prisma |
-| Session | cookie HMAC (`COOKIE_SIGN_SECRET`), isi `user_id` + `role` | guard terpusat di `hooks.server.ts` lewat array `GUEST_ONLY_ROUTES` / `PUBLIC_ROUTES`, nol guard per-route |
+| ORM | Prisma 7 + driver adapter `pg` | `schema.prisma` = sumber tabel bagian 1, migration dari Prisma. Client di-generate ke `src/lib/server/generated/prisma` (gitignored), jadi `npm run db:generate` wajib setelah install |
+| Session | cookie HMAC (`COOKIE_SIGN_SECRET`), isi `uid` + `exp` (7 hari) | role dan status dibaca ulang dari DB di tiap request, jadi user yang di-non-aktifin langsung gak sah. Guard terpusat di `hooks.server.ts` lewat array `GUEST_ONLY_ROUTES` (`/`) / `PUBLIC_ROUTES`, nol guard per-route |
 | Upload | file ke folder lokal `[root-project]/storage/attachment/<task_id>/<uuid>.<ext>`, DB nyimpen path relatif | di Docker folder itu di-mount jadi volume; object storage kalau nanti perlu. `storage/` masuk `.gitignore` |
 | Logger | winston — event key + metadata, JSON di prod, pretty di dev | |
 | Layer | `routes` → `service` (Prisma) → `utils` / `server` / `components` | |
-| Deploy | Docker **1 container**: app (`node build/index.js`), volume `./storage/attachment` → `/app/storage/attachment`; `DATABASE_URL` nunjuk ke Postgres eksisting | |
+| Deploy | Docker **1 container**: app jalan lewat `npm start` (`scripts/start.mjs`), entrypoint `prisma migrate deploy` dulu; volume `./storage/attachment` → `/app/storage/attachment`; `DATABASE_URL` nunjuk ke Postgres eksisting | `UPLOAD_SIZE_LIMIT` nurunin `BODY_SIZE_LIMIT` adapter-node otomatis |
 
 ### Versi — semua latest, dicek `npm view` 2026-09-24
 
@@ -89,13 +91,15 @@ Dikunci 2026-09-24 11:07.
 | `@sveltejs/kit` | 2.70.3 | |
 | `svelte` | 5.57.1 | |
 | `vite` | 8.3.0 | gist masih 7.x |
-| `typescript` | 7.0.2 | gist masih 5.9; TS 7 = latest resmi |
+| `typescript` | 6.0.3 | awalnya 7.0.2, diturunin: TS 7 bikin `svelte-check` dan type generation SvelteKit rusak. Balik ke 7 kalau tooling-nya udah ngejar |
 | `tailwindcss` + `@tailwindcss/vite` | 4.3.3 | |
 | `@skeletonlabs/skeleton` + `-svelte` | 5.0.1 | gist masih 4.12; langkah install v5 **sama persis** (dicek di skeleton.dev 2026-09-24), cuma stylesheet-nya di `src/routes/layout.css` kalau pakai `sv create` baru |
 | `@sveltejs/adapter-node` | 5.5.7 | |
 | `winston` | 3.19.0 | |
 | `@lucide/svelte` | 1.47.0 | |
 | `@prisma/client` | 7.10.0 | tag `latest` |
+| `@prisma/adapter-pg` | 7.10.0 | driver adapter wajib di Prisma 7 |
+| `pg` | 8.23.0 | |
 | `prisma` (CLI) | **7.10.0** | tag `latest` di npm nunjuk `8.0.0-rc.15` — itu RC. **Pin ke 7.10.0** biar sama sama client, jangan ikut RC |
 
 Aturan: install pakai versi di atas, bukan yang di gist. Gist = resep langkahnya, bukan angkanya.
@@ -112,7 +116,6 @@ Aturan: install pakai versi di atas, bukan yang di gist. Gist = resep langkahnya
 
 ### Belum diputusin
 
-- Tema Skeleton (cerberus / pine / dst).
 - API terpisah buat frontend lain — sekarang nggak; kalau berubah, bentuknya ikut berubah.
 
 ## 3. Aturan main
@@ -122,7 +125,7 @@ Dikunci 2026-09-24 11:34.
 ### Transisi status — maju doang
 
 ```
-request → queue → in-progress → done
+request → queue → in-progress → ready-to-test → done
 request → rejected        (developer / admin, note wajib)
 ```
 
@@ -146,12 +149,24 @@ request → rejected        (developer / admin, note wajib)
 
 ### Upload
 
-- Maks **5 MB** per file.
+- Maks **5 MB** per file, bisa diubah lewat env `UPLOAD_SIZE_LIMIT` (mis. `5M`, `512K`).
 - Maks **5 lampiran** per task.
-- Tipe: `image/*` + `application/pdf`.
-- Dicek di server dari `mime_type` + ukuran, bukan dari ekstensi nama file.
+- Tipe: PNG, JPEG, GIF, WEBP, dan PDF. SVG ditolak (bisa bawa script).
+- Dicek di server dari ukuran dan isi file (magic number), bukan dari ekstensi atau `mime_type` kiriman browser.
 
 ### User pertama
 
 - Admin di-seed dari env (`SEED_ADMIN_EMAIL`, `SEED_ADMIN_NAME`) pas app nyala, cuma kalau tabel `users` kosong.
 - Setelah itu admin nambah user lewat halaman kelola users. Nol pendaftaran sendiri.
+
+## 4. Perubahan sesudah dikunci
+
+Semua atas keputusan Iyan lewat DM, 2026-09-24.
+
+- **Status `ready-to-test`** ditambah di antara `in-progress` dan `done` (6 status, 6 kolom papan).
+- **Password admin**: login admin butuh `AUTH_ADMIN`, sisanya tetap email doang. Login pindah ke `/`, papan di `/board`.
+- **TypeScript 6.0.3**, bukan 7.0.2 (lihat tabel versi).
+- **Tema `rosepine`**, tampilan HP di bawah 500px.
+- **Prisma pakai driver adapter `pg`**, bukan koneksi bawaan.
+- **`UPLOAD_SIZE_LIMIT`** jadi setelan batas file (default 5M), nama `BODY_SIZE_LIMIT` milik adapter-node diturunin otomatis oleh `scripts/start.mjs`.
+- **Nol test otomatis** di v1. Verifikasi manual oleh Iyan (keputusan 2026-09-24).

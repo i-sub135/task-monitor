@@ -2,7 +2,7 @@
 
 Papan antrean request buat tim non-teknis. Marketing ngajuin request lewat form, developer nge-triase, semua orang liat sendiri request-nya ada di kolom mana dan nomor berapa di antrean — tanpa nanya.
 
-Lima kolom, maju doang: `request → queue → in-progress → done`, plus `rejected` dari `request`.
+Enam kolom, maju doang: `request → queue → in-progress → ready-to-test → done`, plus `rejected` dari `request`.
 
 ## Stack
 
@@ -16,7 +16,32 @@ Papan tiket di [`task/README.md`](task/README.md). Tiket per file di `task/backl
 
 ## Jalanin
 
-Belum ada kode. Isi bagian ini pas `TM-1` kelar.
+Butuh Node (image Docker pakai 24) dan satu database PostgreSQL kosong.
+
+```sh
+npm install
+cp .env.example .env        # isi, lihat tabel di bawah
+npm run db:generate         # bikin Prisma client (gitignored, wajib setelah install)
+npm run db:deploy           # jalanin migration ke DATABASE_URL
+npm run dev                 # http://localhost:5173
+```
+
+Pertama kali nyala, user admin dibikin otomatis dari `SEED_ADMIN_EMAIL` + `SEED_ADMIN_NAME` (cuma kalau tabel `users` kosong). Login admin minta password `AUTH_ADMIN`.
+
+Production tanpa Docker: `npm run build && npm start`. Pakai `npm start`, jangan `node build` langsung, karena launcher-nya yang nerjemahin `UPLOAD_SIZE_LIMIT` ke batas request adapter-node.
+
+Docker (1 container, Postgres tetap yang eksisting lewat `DATABASE_URL`): isi `.env`, lalu `make docker-build` dan `make docker-up`. Di dalam container, Postgres di mesin host dijangkau lewat `host.docker.internal`, bukan `localhost`. Lampiran ke-mount di `./storage/attachment`. Perintah lain: `make docker-logs`, `make docker-down`.
+
+| Env | Wajib | Isi |
+| --- | --- | --- |
+| `DATABASE_URL` | ya | koneksi Postgres |
+| `COOKIE_SIGN_SECRET` | ya | rahasia penanda tangan cookie session |
+| `AUTH_ADMIN` | ya | password login role admin |
+| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_NAME` | ya | admin pertama, dipakai cuma kalau `users` kosong |
+| `ORIGIN` | production | URL yang dibuka di browser, mis. `https://tasks.example.com`. Tanpa ini POST form ditolak 403 |
+| `UPLOAD_SIZE_LIMIT` | tidak | ukuran maksimal per file lampiran, default `5M` |
+| `APP_VERSION` | tidak | tag image Docker, default `dev` |
+| `APP_PORT` | tidak | port di host untuk Docker, default `3000` |
 
 ## Referensi
 
