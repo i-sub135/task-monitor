@@ -1,0 +1,25 @@
+# 1 service. Postgres = instance eksisting lewat DATABASE_URL (gak ada service db di sini).
+# Semua variabel bertanda :? wajib diisi (di .env sebelah file ini atau di shell); kalau kosong,
+# `docker compose up` berhenti dengan pesan jelas.
+services:
+  app:
+    build: .
+    image: task-monitor:${APP_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?isi DATABASE_URL}
+      COOKIE_SIGN_SECRET: ${COOKIE_SIGN_SECRET:?isi COOKIE_SIGN_SECRET}
+      AUTH_ADMIN: ${AUTH_ADMIN:?isi AUTH_ADMIN}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:?isi SEED_ADMIN_EMAIL}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:?isi SEED_ADMIN_NAME}
+      # Tanpa ORIGIN yang cocok sama URL di browser, POST form ditolak 403.
+      ORIGIN: ${ORIGIN:?isi ORIGIN, mis. https://tasks.example.com}
+      UPLOAD_SIZE_LIMIT: ${UPLOAD_SIZE_LIMIT:-5M}
+    volumes:
+      - ./storage/attachment:/app/storage/attachment
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    # Biar DATABASE_URL bisa pakai host.docker.internal kalau Postgres jalan di mesin host yang sama.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
