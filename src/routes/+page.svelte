@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { BugIcon, SparklesIcon, PaperclipIcon } from '@lucide/svelte';
-	import { statusLabels, type Status } from '$lib/mock/tasks';
+	import { statusLabels, type MockTask, type Status } from '$lib/mock/tasks';
 
-	let { data } = $props();
+	// Tipe ditulis manual: TS 7 gak punya JS API, jadi SvelteKit gak bisa nurunin tipe `data` dari load.
+	let { data }: { data: { tasks: MockTask[] } } = $props();
 	const tasks = $derived(data.tasks);
 	const columns = Object.keys(statusLabels) as Status[];
 </script>

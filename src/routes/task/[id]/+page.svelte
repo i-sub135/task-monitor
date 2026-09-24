@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon } from '@lucide/svelte';
-	import { statusLabels } from '$lib/mock/tasks';
+	import { statusLabels, type MockTask } from '$lib/mock/tasks';
 
-	let { data } = $props();
+	// Tipe ditulis manual, lihat catatan di src/routes/+page.svelte.
+	let { data }: { data: { task: MockTask } } = $props();
 	const task = $derived(data.task);
 </script>
 
