@@ -96,12 +96,18 @@
 }
 
 /*
- * Select bawaan Skeleton gak punya padding kiri (padding-inline gak boleh di-set karena panah dropdown itu bawaan
- * browser dan bisa keinjak), jadi teksnya nempel di lengkungan pill. Yang diisi cuma sisi awal, sisi panah dibiarin.
- * Nilainya sama dengan padding kiri .input di .form-comfy (1rem) biar teks input dan select sejajar.
+ * Select: panah bawaan browser dimatiin dan diganti panah gambar sendiri, supaya jarak kiri dan kanan bisa diatur
+ * (Skeleton melarang set padding-inline karena bergantung ke panah bawaan, yang ukuran dan posisinya beda-beda
+ * per browser dan nempel di ujung kanan). Kiri 1rem, sama kayak .input di .form-comfy; panah 1rem dari ujung
+ * kanan; padding kanan 2.75rem biar teks gak nabrak panah. Warna panah = warna teks tema (light only).
  */
 .select {
-	padding-inline-start: 1rem;
+	appearance: none;
+	padding-inline: 1rem 2.75rem;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23482f62' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6l4.5 4.5L12.5 6'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 1rem center;
+	background-size: 1rem;
 }
 .form-comfy .label > * + * {
 	margin-top: 0.5rem;
