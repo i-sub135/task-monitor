@@ -8,7 +8,6 @@
 	let { data, form } = $props();
 
 	const tasks = $derived(data.tasks);
-	const summary = $derived(data.summary);
 	const role = $derived(data.user.role);
 	const canDrag = $derived(canAdvance(role));
 
@@ -115,21 +114,6 @@
 <div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
 	<h1 class="h3">Board task</h1>
 </div>
-
-<dl class="mb-4 grid grid-cols-3 gap-3 sm:max-w-xl">
-	<div class="card preset-filled-surface-50-950 border-surface-300-700 border px-4 py-3">
-		<dt class="text-xs opacity-70">Total task</dt>
-		<dd class="text-xl font-semibold">{summary.total}</dd>
-	</div>
-	<div class="card preset-filled-surface-50-950 border-surface-300-700 border px-4 py-3">
-		<dt class="text-xs opacity-70">Di queue</dt>
-		<dd class="text-xl font-semibold">{summary.queue}</dd>
-	</div>
-	<div class="card preset-filled-surface-50-950 border-surface-300-700 border px-4 py-3">
-		<dt class="text-xs opacity-70">Done 7 hari terakhir</dt>
-		<dd class="text-xl font-semibold">{summary.doneLast7Days}</dd>
-	</div>
-</dl>
 
 <p class="mb-6 text-sm opacity-70">
 	{#if canDrag}

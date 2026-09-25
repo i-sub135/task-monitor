@@ -67,7 +67,6 @@ export type BoardTask = {
 	attachments: number;
 };
 
-export type BoardSummary = { total: number; queue: number; doneLast7Days: number };
 
 export type HistoryEntry = {
 	id: string;

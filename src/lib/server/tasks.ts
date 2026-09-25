@@ -5,7 +5,6 @@ import {
 	canReorder,
 	hasOrdering,
 	statuses,
-	type BoardSummary,
 	type BoardTask,
 	type RuleResult,
 	type Status,
@@ -35,7 +34,6 @@ const statusToDb: Record<Status, TaskStatus> = {
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 type Tx = Prisma.TransactionClient;
 
@@ -65,7 +63,7 @@ async function renumberColumn(tx: Tx, status: TaskStatus) {
 
 // ---------------------------------------------------------------- baca
 
-export async function listBoard(db: PrismaClient, now: Date = new Date()): Promise<{ tasks: BoardTask[]; summary: BoardSummary }> {
+export async function listBoard(db: PrismaClient, now: Date = new Date()): Promise<{ tasks: BoardTask[] }> {
 	const rows = await db.task.findMany({
 		include: { createdBy: { select: { name: true } }, _count: { select: { attachments: true } } }
 	});
@@ -94,13 +92,7 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 		);
 	}
 
-	const weekAgo = now.getTime() - 7 * DAY_MS;
-	const summary: BoardSummary = {
-		total: rows.length,
-		queue: rows.filter((r) => r.status === 'queue').length,
-		doneLast7Days: rows.filter((r) => r.status === 'done' && r.updatedAt.getTime() >= weekAgo).length
-	};
-	return { tasks, summary };
+	return { tasks };
 }
 
 export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskDetail | null> {

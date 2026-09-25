@@ -6,8 +6,8 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
 	// Guard di hooks udah mastiin login. Dicek lagi di sini biar tipe `user` gak nullable buat halaman.
 	if (!locals.user) redirect(303, '/');
-	const { tasks, summary } = await listBoard(getDb());
-	return { tasks, summary, user: locals.user };
+	const { tasks } = await listBoard(getDb());
+	return { tasks, user: locals.user };
 };
 
 export const actions: Actions = {
