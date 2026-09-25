@@ -3,8 +3,8 @@ import { endSession } from '$lib/server/auth';
 import { logEvent } from '$lib/server/logger';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = ({ cookies, locals }) => {
+export const POST: RequestHandler = ({ cookies, locals, url }) => {
 	logEvent('auth.logout', { userId: locals.user?.id ?? null });
-	endSession(cookies);
+	endSession(cookies, url);
 	redirect(303, '/');
 };

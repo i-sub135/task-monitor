@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, cookies, locals }) => {
+	default: async ({ request, cookies, locals, url }) => {
 		if (locals.dbDown) return fail(503, { dbUnavailable: true });
 		const form = await request.formData();
 		const email = String(form.get('email') ?? '')
@@ -46,7 +46,7 @@ export const actions: Actions = {
 			return fail(400, { needsPassword: true, error: LOGIN_FAILED, email });
 		}
 
-		startSession(cookies, user.id);
+		startSession(cookies, user.id, url);
 		logEvent('auth.login.success', { userId: user.id, role: user.role });
 		redirect(303, '/board');
 	}

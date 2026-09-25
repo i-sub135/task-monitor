@@ -38,7 +38,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = session.ok ? session.value : null;
 	event.locals.dbDown = !session.ok;
 	// Cookie ada tapi gak sah (diubah, kedaluwarsa, user nonaktif): buang biar gak dikirim terus.
-	if (session.ok && !event.locals.user && event.cookies.get(SESSION_COOKIE)) endSession(event.cookies);
+	if (session.ok && !event.locals.user && event.cookies.get(SESSION_COOKIE)) endSession(event.cookies, event.url);
 
 	const target = guardRedirect(event.url.pathname, event.locals.user !== null);
 	if (target) {

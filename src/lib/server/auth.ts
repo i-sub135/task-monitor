@@ -3,12 +3,12 @@ import type { Role, SessionUser } from '$lib/roles';
 import { findUserById } from './users';
 import { getDb } from './db';
 import { getSessionSecret } from './secret';
-import { signSession, verifySession } from './session';
+import { sessionCookieSecure, signSession, verifySession } from './session';
 
 export const SESSION_COOKIE = 'tm_session';
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
-export function startSession(cookies: Cookies, userId: string): void {
+export function startSession(cookies: Cookies, userId: string, url: URL): void {
 	const token = signSession(
 		{ uid: userId, exp: Date.now() + MAX_AGE_SECONDS * 1000 },
 		getSessionSecret()
@@ -17,12 +17,14 @@ export function startSession(cookies: Cookies, userId: string): void {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
+		secure: sessionCookieSecure(url),
 		maxAge: MAX_AGE_SECONDS
 	});
 }
 
-export function endSession(cookies: Cookies): void {
-	cookies.delete(SESSION_COOKIE, { path: '/' });
+export function endSession(cookies: Cookies, url: URL): void {
+	// Atribut secure harus sama kayak pas diset, kalau nggak browser (HTTP) menolak cookie penghapusnya.
+	cookies.delete(SESSION_COOKIE, { path: '/', secure: sessionCookieSecure(url) });
 }
 
 /**

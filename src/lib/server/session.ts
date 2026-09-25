@@ -34,3 +34,12 @@ export function verifySession(
 		return null;
 	}
 }
+
+/**
+ * Cookie sesi dikasih Secure cuma kalau app diakses lewat HTTPS. Bawaan SvelteKit ngasih Secure di semua URL
+ * selain http://localhost, dan browser membuang cookie Secure yang datang lewat HTTP (mis. http://192.168.x.x
+ * di jaringan lokal): login kelihatan sukses di server, tapi cookie gak pernah nempel. Production di belakang
+ * HTTPS (ORIGIN https://...) tetap dapat Secure.
+ */
+export const sessionCookieSecure = (url: URL): boolean => url.protocol === 'https:';
+
