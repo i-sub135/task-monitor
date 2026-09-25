@@ -99,20 +99,20 @@
 }
 
 /*
- * Latar kolom board per status. Request dan queue tetap bawaan (preset-filled-surface-100-900).
- * Transparansi ada di warnanya (alpha), bukan opacity elemen, jadi kartu dan teks di dalamnya tetap solid.
- * Ditaruh di luar @layer supaya menang dari utility Skeleton. Pas kolom lagi jadi target drop
- * (data-over="true") dilepas, biar highlight bg-primary-100-900 bawaan tetap kelihatan.
+ * Warna kartu task di board per status. Kolomnya sendiri tetap bawaan (preset-filled-surface-100-900);
+ * yang diwarnai isinya, yaitu kartu di dalam kolom. Request dan queue tetap bawaan.
+ * Transparansi ada di warnanya (alpha), bukan opacity elemen, jadi teks di kartu tetap solid.
+ * Ditaruh di luar @layer supaya menang dari utility Skeleton.
  */
-[data-status='in-progress']:not([data-over='true']) {
+[data-status='in-progress'] article {
 	background-color: rgb(118 192 236 / 0.5); /* #76C0EC, 50% */
 }
-[data-status='ready-to-test']:not([data-over='true']) {
-	background-color: rgb(228 87 66 / 0.3); /* #E45742, 30% */
+[data-status='ready-to-test'] article {
+	background-color: #fffad3; /* 100% */
 }
-[data-status='done']:not([data-over='true']) {
+[data-status='done'] article {
 	background-color: #55e07e; /* 100% */
 }
-[data-status='rejected']:not([data-over='true']) {
+[data-status='rejected'] article {
 	background-color: rgb(255 0 0 / 0.15); /* #FF0000, 15% */
 }
