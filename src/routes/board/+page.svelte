@@ -150,6 +150,7 @@
 			type="button"
 			role="tab"
 			aria-selected={activeTab === status}
+			data-tab-status={status}
 			class="btn min-h-12 px-2 {activeTab === status ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
 			onclick={() => (activeTab = status)}
 		>

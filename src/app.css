@@ -108,20 +108,65 @@
 }
 
 /*
- * Warna kartu task di board per status. Kolomnya sendiri tetap bawaan (preset-filled-surface-100-900);
- * yang diwarnai isinya, yaitu kartu di dalam kolom. Request dan queue tetap bawaan.
- * Transparansi ada di warnanya (alpha), bukan opacity elemen, jadi teks di kartu tetap solid.
- * Ditaruh di luar @layer supaya menang dari utility Skeleton.
+ * Warna per status di board, satu sumber buat kartu (kolom) dan tab (HP). Request dan queue tetap bawaan.
+ * Transparansi ada di warnanya (alpha), bukan opacity elemen, jadi teks tetap solid.
+ */
+:root {
+	--status-in-progress: rgb(204 251 250 / 0.75); /* #CCFBFA, 75% */
+	--status-ready-to-test: #fffad3; /* 100% */
+	--status-done: #55e07e; /* 100% */
+	--status-rejected: rgb(255 0 0 / 0.15); /* #FF0000, 15% */
+}
+
+/*
+ * Kartu task di board diwarnai per status. Kolomnya sendiri tetap bawaan (preset-filled-surface-100-900);
+ * yang diwarnai isinya, yaitu kartu di dalam kolom. Ditaruh di luar @layer supaya menang dari utility Skeleton.
  */
 [data-status='in-progress'] article {
-	background-color: rgb(204 251 250 / 0.75); /* #CCFBFA, 75% */
+	background-color: var(--status-in-progress);
 }
 [data-status='ready-to-test'] article {
-	background-color: #fffad3; /* 100% */
+	background-color: var(--status-ready-to-test);
 }
 [data-status='done'] article {
-	background-color: #55e07e; /* 100% */
+	background-color: var(--status-done);
 }
 [data-status='rejected'] article {
-	background-color: rgb(255 0 0 / 0.15); /* #FF0000, 15% */
+	background-color: var(--status-rejected);
+}
+
+/*
+ * Tab status di HP: yang belum dipilih pakai warna latar yang sama dengan kartu statusnya; yang lagi dipilih
+ * tetap hijau bawaan (preset-filled-primary-500). Hover/fokus tetap pakai warna itu dengan teks gelap, bukan
+ * isian gelap dan teks putih kayak tombol outline biasa, biar warna statusnya gak hilang.
+ */
+[data-tab-status='in-progress'] {
+	--tab-bg: var(--status-in-progress);
+}
+[data-tab-status='ready-to-test'] {
+	--tab-bg: var(--status-ready-to-test);
+}
+[data-tab-status='done'] {
+	--tab-bg: var(--status-done);
+}
+[data-tab-status='rejected'] {
+	--tab-bg: var(--status-rejected);
+}
+:is(
+		[data-tab-status='in-progress'],
+		[data-tab-status='ready-to-test'],
+		[data-tab-status='done'],
+		[data-tab-status='rejected']
+	)[aria-selected='false'] {
+	background-color: var(--tab-bg);
+	color: var(--outline-color);
+}
+:is(
+		[data-tab-status='in-progress'],
+		[data-tab-status='ready-to-test'],
+		[data-tab-status='done'],
+		[data-tab-status='rejected']
+	)[aria-selected='false']:is(:hover, :focus-visible):not(:disabled) {
+	background-color: var(--tab-bg);
+	color: var(--outline-color);
 }
