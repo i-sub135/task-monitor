@@ -11,7 +11,7 @@
 		XIcon
 	} from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
-	import { statusLabels, transitions } from '$lib/tasks';
+	import { statusLabels, transitions, type Status } from '$lib/tasks';
 	import { linkify } from '$lib/linkify';
 	import type { AttachmentInfo } from '$lib/tasks';
 
@@ -19,6 +19,25 @@
 	const task = $derived(data.task);
 	const nextStatuses = $derived(transitions[task.status]);
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
+
+	// HP (di bawah 500px): pindah status lewat modal, dibuka dari tombol. Tab = target yang mungkin; catatan wajib
+	// cuma buat reject (aturan yang sama dengan server dan kartu di desktop).
+	let moveOpen = $state(false);
+	let moveDialog = $state<HTMLDialogElement>();
+	let moveTarget = $state<Status | null>(null);
+	const selectedTo = $derived<Status>(
+		moveTarget && nextStatuses.includes(moveTarget) ? moveTarget : nextStatuses[0]
+	);
+	$effect(() => {
+		if (moveOpen && moveDialog && !moveDialog.open) moveDialog.showModal();
+	});
+	const tabLabel = (to: Status) => (to === 'rejected' ? 'Reject' : `Pindah ke ${statusLabels[to]}`);
+	const noteLabel = (to: Status) =>
+		to === 'rejected' ? 'Alasan (wajib)' : to === 'done' ? 'Catatan / link hasil (opsional)' : 'Catatan (opsional)';
+	function openMove() {
+		moveTarget = nextStatuses[0];
+		moveOpen = true;
+	}
 
 	// Viewer lampiran: modal dengan zoom dan unduh, bukan buka tab baru.
 	const ZOOM_STEPS = [1, 1.5, 2, 3, 4];
@@ -111,7 +130,8 @@
 
 	<div class="flex h-fit flex-col gap-6">
 		{#if canMove && nextStatuses.length > 0}
-			<section class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-4 border p-6 shadow-xl">
+			<button type="button" class="btn btn-outline-primary xs:hidden" onclick={openMove}>Pindah status</button>
+			<section class="card preset-filled-surface-50-950 border-surface-300-700 hidden flex-col gap-4 border p-6 shadow-xl xs:flex">
 				<h2 class="font-semibold">Pindah status</h2>
 				{#if form?.transitionError}
 					<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.transitionError}</div>
@@ -255,6 +275,78 @@
 				{/if}
 			</div>
 		</div>
+	</dialog>
+{/if}
+
+{#if moveOpen && canMove && nextStatuses.length > 0}
+	<!-- Klik di luar kotak (backdrop) menutup; Esc ditangani dialog bawaan. Sukses pindah = modal menutup sendiri. -->
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+	<dialog
+		bind:this={moveDialog}
+		onclose={() => (moveOpen = false)}
+		onclick={(e) => {
+			if (e.target === moveDialog) moveDialog?.close();
+		}}
+		aria-labelledby="move-title"
+		class="card preset-filled-surface-50-950 border-surface-300-700 m-auto w-[min(94vw,28rem)] max-w-none overflow-hidden border p-0 shadow-2xl backdrop:bg-black/60"
+	>
+		<form
+			method="POST"
+			action="?/transition"
+			use:enhance={() =>
+				async ({ result, update }) => {
+					await update();
+					if (result.type === 'success') moveOpen = false;
+				}}
+			class="form-comfy flex max-h-[92vh] flex-col gap-5 overflow-y-auto p-5"
+		>
+			<input type="hidden" name="to" value={selectedTo} />
+			<div>
+				<h2 id="move-title" class="h5">Pindah status</h2>
+				<p class="text-xs opacity-70">Sekarang: {statusLabels[task.status]}</p>
+			</div>
+
+			{#if nextStatuses.length > 1}
+				<div class="flex" role="tablist" aria-label="Pindah ke">
+					{#each nextStatuses as to (to)}
+						<button
+							type="button"
+							role="tab"
+							aria-selected={selectedTo === to}
+							data-tab-status={to}
+							class="btn relative min-h-10 min-w-0 flex-1 -ml-px rounded-none! px-2 text-sm first:ml-0 first:rounded-s-full! last:rounded-e-full! aria-selected:z-10 {selectedTo ===
+							to
+								? to === 'rejected'
+									? 'preset-filled-error-500'
+									: 'preset-filled-primary-500'
+								: 'btn-outline-neutral'}"
+							onclick={() => (moveTarget = to)}
+						>
+							{tabLabel(to)}
+						</button>
+					{/each}
+				</div>
+			{/if}
+
+			{#if form?.transitionError}
+				<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.transitionError}</div>
+			{/if}
+
+			<label class="label">
+				<span class="label-text font-semibold">{noteLabel(selectedTo)}</span>
+				<textarea class="textarea" name="note" rows="3" required={selectedTo === 'rejected'}></textarea>
+			</label>
+
+			<div class="flex justify-end gap-3">
+				<button type="button" class="btn btn-outline-neutral" onclick={() => moveDialog?.close()}>Batal</button>
+				<button
+					type="submit"
+					class="btn {selectedTo === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
+				>
+					{tabLabel(selectedTo)}
+				</button>
+			</div>
+		</form>
 	</dialog>
 {/if}
 
