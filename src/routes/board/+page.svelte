@@ -161,7 +161,7 @@
 			type="button"
 			role="tab"
 			aria-selected={activeTab === status}
-			class="btn btn-sm whitespace-nowrap {activeTab === status ? 'preset-filled-primary-500' : 'preset-tonal'}"
+			class="btn btn-sm whitespace-nowrap {activeTab === status ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
 			onclick={() => (activeTab = status)}
 		>
 			{statusLabels[status]} ({byStatus(status).length})
@@ -235,7 +235,7 @@
 						<div class="relative z-10 flex justify-end gap-1">
 							<button
 								type="button"
-								class="btn-icon btn-icon-sm hover:preset-tonal"
+								class="btn-icon btn-icon-sm btn-outline-neutral"
 								aria-label="Naikkan urutan"
 								disabled={i === 0}
 								onclick={() => sendReorder(task, -1)}
@@ -244,7 +244,7 @@
 							</button>
 							<button
 								type="button"
-								class="btn-icon btn-icon-sm hover:preset-tonal"
+								class="btn-icon btn-icon-sm btn-outline-neutral"
 								aria-label="Turunkan urutan"
 								disabled={i === items.length - 1}
 								onclick={() => sendReorder(task, 1)}
@@ -278,8 +278,8 @@
 				{#if noteError}<span class="text-error-500 text-sm">{noteError}</span>{/if}
 			</label>
 			<div class="flex justify-end gap-2">
-				<button type="button" class="btn preset-tonal" onclick={cancelDialog}>Batal</button>
-				<button type="submit" class="btn preset-filled-primary-500">Simpan</button>
+				<button type="button" class="btn btn-outline-neutral" onclick={cancelDialog}>Batal</button>
+				<button type="submit" class="btn btn-outline-primary">Simpan</button>
 			</div>
 		</form>
 	{/if}

@@ -75,7 +75,7 @@ Dikunci 2026-09-24 11:07.
 | Lapis | Pilihan | Catatan |
 | --- | --- | --- |
 | Framework | SvelteKit 2 + Svelte 5 (runes), TypeScript, `adapter-node` | |
-| UI | Tailwind v4 + Skeleton v5 + `@lucide/svelte` | tema Skeleton `rosepine`, light saja. Di bawah 500px = tampilan HP (nav bawah) |
+| UI | Tailwind v4 + Skeleton v5 + `@lucide/svelte` | tema Skeleton `rosepine`, light saja, dengan primary `#2A7C13` dan error `#E73F1E`. Di bawah 500px = tampilan HP (nav bawah) |
 | DB | PostgreSQL **eksisting** — nol container baru, cuma bikin database baru di instance yang udah ada | enum + uuid native. Instance yang mana belum disebut |
 | ORM | Prisma 7 + driver adapter `pg` | `schema.prisma` = sumber tabel bagian 1, migration dari Prisma. Client di-generate ke `src/lib/server/generated/prisma` (gitignored), jadi `npm run db:generate` wajib setelah install |
 | Session | cookie HMAC (`COOKIE_SIGN_SECRET`), isi `uid` + `exp` (7 hari) | role dan status dibaca ulang dari DB di tiap request, jadi user yang di-non-aktifin langsung gak sah. Guard terpusat di `hooks.server.ts` lewat array `GUEST_ONLY_ROUTES` (`/`) / `PUBLIC_ROUTES`, nol guard per-route |
@@ -166,7 +166,8 @@ Semua atas keputusan Iyan lewat DM, 2026-09-24.
 - **Status `ready-to-test`** ditambah di antara `in-progress` dan `done` (6 status, 6 kolom papan).
 - **Password admin**: login admin butuh `AUTH_ADMIN`, sisanya tetap email doang. Login pindah ke `/`, papan di `/board`.
 - **TypeScript 6.0.3**, bukan 7.0.2 (lihat tabel versi).
-- **Tema `rosepine`**, tampilan HP di bawah 500px.
+- **Tema `rosepine`**, tampilan HP di bawah 500px. Warna utama (primary) diganti `#2A7C13` dan error `#E73F1E` (menimpa skala bawaan tema di `src/app.css`).
+- **Tombol gaya outline**: garis dan teks berwarna, hover = latar terisi warna dan teks putih (kelas `btn-outline-primary` / `-error` / `-success` / `-neutral` di `src/app.css`). Yang sedang aktif (tab, menu terpilih) tetap terisi.
 - **Prisma pakai driver adapter `pg`**, bukan koneksi bawaan.
 - **`UPLOAD_SIZE_LIMIT`** jadi setelan batas file (default 5M), nama `BODY_SIZE_LIMIT` milik adapter-node diturunin otomatis oleh `scripts/start.mjs`.
 - **Nol test otomatis** di v1. Verifikasi manual oleh Iyan (keputusan 2026-09-24).

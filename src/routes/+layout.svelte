@@ -46,7 +46,7 @@
 						{@const active = page.url.pathname === item.href}
 						<a
 							href={item.href}
-							class="btn btn-sm {active ? 'preset-filled-primary-500' : 'hover:preset-tonal'}"
+							class="btn btn-sm {active ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
 							aria-current={active ? 'page' : undefined}
 							aria-label={item.label}
 							title={item.label}
@@ -65,7 +65,7 @@
 						<span class="badge preset-tonal">{data.user.role}</span>
 					</span>
 					<form method="POST" action="/logout">
-						<button type="submit" class="btn btn-sm preset-tonal" aria-label="Keluar">
+						<button type="submit" class="btn btn-sm btn-outline-neutral" aria-label="Keluar">
 							<LogOutIcon class="size-4" />
 							<span class="hidden md:inline">Keluar</span>
 						</button>

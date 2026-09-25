@@ -59,7 +59,7 @@
 	<title>Task baru · Task Monitor</title>
 </svelte:head>
 
-<a href="/board" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
+<a href="/board" class="btn btn-sm btn-outline-neutral mb-6 inline-flex items-center gap-1">
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
@@ -181,7 +181,7 @@
 					</li>
 				{/each}
 			</ul>
-			<button type="button" class="btn btn-sm preset-tonal self-start" onclick={clearFiles}>
+			<button type="button" class="btn btn-sm btn-outline-neutral self-start" onclick={clearFiles}>
 				<XIcon class="size-4" /> Kosongkan lampiran
 			</button>
 		{/if}
@@ -192,8 +192,8 @@
 	{/if}
 
 	<div class="flex justify-end gap-3 pt-2">
-		<a href="/board" class="btn preset-tonal">Batal</a>
-		<button type="submit" class="btn preset-filled-primary-500" disabled={hasFileError}>
+		<a href="/board" class="btn btn-outline-neutral">Batal</a>
+		<button type="submit" class="btn btn-outline-primary" disabled={hasFileError}>
 			Kirim request
 		</button>
 	</div>

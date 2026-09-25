@@ -18,7 +18,7 @@
 	<title>{task.title} · Task Monitor</title>
 </svelte:head>
 
-<a href="/board" class="btn btn-sm hover:preset-tonal mb-6 inline-flex items-center gap-1">
+<a href="/board" class="btn btn-sm btn-outline-neutral mb-6 inline-flex items-center gap-1">
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
@@ -98,7 +98,7 @@
 						{/if}
 						<button
 							type="submit"
-							class="btn {to === 'rejected' ? 'preset-filled-error-500' : 'preset-filled-primary-500'}"
+							class="btn {to === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
 						>
 							Pindah ke {statusLabels[to]}
 						</button>

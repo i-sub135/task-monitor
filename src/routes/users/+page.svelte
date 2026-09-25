@@ -30,7 +30,7 @@
 				<option value={r}>{r}</option>
 			{/each}
 		</select>
-		<noscript><button type="submit" class="btn btn-sm hover:preset-tonal">Simpan</button></noscript>
+		<noscript><button type="submit" class="btn btn-sm btn-outline-neutral">Simpan</button></noscript>
 	</form>
 {/snippet}
 
@@ -46,7 +46,7 @@
 		<input type="hidden" name="status" value={u.status === 'active' ? 'non-active' : 'active'} />
 		<button
 			type="submit"
-			class="btn btn-sm {u.status === 'active' ? 'preset-tonal-error' : 'preset-tonal-success'}"
+			class="btn btn-sm {u.status === 'active' ? 'btn-outline-error' : 'btn-outline-success'}"
 		>
 			{u.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
 		</button>
@@ -102,7 +102,7 @@
 			{#if form?.errors?.role}<span class="text-error-500 text-sm">{form.errors.role}</span>{/if}
 		</label>
 
-		<button type="submit" class="btn preset-filled-primary-500">Tambah</button>
+		<button type="submit" class="btn btn-outline-primary">Tambah</button>
 		<p class="text-xs opacity-70">
 			Developer dan marketing login cukup pakai email. Admin butuh password. Gak ada pendaftaran sendiri.
 		</p>

@@ -61,7 +61,7 @@
 			{/if}
 		</label>
 
-		<button type="submit" class="btn preset-filled-primary-500">Lanjut</button>
+		<button type="submit" class="btn btn-outline-primary">Lanjut</button>
 
 		<dialog
 			bind:this={dialog}
@@ -86,10 +86,10 @@
 					{/if}
 				</label>
 				<div class="flex justify-end gap-3">
-					<button type="button" class="btn preset-tonal" onclick={() => dialog?.close()}>
+					<button type="button" class="btn btn-outline-neutral" onclick={() => dialog?.close()}>
 						Batal
 					</button>
-					<button type="submit" class="btn preset-filled-primary-500">Masuk</button>
+					<button type="submit" class="btn btn-outline-primary">Masuk</button>
 				</div>
 			</div>
 		</dialog>
@@ -112,7 +112,7 @@
 				</p>
 			</div>
 			<div class="flex justify-end">
-				<button type="button" class="btn preset-filled-primary-500" disabled={retrying} onclick={retry}>
+				<button type="button" class="btn btn-outline-primary" disabled={retrying} onclick={retry}>
 					{retrying ? 'Memuat ulang…' : 'Coba lagi'}
 				</button>
 			</div>
