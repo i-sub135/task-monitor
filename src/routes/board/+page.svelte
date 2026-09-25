@@ -111,6 +111,10 @@
 	const ageLabel = (days: number) => (days === 0 ? 'hari ini' : days === 1 ? 'kemarin' : `${days} hari lalu`);
 </script>
 
+<svelte:head>
+	<title>Board · Task Monitor</title>
+</svelte:head>
+
 <div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
 	<h1 class="h3">Board task</h1>
 </div>
