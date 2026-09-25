@@ -94,6 +94,15 @@
 .form-comfy .select {
 	padding-block: 0.75rem;
 }
+
+/*
+ * Select bawaan Skeleton gak punya padding kiri (padding-inline gak boleh di-set karena panah dropdown itu bawaan
+ * browser dan bisa keinjak), jadi teksnya nempel di lengkungan pill. Yang diisi cuma sisi awal, sisi panah dibiarin.
+ * Nilainya sama dengan padding kiri .input di .form-comfy (1rem) biar teks input dan select sejajar.
+ */
+.select {
+	padding-inline-start: 1rem;
+}
 .form-comfy .label > * + * {
 	margin-top: 0.5rem;
 }
