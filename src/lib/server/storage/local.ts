@@ -21,7 +21,7 @@ export function createLocalStorage(root: string = process.cwd()): StorageDriver 
 
 		async put(key, bytes) {
 			const target = resolve(key);
-			if (!target) throw new Error(`Key lampiran tidak valid: ${key}`);
+			if (!target) throw new Error(`Invalid attachment key: ${key}`);
 			await mkdir(path.dirname(target), { recursive: true });
 			await writeFile(target, bytes, { flag: 'wx' });
 		},

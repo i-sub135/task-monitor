@@ -68,13 +68,13 @@ export type NewUserInput = { name: string; email: string; role: string };
 /** Validasi bentuk input. Keunikan email dicek DB (unique index), bukan di sini. */
 export function validateNewUser({ name, email, role }: NewUserInput): Record<string, string> {
 	const errors: Record<string, string> = {};
-	if (!name) errors.name = 'Nama wajib diisi';
-	else if (name.length > 100) errors.name = 'Nama maksimal 100 karakter';
+	if (!name) errors.name = 'Name is required';
+	else if (name.length > 100) errors.name = 'Name must be at most 100 characters';
 
-	if (!email) errors.email = 'Email wajib diisi';
-	else if (email.length > 254 || !EMAIL_PATTERN.test(email)) errors.email = 'Format email tidak valid';
+	if (!email) errors.email = 'Email is required';
+	else if (email.length > 254 || !EMAIL_PATTERN.test(email)) errors.email = 'Invalid email format';
 
-	if (!roles.includes(role as Role)) errors.role = 'Pilih role';
+	if (!roles.includes(role as Role)) errors.role = 'Choose a role';
 	return errors;
 }
 
@@ -91,7 +91,7 @@ export async function createUser(db: PrismaClient, input: NewUserInput): Promise
 		return { ok: true, user: toApp(row) };
 	} catch (e) {
 		if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-			return { ok: false, errors: { email: 'Email sudah terdaftar' } };
+			return { ok: false, errors: { email: 'Email is already registered' } };
 		}
 		throw e;
 	}
@@ -100,13 +100,13 @@ export async function createUser(db: PrismaClient, input: NewUserInput): Promise
 export type UpdateResult = { ok: true; user: AppUser } | { ok: false; status: number; error: string };
 
 async function update(db: PrismaClient, id: string, data: { status?: UserStatus; role?: UserRole }): Promise<UpdateResult> {
-	if (!UUID_PATTERN.test(id)) return { ok: false, status: 404, error: 'User tidak ditemukan' };
+	if (!UUID_PATTERN.test(id)) return { ok: false, status: 404, error: 'User not found' };
 	try {
 		const row = await db.user.update({ where: { id }, data });
 		return { ok: true, user: toApp(row) };
 	} catch (e) {
 		if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
-			return { ok: false, status: 404, error: 'User tidak ditemukan' };
+			return { ok: false, status: 404, error: 'User not found' };
 		}
 		throw e;
 	}
@@ -118,15 +118,15 @@ export function setUserStatus(
 	status: string,
 	actorId: string
 ): Promise<UpdateResult> | UpdateResult {
-	if (status !== 'active' && status !== 'non-active') return { ok: false, status: 400, error: 'Status tidak valid' };
+	if (status !== 'active' && status !== 'non-active') return { ok: false, status: 400, error: 'Invalid status' };
 	// Biar gak ada yang ngunci dirinya sendiri (dan semua admin) di luar aplikasi.
 	if (status === 'non-active' && id === actorId) {
-		return { ok: false, status: 400, error: 'Kamu tidak bisa menonaktifkan akunmu sendiri' };
+		return { ok: false, status: 400, error: 'You cannot deactivate your own account' };
 	}
 	return update(db, id, { status: statusToDb[status] });
 }
 
 export function setUserRole(db: PrismaClient, id: string, role: string): Promise<UpdateResult> | UpdateResult {
-	if (!roles.includes(role as Role)) return { ok: false, status: 400, error: 'Role tidak valid' };
+	if (!roles.includes(role as Role)) return { ok: false, status: 400, error: 'Invalid role' };
 	return update(db, id, { role: role as UserRole });
 }

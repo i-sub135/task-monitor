@@ -9,7 +9,7 @@ import { findUserByEmail } from '$lib/server/users';
 import type { Actions, PageServerLoad } from './$types';
 
 // Pesan yang sama buat password salah, email gak ada, dan user non-active, biar gak bocorin apa pun.
-const LOGIN_FAILED = 'Email atau password salah, atau akun belum aktif.';
+const LOGIN_FAILED = 'Wrong email or password, or the account is not active.';
 
 // Ping DB tiap halaman masuk dibuka. DB mati = halaman nampilin modal "layanan tidak tersedia".
 export const load: PageServerLoad = async ({ locals }) => {
@@ -29,7 +29,7 @@ export const actions: Actions = {
 			.toLowerCase();
 		const password = String(form.get('password') ?? '');
 
-		if (!email) return fail(400, { error: 'Email wajib diisi', email });
+		if (!email) return fail(400, { error: 'Email is required', email });
 
 		const lookup = await guardDb(getDb(), () => findUserByEmail(getDb(), email));
 		if (!lookup.ok) {

@@ -23,7 +23,7 @@ export async function seedAdminIfEmpty(
 	const name = config.name?.trim() ?? '';
 	if (!email || !name) {
 		log.error('seed.admin.missing_env', {
-			note: 'Tabel users kosong tapi SEED_ADMIN_EMAIL / SEED_ADMIN_NAME belum diisi. Belum ada yang bisa login.'
+			note: 'The users table is empty but SEED_ADMIN_EMAIL / SEED_ADMIN_NAME are not set. Nobody can log in yet.'
 		});
 		return 'invalid_env';
 	}
@@ -37,7 +37,7 @@ export async function seedAdminIfEmpty(
 	const result = await createUser(db, { name, email, role: 'admin' });
 	if (!result.ok) {
 		// Dua instance start bareng: yang kalah balapan kena unique email, itu bukan error.
-		if (result.errors.email === 'Email sudah terdaftar') return 'skipped';
+		if (result.errors.email === 'Email is already registered') return 'skipped';
 		log.error('seed.admin.failed', { errors: result.errors });
 		return 'invalid_env';
 	}

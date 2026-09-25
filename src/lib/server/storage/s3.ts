@@ -41,7 +41,7 @@ export function createS3Storage(config: S3Config, client?: S3Client): StorageDri
 		name: 's3',
 
 		async put(Key, bytes, contentType) {
-			if (!isAttachmentKey(Key)) throw new Error(`Key lampiran tidak valid: ${Key}`);
+			if (!isAttachmentKey(Key)) throw new Error(`Invalid attachment key: ${Key}`);
 			await s3.send(new PutObjectCommand({ Bucket, Key, Body: bytes, ContentType: contentType }));
 		},
 

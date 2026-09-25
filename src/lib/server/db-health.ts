@@ -15,7 +15,7 @@ export async function pingDb(db: Pingable, timeoutMs: number = PING_TIMEOUT_MS):
 		const query = Promise.resolve(db.$queryRaw`SELECT 1`);
 		query.catch(() => undefined); // kalah balapan lawan timeout: jangan jadi unhandled rejection
 		const timeout = new Promise<never>((_, reject) => {
-			timer = setTimeout(() => reject(new Error(`DB gak jawab dalam ${timeoutMs} ms`)), timeoutMs);
+			timer = setTimeout(() => reject(new Error(`Database did not respond within ${timeoutMs} ms`)), timeoutMs);
 		});
 		await Promise.race([query, timeout]);
 		return { ok: true };
@@ -45,7 +45,7 @@ export async function guardDb<T>(
 			timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs);
 		});
 		const result = await Promise.race([work, timeout]);
-		if (result === TIMED_OUT) return { ok: false, reason: `DB gak jawab dalam ${timeoutMs} ms` };
+		if (result === TIMED_OUT) return { ok: false, reason: `Database did not respond within ${timeoutMs} ms` };
 		return { ok: true, value: result };
 	} catch (e) {
 		const ping = await pingDb(db, timeoutMs);

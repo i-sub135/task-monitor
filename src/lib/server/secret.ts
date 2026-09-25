@@ -9,7 +9,7 @@ let devSecret: string | undefined;
 /** Password login. Wajib ada: kalau kosong, gak ada yang bisa masuk, jadi lebih baik server gak nyala. */
 export function getLoginPassword(): string {
 	const password = env.AUTH_ADMIN;
-	if (!password) throw new Error('AUTH_ADMIN belum diisi. Isi password login di .env');
+	if (!password) throw new Error('AUTH_ADMIN is not set. Put the login password in .env');
 	return password;
 }
 
@@ -18,16 +18,16 @@ export function getSessionSecret(): string {
 	const configured = env.COOKIE_SIGN_SECRET;
 	if (configured) {
 		if (configured.length < MIN_LENGTH) {
-			throw new Error(`COOKIE_SIGN_SECRET minimal ${MIN_LENGTH} karakter`);
+			throw new Error(`COOKIE_SIGN_SECRET must be at least ${MIN_LENGTH} characters`);
 		}
 		return configured;
 	}
-	if (!dev) throw new Error('COOKIE_SIGN_SECRET wajib diisi di production');
+	if (!dev) throw new Error('COOKIE_SIGN_SECRET is required in production');
 
 	if (!devSecret) {
 		devSecret = randomBytes(32).toString('hex');
 		logger.warn('auth.secret.ephemeral', {
-			note: 'COOKIE_SIGN_SECRET kosong, pakai kunci acak. Sesi hilang tiap dev server restart.'
+			note: 'COOKIE_SIGN_SECRET is empty, using a random key. Sessions are lost on every dev server restart.'
 		});
 	}
 	return devSecret;

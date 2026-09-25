@@ -11,7 +11,7 @@ export function getDb(): PrismaClient {
 
 	const connectionString = env.DATABASE_URL;
 	if (!connectionString) {
-		throw new Error('DATABASE_URL belum diisi. Salin .env.example jadi .env lalu isi.');
+		throw new Error('DATABASE_URL is not set. Copy .env.example to .env and fill it in.');
 	}
 
 	const db = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });

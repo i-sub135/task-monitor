@@ -28,10 +28,10 @@ export const actions: Actions = {
 			.filter((f): f is File => f instanceof File && f.size > 0);
 
 		const errors: Record<string, string> = {};
-		if (!title) errors.title = 'Judul wajib diisi';
-		else if (title.length > 120) errors.title = 'Judul maksimal 120 karakter';
-		if (!description) errors.description = 'Deskripsi wajib diisi';
-		if (type !== 'bug' && type !== 'feature') errors.type = 'Pilih bug atau feature';
+		if (!title) errors.title = 'Title is required';
+		else if (title.length > 120) errors.title = 'Title must be at most 120 characters';
+		if (!description) errors.description = 'Description is required';
+		if (type !== 'bug' && type !== 'feature') errors.type = 'Choose bug or feature';
 
 		const uploads = await checkUploads(files, getUploadLimitBytes());
 		if (!uploads.ok) errors.attachments = uploads.error;
@@ -66,7 +66,7 @@ export const actions: Actions = {
 				storage: storage.name,
 				error: e instanceof Error ? e.message : String(e)
 			});
-			const saveErrors: Record<string, string> = { form: 'Gagal menyimpan task. Coba lagi.' };
+			const saveErrors: Record<string, string> = { form: 'Failed to save the task. Please try again.' };
 			return fail(500, { errors: saveErrors, values: { title, description, type } });
 		}
 

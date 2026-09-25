@@ -45,6 +45,6 @@ export const hasRole = (user: SessionUser | null, ...allowed: Role[]): boolean =
 /** Buat load dan endpoint: lempar 403 kalau role gak cocok. */
 export function requireRole(locals: App.Locals, ...allowed: Role[]): SessionUser {
 	const { user } = locals;
-	if (!user || !allowed.includes(user.role)) error(403, 'Kamu tidak punya akses ke halaman ini');
+	if (!user || !allowed.includes(user.role)) error(403, 'You do not have access to this page');
 	return user;
 }

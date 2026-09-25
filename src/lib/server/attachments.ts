@@ -40,22 +40,22 @@ export async function checkUploads(
 	files: File[],
 	maxFileBytes: number = parseSize(DEFAULT_UPLOAD_SIZE_LIMIT)
 ): Promise<UploadCheck> {
-	if (files.length > MAX_FILES) return { ok: false, error: `Maksimal ${MAX_FILES} lampiran` };
+	if (files.length > MAX_FILES) return { ok: false, error: `At most ${MAX_FILES} attachments` };
 
 	const accepted: AcceptedFile[] = [];
 	for (const file of files) {
 		if (file.size > maxFileBytes) {
-			return { ok: false, error: `"${cleanName(file.name)}" lebih dari ${formatSize(maxFileBytes)}` };
+			return { ok: false, error: `"${cleanName(file.name)}" is larger than ${formatSize(maxFileBytes)}` };
 		}
 		if (!declaredAllowed(file.type)) {
-			return { ok: false, error: `"${cleanName(file.name)}" bukan gambar atau PDF` };
+			return { ok: false, error: `"${cleanName(file.name)}" is not an image or a PDF` };
 		}
 		const bytes = new Uint8Array(await file.arrayBuffer());
 		const detected = detectFileType(bytes);
 		if (!detected) {
 			return {
 				ok: false,
-				error: `Isi "${cleanName(file.name)}" bukan gambar (PNG, JPG, GIF, WEBP) atau PDF`
+				error: `The content of "${cleanName(file.name)}" is not an image (PNG, JPG, GIF, WEBP) or a PDF`
 			};
 		}
 		accepted.push({ name: cleanName(file.name), ...detected, size: bytes.length, bytes });

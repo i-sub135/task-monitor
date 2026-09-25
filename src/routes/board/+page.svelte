@@ -104,7 +104,7 @@
 		e.preventDefault();
 		if (!pending) return;
 		if (pending.to === 'rejected' && !note.trim()) {
-			noteError = 'Catatan wajib diisi kalau menolak task';
+			noteError = 'A reason is required to reject a task';
 			return;
 		}
 		const { task, to } = pending;
@@ -118,7 +118,7 @@
 		pending = null;
 	}
 
-	const ageLabel = (days: number) => (days === 0 ? 'hari ini' : days === 1 ? 'kemarin' : `${days} hari lalu`);
+	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
 </script>
 
 <svelte:head>
@@ -126,16 +126,14 @@
 </svelte:head>
 
 <div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
-	<h1 class="h3">Board task</h1>
+	<h1 class="h3">Task board</h1>
 </div>
 
 <p class="mb-6 text-sm opacity-70">
 	{#if canDrag}
-		Geser kartu ke kolom berikutnya buat ubah status. Cuma bisa maju: Request → Queue → In progress →
-		Ready to test → Done, atau Request → Rejected. Panah ▲▼ di kartu buat ngatur urutan.
+		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Use the ▲▼ arrows on a card to reorder.
 	{:else}
-		Role marketing bisa liat board, bikin task, dan ngatur urutan di kolom Request, tapi gak bisa ubah
-		status.
+		The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.
 	{/if}
 </p>
 
@@ -154,7 +152,7 @@
 </form>
 
 <!-- HP: 6 tab status jadi satu button group satu baris (segmen menyambung). Label dipendekin biar muat di 1/6 lebar. -->
-<div class="mb-4 flex xs:hidden" role="tablist" aria-label="Kolom status">
+<div class="mb-4 flex xs:hidden" role="tablist" aria-label="Status columns">
 	{#each statuses as status (status)}
 		<button
 			type="button"
@@ -180,7 +178,7 @@
 		{@const valid = isValidTarget(dragging, status)}
 		<section
 			role="group"
-			aria-label="Kolom {statusLabels[status]}"
+			aria-label="Column {statusLabels[status]}"
 			data-status={status}
 			class="card preset-filled-surface-100-900 min-h-32 flex-col gap-4 p-4 transition {activeTab === status
 				? 'flex'
@@ -209,7 +207,7 @@
 				>
 					<div class="flex items-center gap-2 text-xs">
 						{#if task.position !== null}
-							<span class="badge preset-tonal" title="Nomor urut di kolom">#{task.position}</span>
+							<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
 						{/if}
 						{#if task.type === 'bug'}
 							<span class="badge preset-filled-error-500"><BugIcon class="size-3" /> bug</span>
@@ -242,7 +240,7 @@
 							<button
 								type="button"
 								class="btn-icon btn-icon-sm btn-outline-neutral"
-								aria-label="Naikkan urutan"
+								aria-label="Move up"
 								disabled={i === 0}
 								onclick={() => sendReorder(task, -1)}
 							>
@@ -251,7 +249,7 @@
 							<button
 								type="button"
 								class="btn-icon btn-icon-sm btn-outline-neutral"
-								aria-label="Turunkan urutan"
+								aria-label="Move down"
 								disabled={i === items.length - 1}
 								onclick={() => sendReorder(task, 1)}
 							>
@@ -261,7 +259,7 @@
 					{/if}
 				</article>
 			{:else}
-				<p class="py-4 text-center text-sm opacity-50">Kosong</p>
+				<p class="py-4 text-center text-sm opacity-50">Empty</p>
 			{/each}
 		</section>
 	{/each}
@@ -274,18 +272,18 @@
 >
 	{#if pending}
 		<form onsubmit={confirmDialog} class="form-comfy flex flex-col gap-4">
-			<h2 class="h4">Pindah ke {statusLabels[pending.to]}</h2>
+			<h2 class="h4">Move to {statusLabels[pending.to]}</h2>
 			<p class="text-sm opacity-70">{pending.task.title}</p>
 			<label class="label">
 				<span class="label-text font-semibold">
-					{pending.to === 'rejected' ? 'Alasan (wajib)' : 'Catatan / link hasil (opsional)'}
+					{pending.to === 'rejected' ? 'Reason (required)' : 'Note / result link (optional)'}
 				</span>
 				<textarea class="textarea" rows="3" bind:value={note}></textarea>
 				{#if noteError}<span class="text-error-500 text-sm">{noteError}</span>{/if}
 			</label>
 			<div class="flex justify-end gap-2">
-				<button type="button" class="btn btn-outline-neutral" onclick={cancelDialog}>Batal</button>
-				<button type="submit" class="btn btn-outline-primary">Simpan</button>
+				<button type="button" class="btn btn-outline-neutral" onclick={cancelDialog}>Cancel</button>
+				<button type="submit" class="btn btn-outline-primary">Save</button>
 			</div>
 		</form>
 	{/if}

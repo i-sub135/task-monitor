@@ -31,9 +31,9 @@
 	$effect(() => {
 		if (moveOpen && moveDialog && !moveDialog.open) moveDialog.showModal();
 	});
-	const tabLabel = (to: Status) => (to === 'rejected' ? 'Reject' : `Pindah ke ${statusLabels[to]}`);
+	const tabLabel = (to: Status) => (to === 'rejected' ? 'Reject' : `Move to ${statusLabels[to]}`);
 	const noteLabel = (to: Status) =>
-		to === 'rejected' ? 'Alasan (wajib)' : to === 'done' ? 'Catatan / link hasil (opsional)' : 'Catatan (opsional)';
+		to === 'rejected' ? 'Reason (required)' : to === 'done' ? 'Note / result link (optional)' : 'Note (optional)';
 	function openMove() {
 		moveTarget = nextStatuses[0];
 		moveOpen = true;
@@ -86,15 +86,15 @@
 		</div>
 
 		<h1 class="h3">{task.title}</h1>
-		<p class="text-sm opacity-70">oleh {task.createdBy} · {task.createdAt}</p>
+		<p class="text-sm opacity-70">by {task.createdBy} · {task.createdAt}</p>
 
 		<section>
-			<h2 class="mb-2 font-semibold">Deskripsi</h2>
+			<h2 class="mb-2 font-semibold">Description</h2>
 			<p class="whitespace-pre-wrap">{task.description}</p>
 		</section>
 
 		<section>
-			<h2 class="mb-3 font-semibold">Lampiran ({task.attachments.length})</h2>
+			<h2 class="mb-3 font-semibold">Attachments ({task.attachments.length})</h2>
 			{#if task.attachments.length > 0}
 				<ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 					{#each task.attachments as file (file.id)}
@@ -102,7 +102,7 @@
 							<button
 								type="button"
 								onclick={() => openViewer(file)}
-								aria-label="Lihat {file.name}"
+								aria-label="View {file.name}"
 								class="border-surface-300-700 hover:border-primary-500 rounded-container block cursor-pointer overflow-hidden border shadow-md transition hover:shadow-xl"
 							>
 								{#if file.mime.startsWith('image/')}
@@ -123,16 +123,16 @@
 					{/each}
 				</ul>
 			{:else}
-				<p class="text-sm opacity-50">Tidak ada lampiran</p>
+				<p class="text-sm opacity-50">No attachments</p>
 			{/if}
 		</section>
 	</article>
 
 	<div class="flex h-fit flex-col gap-6">
 		{#if canMove && nextStatuses.length > 0}
-			<button type="button" class="btn btn-outline-primary xs:hidden" onclick={openMove}>Pindah status</button>
+			<button type="button" class="btn btn-outline-primary xs:hidden" onclick={openMove}>Change status</button>
 			<section class="card preset-filled-surface-50-950 border-surface-300-700 hidden flex-col gap-4 border p-6 shadow-xl xs:flex">
-				<h2 class="font-semibold">Pindah status</h2>
+				<h2 class="font-semibold">Change status</h2>
 				{#if form?.transitionError}
 					<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.transitionError}</div>
 				{/if}
@@ -142,7 +142,7 @@
 						{#if to === 'rejected' || to === 'done'}
 							<label class="label">
 								<span class="label-text font-semibold">
-									{to === 'rejected' ? 'Alasan (wajib)' : 'Catatan / link hasil (opsional)'}
+									{to === 'rejected' ? 'Reason (required)' : 'Note / result link (optional)'}
 								</span>
 								<textarea class="textarea" name="note" rows="2" required={to === 'rejected'}></textarea>
 							</label>
@@ -151,7 +151,7 @@
 							type="submit"
 							class="btn {to === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
 						>
-							Pindah ke {statusLabels[to]}
+							Move to {statusLabels[to]}
 						</button>
 					</form>
 				{/each}
@@ -159,7 +159,7 @@
 		{/if}
 
 		<aside class="card preset-filled-surface-50-950 border-surface-300-700 border p-6 shadow-xl">
-			<h2 class="mb-4 font-semibold">Riwayat status</h2>
+			<h2 class="mb-4 font-semibold">Status history</h2>
 			<ol class="flex flex-col gap-4 text-sm">
 				{#each task.history as h (h.id)}
 					<li class="border-surface-300-700 border-l-2 pl-3">
@@ -212,8 +212,8 @@
 							class="btn-icon btn-icon-sm btn-outline-neutral"
 							onclick={zoomOut}
 							disabled={zoomIndex === 0}
-							aria-label="Perkecil"
-							title="Perkecil"
+							aria-label="Zoom out"
+							title="Zoom out"
 						>
 							<ZoomOutIcon class="size-4" />
 						</button>
@@ -221,7 +221,7 @@
 							type="button"
 							class="btn btn-sm btn-outline-neutral min-w-16"
 							onclick={() => (zoomIndex = 0)}
-							title="Pas layar"
+							title="Fit to screen"
 						>
 							{Math.round(zoom * 100)}%
 						</button>
@@ -230,8 +230,8 @@
 							class="btn-icon btn-icon-sm btn-outline-neutral"
 							onclick={zoomIn}
 							disabled={zoomIndex === ZOOM_STEPS.length - 1}
-							aria-label="Perbesar"
-							title="Perbesar"
+							aria-label="Zoom in"
+							title="Zoom in"
 						>
 							<ZoomInIcon class="size-4" />
 						</button>
@@ -242,14 +242,14 @@
 					download={viewing.name}
 					class="btn btn-sm btn-outline-primary"
 				>
-					<DownloadIcon class="size-4" /> Unduh
+					<DownloadIcon class="size-4" /> Download
 				</a>
 				<button
 					type="button"
 					class="btn-icon btn-icon-sm btn-outline-neutral"
 					onclick={() => viewer?.close()}
-					aria-label="Tutup"
-					title="Tutup"
+					aria-label="Close"
+					title="Close"
 				>
 					<XIcon class="size-4" />
 				</button>
@@ -270,7 +270,7 @@
 				{:else}
 					<div class="flex flex-col items-center gap-3 py-12 text-center">
 						<FileTextIcon class="size-16 opacity-60" />
-						<p class="text-sm opacity-70">Pratinjau tidak tersedia untuk file ini. Unduh untuk membukanya.</p>
+						<p class="text-sm opacity-70">No preview available for this file. Download it to open it.</p>
 					</div>
 				{/if}
 			</div>
@@ -302,12 +302,12 @@
 		>
 			<input type="hidden" name="to" value={selectedTo} />
 			<div>
-				<h2 id="move-title" class="h5">Pindah status</h2>
-				<p class="text-xs opacity-70">Sekarang: {statusLabels[task.status]}</p>
+				<h2 id="move-title" class="h5">Change status</h2>
+				<p class="text-xs opacity-70">Current: {statusLabels[task.status]}</p>
 			</div>
 
 			{#if nextStatuses.length > 1}
-				<div class="flex" role="tablist" aria-label="Pindah ke">
+				<div class="flex" role="tablist" aria-label="Move to">
 					{#each nextStatuses as to (to)}
 						<button
 							type="button"
@@ -338,7 +338,7 @@
 			</label>
 
 			<div class="flex justify-end gap-3">
-				<button type="button" class="btn btn-outline-neutral" onclick={() => moveDialog?.close()}>Batal</button>
+				<button type="button" class="btn btn-outline-neutral" onclick={() => moveDialog?.close()}>Cancel</button>
 				<button
 					type="submit"
 					class="btn {selectedTo === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"

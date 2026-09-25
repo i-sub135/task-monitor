@@ -9,7 +9,7 @@
 
 	const allNavItems = [
 		{ href: '/board', label: 'Board', icon: KanbanIcon, adminOnly: false },
-		{ href: '/task/new', label: 'Task baru', icon: PlusIcon, adminOnly: false },
+		{ href: '/task/new', label: 'New task', icon: PlusIcon, adminOnly: false },
 		{ href: '/users', label: 'Users', icon: UsersIcon, adminOnly: true }
 	];
 	// Board dilebarin penuh biar 6 kolom gak sempit di layar lebar. Halaman lain tetap dibatasi.
@@ -42,14 +42,14 @@
 				<span class="flex items-baseline gap-2 whitespace-nowrap">
 					<span class="text-lg font-bold sm:text-xl">Task Monitor</span>
 					{#if data.version}
-						<span class="text-[11px] font-normal opacity-60" title="Versi app">{versionLabel}</span>
+						<span class="text-[11px] font-normal opacity-60" title="App version">{versionLabel}</span>
 					{/if}
 				</span>
 			</a>
 		</AppBar.Lead>
 		{#if data.user}
 			<AppBar.Headline class="hidden min-w-0 xs:col-start-2 xs:row-start-1 xs:block">
-				<nav class="flex items-center gap-1 overflow-x-auto" aria-label="Navigasi utama">
+				<nav class="flex items-center gap-1 overflow-x-auto" aria-label="Main navigation">
 					{#each navItems as item (item.href)}
 						{@const active = page.url.pathname === item.href}
 						<a
@@ -73,9 +73,9 @@
 						<span class="badge preset-tonal">{data.user.role}</span>
 					</span>
 					<form method="POST" action="/logout">
-						<button type="submit" class="btn btn-sm btn-outline-neutral" aria-label="Keluar">
+						<button type="submit" class="btn btn-sm btn-outline-neutral" aria-label="Log out">
 							<LogOutIcon class="size-4" />
-							<span class="hidden md:inline">Keluar</span>
+							<span class="hidden md:inline">Log out</span>
 						</button>
 					</form>
 				</div>
@@ -97,7 +97,7 @@
 	<Navigation
 		layout="bar"
 		class="border-surface-300-700 fixed inset-x-0 bottom-0 z-40 border-t pt-0.5! pb-[max(0.125rem,env(safe-area-inset-bottom))]! xs:hidden"
-		aria-label="Navigasi utama"
+		aria-label="Main navigation"
 	>
 		<Navigation.Menu>
 			{#each navItems as item (item.href)}

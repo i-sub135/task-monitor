@@ -13,11 +13,11 @@ export function parseStorageConfig(env: Record<string, string | undefined>): Sto
 
 	const driver = (get('STORAGE_DRIVER') || 'local').toLowerCase();
 	if (driver === 'local') return { driver: 'local' };
-	if (driver !== 's3') throw new Error(`STORAGE_DRIVER tidak valid: '${driver}'. Pilihan: local, s3`);
+	if (driver !== 's3') throw new Error(`STORAGE_DRIVER is invalid: '${driver}'. Options: local, s3`);
 
 	const missing = ['S3_REGION', 'S3_BUCKET', 'S3_ACCESS_KEY', 'S3_SECRET_KEY'].filter((name) => !get(name));
 	if (missing.length > 0) {
-		throw new Error(`STORAGE_DRIVER=s3 tapi env berikut belum diisi: ${missing.join(', ')}`);
+		throw new Error(`STORAGE_DRIVER=s3 but these env vars are not set: ${missing.join(', ')}`);
 	}
 
 	const region = get('S3_REGION');
@@ -25,12 +25,12 @@ export function parseStorageConfig(env: Record<string, string | undefined>): Sto
 	try {
 		new URL(endpoint);
 	} catch {
-		throw new Error(`S3_ENDPOINT tidak valid: '${endpoint}'. Contoh: https://s3.ap-southeast-1.wasabisys.com`);
+		throw new Error(`S3_ENDPOINT is invalid: '${endpoint}'. Example: https://s3.ap-southeast-1.wasabisys.com`);
 	}
 
 	const checksum = (get('S3_CHECKSUM') || 'default').toLowerCase();
 	if (checksum !== 'default' && checksum !== 'when_required') {
-		throw new Error(`S3_CHECKSUM tidak valid: '${checksum}'. Pilihan: default, when_required`);
+		throw new Error(`S3_CHECKSUM is invalid: '${checksum}'. Options: default, when_required`);
 	}
 
 	return {

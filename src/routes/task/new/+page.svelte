@@ -39,9 +39,9 @@
 			size: f.size,
 			url: f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined,
 			error: !isAllowed(f)
-				? 'Hanya PNG, JPG, GIF, WEBP, atau PDF'
+				? 'Only PNG, JPG, GIF, WEBP or PDF'
 				: f.size > MAX_FILE_BYTES
-					? `Lebih dari ${formatSize(MAX_FILE_BYTES)}`
+					? `Larger than ${formatSize(MAX_FILE_BYTES)}`
 					: undefined
 		}));
 	}
@@ -73,7 +73,7 @@
 </script>
 
 <svelte:head>
-	<title>Task baru · Task Monitor</title>
+	<title>New task · Task Monitor</title>
 </svelte:head>
 
 <a href="/board" class="btn btn-sm btn-outline-neutral mb-6 inline-flex items-center gap-1">
@@ -87,8 +87,8 @@
 	class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy mx-auto flex max-w-2xl flex-col gap-6 border p-6 shadow-xl"
 >
 	<div>
-		<h1 class="h3">Task baru</h1>
-		<p class="text-sm opacity-70">Task masuk ke kolom Request dan bisa dilihat semua orang.</p>
+		<h1 class="h3">New task</h1>
+		<p class="text-sm opacity-70">A task goes into the Request column and is visible to everyone.</p>
 	</div>
 
 	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug dan feature">
@@ -116,21 +116,21 @@
 	</aside>
 
 	<label class="label">
-		<span class="label-text font-semibold">Judul</span>
+		<span class="label-text font-semibold">Title</span>
 		<input
 			class="input"
 			type="text"
 			name="title"
 			maxlength="120"
 			required
-			placeholder="Ringkas masalah atau permintaannya"
+			placeholder="Summarize the problem or request"
 			value={form?.values?.title ?? ''}
 		/>
 		{#if form?.errors?.title}<span class="text-error-500 text-sm">{form.errors.title}</span>{/if}
 	</label>
 
 	<fieldset class="flex flex-col gap-2">
-		<legend class="label-text mb-2 font-semibold">Tipe</legend>
+		<legend class="label-text mb-2 font-semibold">Type</legend>
 		<div class="flex gap-3">
 			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-error-500">
 				<input class="radio" type="radio" name="type" value="bug" required checked={form?.values?.type === 'bug'} />
@@ -145,13 +145,13 @@
 	</fieldset>
 
 	<label class="label">
-		<span class="label-text font-semibold">Deskripsi</span>
+		<span class="label-text font-semibold">Description</span>
 		<textarea
 			class="textarea"
 			name="description"
 			rows="5"
 			required
-			placeholder="Ceritakan detailnya: apa yang terjadi, di mana, seberapa sering"
+			placeholder="Describe the details: what happened, where, how often"
 			>{form?.values?.description ?? ''}</textarea
 		>
 		{#if form?.errors?.description}<span class="text-error-500 text-sm"
@@ -160,7 +160,7 @@
 	</label>
 
 	<div class="flex flex-col gap-2">
-		<span class="label-text font-semibold">Lampiran</span>
+		<span class="label-text font-semibold">Attachments</span>
 		<input
 			bind:this={fileInput}
 			class="input"
@@ -170,8 +170,8 @@
 			accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
 			onchange={onPick}
 		/>
-		<p class="text-xs opacity-70">Maksimal {MAX_FILES} file, {formatSize(MAX_FILE_BYTES)} per file. PNG, JPG, GIF, WEBP, atau PDF.</p>
-		{#if tooMany}<span class="text-error-500 text-sm">Maksimal {MAX_FILES} lampiran</span>{/if}
+		<p class="text-xs opacity-70">Up to {MAX_FILES} files, {formatSize(MAX_FILE_BYTES)} per file. PNG, JPG, GIF, WEBP or PDF.</p>
+		{#if tooMany}<span class="text-error-500 text-sm">At most {MAX_FILES} attachments</span>{/if}
 		{#if form?.errors?.attachments}<span class="text-error-500 text-sm"
 				>{form.errors.attachments}</span
 			>{/if}
@@ -198,8 +198,8 @@
 								<button
 									type="button"
 									class="btn-icon btn-icon-sm btn-outline-error rounded-full"
-									aria-label="Hapus {p.name}"
-									title="Hapus lampiran ini"
+									aria-label="Remove {p.name}"
+									title="Remove this attachment"
 									onclick={() => removeFile(p.id)}
 								>
 									<XIcon class="size-4" />
@@ -212,7 +212,7 @@
 				{/each}
 			</ul>
 			<button type="button" class="btn btn-sm btn-outline-neutral self-start" onclick={clearFiles}>
-				<XIcon class="size-4" /> Kosongkan lampiran
+				<XIcon class="size-4" /> Clear attachments
 			</button>
 		{/if}
 	</div>
@@ -222,9 +222,9 @@
 	{/if}
 
 	<div class="flex justify-end gap-3 pt-2">
-		<a href="/board" class="btn btn-outline-neutral">Batal</a>
+		<a href="/board" class="btn btn-outline-neutral">Cancel</a>
 		<button type="submit" class="btn btn-outline-primary" disabled={hasFileError}>
-			Kirim request
+			Submit request
 		</button>
 	</div>
 </form>

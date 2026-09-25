@@ -8,7 +8,7 @@ import { DEFAULT_UPLOAD_SIZE_LIMIT, bodyLimitBytes, parseSize } from '../src/lib
 const raw = process.env.UPLOAD_SIZE_LIMIT || DEFAULT_UPLOAD_SIZE_LIMIT;
 const perFile = parseSize(raw);
 if (!Number.isFinite(perFile) || perFile <= 0) {
-	console.error(`UPLOAD_SIZE_LIMIT tidak valid: '${raw}'. Contoh yang benar: 5M, 512K, 10M`);
+	console.error(`UPLOAD_SIZE_LIMIT is invalid: '${raw}'. Valid examples: 5M, 512K, 10M`);
 	process.exit(1);
 }
 

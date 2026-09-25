@@ -39,17 +39,17 @@ export type RuleResult = { ok: true } | { ok: false; status: number; error: stri
 /** Aturan transisi di satu tempat. Server yang jadi hakim, UI cuma ngikutin buat nampilin tombol. */
 export function checkTransition(input: { from: Status; to: Status; note: string; role: Role }): RuleResult {
 	if (!canAdvance(input.role)) {
-		return { ok: false, status: 403, error: 'Role marketing tidak bisa mengubah status' };
+		return { ok: false, status: 403, error: 'The marketing role cannot change status' };
 	}
 	if (!transitions[input.from].includes(input.to)) {
 		return {
 			ok: false,
 			status: 400,
-			error: `Tidak bisa pindah dari ${statusLabels[input.from]} ke ${statusLabels[input.to]}`
+			error: `Cannot move from ${statusLabels[input.from]} to ${statusLabels[input.to]}`
 		};
 	}
 	if (input.to === 'rejected' && !input.note.trim()) {
-		return { ok: false, status: 400, error: 'Catatan wajib diisi kalau menolak task' };
+		return { ok: false, status: 400, error: 'A reason is required to reject a task' };
 	}
 	return { ok: true };
 }

@@ -5,7 +5,7 @@ import { createUser, listUsers, setUserRole, setUserStatus } from '$lib/server/u
 import type { Actions, PageServerLoad } from './$types';
 
 // Kelola users cuma buat admin (brainstorming.md bagian 3). Dicek ulang di tiap action.
-const FORBIDDEN = 'Cuma admin yang bisa kelola users';
+const FORBIDDEN = 'Only admins can manage users';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	requireRole(locals, 'admin');

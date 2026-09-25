@@ -186,16 +186,16 @@ export async function transitionTask(
 ): Promise<ActionResult> {
 	const note = input.note.trim();
 	if (input.user.role === 'marketing') {
-		return { ok: false, status: 403, error: 'Role marketing tidak bisa mengubah status' };
+		return { ok: false, status: 403, error: 'The marketing role cannot change status' };
 	}
-	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task tidak ditemukan' };
-	if (!statuses.includes(input.to as Status)) return { ok: false, status: 400, error: 'Status tidak valid' };
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!statuses.includes(input.to as Status)) return { ok: false, status: 400, error: 'Invalid status' };
 	const to = input.to as Status;
 
 	return db.$transaction(async (tx): Promise<ActionResult> => {
 		await lockOrdering(tx);
 		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true } });
-		if (!row) return { ok: false, status: 404, error: 'Task tidak ditemukan' };
+		if (!row) return { ok: false, status: 404, error: 'Task not found' };
 
 		const from = statusToApp[row.status];
 		const check = checkTransition({ from, to, note, role: input.user.role });
@@ -230,18 +230,18 @@ export async function reorderTask(
 	db: PrismaClient,
 	input: { id: string; position: number; user: SessionUser }
 ): Promise<ActionResult> {
-	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task tidak ditemukan' };
-	if (!Number.isInteger(input.position)) return { ok: false, status: 400, error: 'Posisi tidak valid' };
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!Number.isInteger(input.position)) return { ok: false, status: 400, error: 'Invalid position' };
 
 	return db.$transaction(async (tx): Promise<ActionResult> => {
 		await lockOrdering(tx);
 		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true } });
-		if (!row) return { ok: false, status: 404, error: 'Task tidak ditemukan' };
+		if (!row) return { ok: false, status: 404, error: 'Task not found' };
 
 		const status = statusToApp[row.status];
-		if (!hasOrdering(status)) return { ok: false, status: 400, error: 'Kolom ini gak punya urutan' };
+		if (!hasOrdering(status)) return { ok: false, status: 400, error: 'This column has no ordering' };
 		if (!canReorder(input.user.role, status)) {
-			return { ok: false, status: 403, error: 'Role kamu tidak bisa mengubah urutan di kolom ini' };
+			return { ok: false, status: 403, error: 'Your role cannot reorder this column' };
 		}
 
 		const ids = await columnOrder(tx, row.status);

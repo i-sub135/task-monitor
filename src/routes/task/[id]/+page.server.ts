@@ -5,13 +5,13 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const task = await getTaskDetail(getDb(), params.id);
-	if (!task) error(404, 'Task tidak ditemukan');
+	if (!task) error(404, 'Task not found');
 	return { task };
 };
 
 export const actions: Actions = {
 	transition: async ({ request, params, locals }) => {
-		if (!locals.user) return fail(401, { transitionError: 'Sesi habis, masuk lagi' });
+		if (!locals.user) return fail(401, { transitionError: 'Session expired, please log in again' });
 		const form = await request.formData();
 		const result = await transitionTask(getDb(), {
 			id: params.id,

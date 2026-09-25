@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	move: async ({ request, locals }) => {
-		if (!locals.user) return fail(401, { moveError: 'Sesi habis, masuk lagi' });
+		if (!locals.user) return fail(401, { moveError: 'Session expired, please log in again' });
 		const form = await request.formData();
 		const result = await transitionTask(getDb(), {
 			id: String(form.get('id') ?? ''),
@@ -25,7 +25,7 @@ export const actions: Actions = {
 	},
 
 	reorder: async ({ request, locals }) => {
-		if (!locals.user) return fail(401, { moveError: 'Sesi habis, masuk lagi' });
+		if (!locals.user) return fail(401, { moveError: 'Session expired, please log in again' });
 		const form = await request.formData();
 		const result = await reorderTask(getDb(), {
 			id: String(form.get('id') ?? ''),

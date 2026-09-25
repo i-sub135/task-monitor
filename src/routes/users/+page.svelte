@@ -18,7 +18,7 @@
 
 {#snippet addUserFields()}
 	<label class="label">
-		<span class="label-text font-semibold">Nama</span>
+		<span class="label-text font-semibold">Name</span>
 		<input class="input" type="text" name="name" maxlength="100" required value={form?.values?.name ?? ''} />
 		{#if form?.errors?.name}<span class="text-error-500 text-sm">{form.errors.name}</span>{/if}
 	</label>
@@ -42,7 +42,7 @@
 
 {#snippet addUserHint()}
 	<p class="text-xs opacity-70">
-		Developer dan marketing login cukup pakai email. Admin butuh password. Gak ada pendaftaran sendiri.
+		Developers and marketing log in with just their email. Admins need a password. There is no self-registration.
 	</p>
 {/snippet}
 
@@ -53,7 +53,7 @@
 		<select
 			name="role"
 			class="select w-40"
-			aria-label="Ganti role {u.name}"
+			aria-label="Change role of {u.name}"
 			value={u.role}
 			onchange={(e) => e.currentTarget.form?.requestSubmit()}
 		>
@@ -61,7 +61,7 @@
 				<option value={r}>{r}</option>
 			{/each}
 		</select>
-		<noscript><button type="submit" class="btn btn-sm btn-outline-neutral">Simpan</button></noscript>
+		<noscript><button type="submit" class="btn btn-sm btn-outline-neutral">Save</button></noscript>
 	</form>
 {/snippet}
 
@@ -79,7 +79,7 @@
 			type="submit"
 			class="btn btn-sm {u.status === 'active' ? 'btn-outline-error' : 'btn-outline-success'}"
 		>
-			{u.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
+			{u.status === 'active' ? 'Deactivate' : 'Activate'}
 		</button>
 	</form>
 {/snippet}
@@ -91,9 +91,9 @@
 <div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
 	<h1 class="h3">Users</h1>
 	<div class="flex items-center gap-3">
-		<p class="text-sm opacity-70">{users.length} user, {activeCount} aktif</p>
+		<p class="text-sm opacity-70">{users.length} {users.length === 1 ? 'user' : 'users'}, {activeCount} active</p>
 		<button type="button" class="btn btn-sm btn-outline-primary xs:hidden" onclick={() => (addOpen = true)}>
-			<UserPlusIcon class="size-4" /> Tambah user
+			<UserPlusIcon class="size-4" /> Add user
 		</button>
 	</div>
 </div>
@@ -103,7 +103,7 @@
 {/if}
 {#if form?.created}
 	<div class="card preset-filled-success-500 mb-6 p-4 text-sm" role="status">
-		User "{form.created}" ditambahkan.
+		User "{form.created}" added.
 	</div>
 {/if}
 
@@ -114,9 +114,9 @@
 		use:enhance
 		class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy hidden h-fit flex-col gap-5 border p-6 shadow-xl xs:flex"
 	>
-		<h2 class="h5 flex items-center gap-2"><UserPlusIcon class="size-5" /> Tambah user</h2>
+		<h2 class="h5 flex items-center gap-2"><UserPlusIcon class="size-5" /> Add user</h2>
 		{@render addUserFields()}
-		<button type="submit" class="btn btn-outline-primary">Tambah</button>
+		<button type="submit" class="btn btn-outline-primary">Add</button>
 		{@render addUserHint()}
 	</form>
 
@@ -141,7 +141,7 @@
 						{@render roleControl(u)}
 						{@render statusToggle(u)}
 					</div>
-					<p class="text-xs opacity-60">Dibuat {u.createdAt}</p>
+					<p class="text-xs opacity-60">Created {u.createdAt}</p>
 				</li>
 			{/each}
 		</ul>
@@ -153,12 +153,12 @@
 			<table class="table w-full [&_td]:px-4 [&_td]:py-3 [&_th]:px-4 [&_th]:py-3">
 				<thead>
 					<tr>
-						<th>Nama</th>
+						<th>Name</th>
 						<th>Email</th>
 						<th>Role</th>
 						<th>Status</th>
-						<th>Dibuat</th>
-						<th class="text-right">Aksi</th>
+						<th>Created</th>
+						<th class="text-right">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -201,12 +201,12 @@
 			class="form-comfy flex max-h-[92vh] flex-col gap-5 overflow-y-auto p-5"
 		>
 			<h2 id="add-user-title" class="h5 flex items-center gap-2">
-				<UserPlusIcon class="size-5" /> Tambah user
+				<UserPlusIcon class="size-5" /> Add user
 			</h2>
 			{@render addUserFields()}
 			<div class="flex justify-end gap-3">
-				<button type="button" class="btn btn-outline-neutral" onclick={() => addDialog?.close()}>Batal</button>
-				<button type="submit" class="btn btn-outline-primary">Tambah</button>
+				<button type="button" class="btn btn-outline-neutral" onclick={() => addDialog?.close()}>Cancel</button>
+				<button type="submit" class="btn btn-outline-primary">Add</button>
 			</div>
 			{@render addUserHint()}
 		</form>

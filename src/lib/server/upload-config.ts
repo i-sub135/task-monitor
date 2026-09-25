@@ -6,7 +6,7 @@ export function getUploadLimitBytes(): number {
 	const raw = env.UPLOAD_SIZE_LIMIT || DEFAULT_UPLOAD_SIZE_LIMIT;
 	const bytes = parseSize(raw);
 	if (!Number.isFinite(bytes) || bytes <= 0) {
-		throw new Error(`UPLOAD_SIZE_LIMIT tidak valid: '${raw}'. Contoh yang benar: 5M, 512K, 10M`);
+		throw new Error(`UPLOAD_SIZE_LIMIT is invalid: '${raw}'. Valid examples: 5M, 512K, 10M`);
 	}
 	return bytes;
 }
