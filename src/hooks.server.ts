@@ -6,6 +6,7 @@ import { describeStorage, getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { guardRedirect } from '$lib/server/guard';
 import { getDb } from '$lib/server/db';
+import { guardDb } from '$lib/server/db-health';
 import { logEvent, logger } from '$lib/server/logger';
 import { seedAdminIfEmpty } from '$lib/server/seed';
 
@@ -30,9 +31,14 @@ export const init: ServerInit = async () => {
 export const handle: Handle = async ({ event, resolve }) => {
 	const start = performance.now();
 
-	event.locals.user = await readSession(event.cookies);
+	// DB gak bisa dihubungi: anggap belum login (jadinya diarahin ke halaman masuk, yang nampilin modal
+	// "layanan tidak tersedia"), tapi cookie dibiarin biar user gak ke-logout cuma gara-gara DB lagi mati.
+	const session = await guardDb(getDb(), () => readSession(event.cookies));
+	if (!session.ok) logger.error('db.unavailable', { path: event.url.pathname, reason: session.reason });
+	event.locals.user = session.ok ? session.value : null;
+	event.locals.dbDown = !session.ok;
 	// Cookie ada tapi gak sah (diubah, kedaluwarsa, user nonaktif): buang biar gak dikirim terus.
-	if (!event.locals.user && event.cookies.get(SESSION_COOKIE)) endSession(event.cookies);
+	if (session.ok && !event.locals.user && event.cookies.get(SESSION_COOKIE)) endSession(event.cookies);
 
 	const target = guardRedirect(event.url.pathname, event.locals.user !== null);
 	if (target) {

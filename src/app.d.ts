@@ -5,6 +5,8 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			user: import('$lib/roles').SessionUser | null;
+			/** true kalau DB gak bisa dihubungi pas request ini masuk (diisi di hooks). */
+			dbDown: boolean;
 		}
 		// interface PageData {}
 		// interface PageState {}

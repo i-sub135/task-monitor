@@ -1,10 +1,25 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 
-	let { form } = $props();
+	let { data, form } = $props();
 
 	let dialog = $state<HTMLDialogElement>();
+	let downDialog = $state<HTMLDialogElement>();
 	let password = $state('');
+	let retrying = $state(false);
+
+	// DB gak bisa dihubungi: dari ping pas halaman dibuka, atau dari submit yang gagal.
+	const unavailable = $derived(data.dbUnavailable || form?.dbUnavailable === true);
+
+	$effect(() => {
+		if (unavailable && downDialog && !downDialog.open) downDialog.showModal();
+	});
+
+	// Muat ulang penuh: nge-reset state form dan nge-ping DB lagi. DB udah balik = modalnya hilang.
+	function retry() {
+		retrying = true;
+		location.reload();
+	}
 
 	// Akun admin: setelah "Lanjut", server minta password. Buka dialognya (juga pas password salah).
 	$effect(() => {
@@ -80,3 +95,27 @@
 		</dialog>
 	</form>
 </div>
+
+{#if unavailable}
+	<dialog
+		bind:this={downDialog}
+		oncancel={(e) => e.preventDefault()}
+		aria-labelledby="down-title"
+		class="card preset-filled-surface-50-950 border-surface-300-700 m-auto w-full max-w-sm border p-6 shadow-2xl backdrop:bg-black/50"
+	>
+		<div class="flex flex-col gap-4">
+			<div class="flex flex-col gap-1">
+				<h2 id="down-title" class="h4">Layanan tidak tersedia</h2>
+				<p class="text-sm opacity-70">
+					Database sedang tidak bisa dihubungi, jadi kamu belum bisa masuk. Coba lagi beberapa saat
+					lagi. Kalau terus begini, kabari admin.
+				</p>
+			</div>
+			<div class="flex justify-end">
+				<button type="button" class="btn preset-filled-primary-500" disabled={retrying} onclick={retry}>
+					{retrying ? 'Memuat ulang…' : 'Coba lagi'}
+				</button>
+			</div>
+		</div>
+	</dialog>
+{/if}
