@@ -143,16 +143,20 @@
 	<input type="hidden" name="position" value={reorderFields.position} />
 </form>
 
-<div class="mb-4 flex gap-1 overflow-x-auto xs:hidden" role="tablist" aria-label="Kolom status">
+<!-- HP: 6 tab status dalam grid 3x2, semua kelihatan tanpa digeser, dan cukup tinggi buat disentuh (min 48px). -->
+<div class="mb-4 grid grid-cols-3 gap-2 xs:hidden" role="tablist" aria-label="Kolom status">
 	{#each statuses as status (status)}
 		<button
 			type="button"
 			role="tab"
 			aria-selected={activeTab === status}
-			class="btn btn-sm whitespace-nowrap {activeTab === status ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
+			class="btn min-h-12 px-2 {activeTab === status ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
 			onclick={() => (activeTab = status)}
 		>
-			{statusLabels[status]} ({byStatus(status).length})
+			<span class="flex flex-col items-center leading-tight">
+				<span class="text-sm font-medium">{statusLabels[status]}</span>
+				<span class="text-xs opacity-80">{byStatus(status).length}</span>
+			</span>
 		</button>
 	{/each}
 </div>
