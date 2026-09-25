@@ -16,8 +16,10 @@
 	const MAX_FILES = $derived(data.maxFiles);
 	const MAX_FILE_BYTES = $derived(data.maxFileBytes);
 
-	type Preview = { name: string; size: number; url?: string; error?: string };
+	// `file` disimpan supaya isi <input type="file"> bisa dibangun ulang pas satu file dihapus.
+	type Preview = { id: number; file: File; name: string; size: number; url?: string; error?: string };
 	let previews = $state<Preview[]>([]);
+	let nextId = 0;
 	let fileInput = $state<HTMLInputElement>();
 
 	const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'application/pdf'];
@@ -31,6 +33,8 @@
 		revokeAll();
 		const files = Array.from((e.currentTarget as HTMLInputElement).files ?? []);
 		previews = files.map((f) => ({
+			id: nextId++,
+			file: f,
 			name: f.name,
 			size: f.size,
 			url: f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined,
@@ -40,6 +44,19 @@
 					? `Lebih dari ${formatSize(MAX_FILE_BYTES)}`
 					: undefined
 		}));
+	}
+
+	// Hapus satu lampiran. Input file gak bisa diubah per item, jadi dibangun ulang dari file yang tersisa
+	// lewat DataTransfer; yang dikirim ke server tetap isi input itu.
+	function removeFile(id: number) {
+		const gone = previews.find((p) => p.id === id);
+		if (gone?.url) URL.revokeObjectURL(gone.url);
+		previews = previews.filter((p) => p.id !== id);
+		if (fileInput) {
+			const keep = new DataTransfer();
+			for (const p of previews) keep.items.add(p.file);
+			fileInput.files = keep.files;
+		}
 	}
 
 	function clearFiles() {
@@ -161,21 +178,34 @@
 
 		{#if previews.length > 0}
 			<ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-				{#each previews as p (p.name + p.size)}
+				{#each previews as p (p.id)}
 					<li class="flex flex-col gap-1">
-						{#if p.url}
-							<img
-								src={p.url}
-								alt={p.name}
-								class="rounded-container border-surface-300-700 aspect-video w-full border object-cover"
-							/>
-						{:else}
-							<div
-								class="preset-outlined-surface-300-700 rounded-container flex aspect-video w-full items-center justify-center"
-							>
-								<FileTextIcon class="size-8 opacity-60" />
-							</div>
-						{/if}
+						<div class="relative">
+							{#if p.url}
+								<img
+									src={p.url}
+									alt={p.name}
+									class="rounded-container border-surface-300-700 aspect-video w-full border object-cover"
+								/>
+							{:else}
+								<div
+									class="preset-outlined-surface-300-700 rounded-container flex aspect-video w-full items-center justify-center"
+								>
+									<FileTextIcon class="size-8 opacity-60" />
+								</div>
+							{/if}
+							<span class="bg-surface-50-950 absolute top-2 right-2 rounded-full">
+								<button
+									type="button"
+									class="btn-icon btn-icon-sm btn-outline-error rounded-full"
+									aria-label="Hapus {p.name}"
+									title="Hapus lampiran ini"
+									onclick={() => removeFile(p.id)}
+								>
+									<XIcon class="size-4" />
+								</button>
+							</span>
+						</div>
 						<span class="truncate text-xs opacity-70" title={p.name}>{p.name} · {kb(p.size)}</span>
 						{#if p.error}<span class="text-error-500 text-xs">{p.error}</span>{/if}
 					</li>
