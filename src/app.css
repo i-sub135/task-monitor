@@ -40,6 +40,9 @@
 	--color-error-800: #c43519;
 	--color-error-900: #b6331a;
 	--color-error-950: #a42f19;
+	/* Bawaan tema: teks gelap di atas error-500 (karena error aslinya merah muda pucat). Di merah pekat ini
+	   teks harus putih, kalau nggak chip "bug" dan kotak pesan error susah dibaca. */
+	--color-error-contrast-500: #fff;
 }
 
 /*
