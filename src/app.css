@@ -105,7 +105,7 @@
  * Ditaruh di luar @layer supaya menang dari utility Skeleton.
  */
 [data-status='in-progress'] article {
-	background-color: rgb(118 192 236 / 0.5); /* #76C0EC, 50% */
+	background-color: rgb(204 251 250 / 0.75); /* #CCFBFA, 75% */
 }
 [data-status='ready-to-test'] article {
 	background-color: #fffad3; /* 100% */
