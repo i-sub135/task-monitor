@@ -38,11 +38,14 @@
 		<AppBar.Lead class="col-start-1 row-start-1 min-w-0">
 			<a href={data.user ? '/board' : '/'} class="flex items-center gap-2">
 				<KanbanIcon class="size-6 shrink-0" />
-				<span class="text-lg font-bold whitespace-nowrap sm:text-xl">Task Monitor</span>
+				<!-- Satu baris, versi sejajar di garis dasar teks brand. -->
+				<span class="flex items-baseline gap-2 whitespace-nowrap">
+					<span class="text-lg font-bold sm:text-xl">Task Monitor</span>
+					{#if data.version}
+						<span class="text-[11px] font-normal opacity-60" title="Versi app">{versionLabel}</span>
+					{/if}
+				</span>
 			</a>
-			{#if data.version}
-				<span class="ml-2 shrink-0 text-xs whitespace-nowrap opacity-60" title="Versi app">{versionLabel}</span>
-			{/if}
 		</AppBar.Lead>
 		{#if data.user}
 			<AppBar.Headline class="hidden min-w-0 xs:col-start-2 xs:row-start-1 xs:block">
