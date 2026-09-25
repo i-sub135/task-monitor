@@ -1,4 +1,4 @@
-import { formatJakarta } from '../time.ts';
+import { calendarDaysAgo, formatJakarta } from '../time.ts';
 import type { SessionUser } from '../roles.ts';
 import {
 	checkTransition,
@@ -87,7 +87,7 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 				status,
 				createdBy: r.createdBy.name,
 				createdAt: formatJakarta(r.createdAt),
-				ageDays: Math.max(0, Math.floor((now.getTime() - r.createdAt.getTime()) / DAY_MS)),
+				ageDays: calendarDaysAgo(r.createdAt, now),
 				position: hasOrdering(status) ? i + 1 : null,
 				attachments: r._count.attachments
 			})

@@ -109,7 +109,7 @@
 		pending = null;
 	}
 
-	const ageLabel = (days: number) => (days === 0 ? 'hari ini' : `${days} hari`);
+	const ageLabel = (days: number) => (days === 0 ? 'hari ini' : days === 1 ? 'kemarin' : `${days} hari lalu`);
 </script>
 
 <div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
