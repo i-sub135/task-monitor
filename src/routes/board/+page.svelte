@@ -154,10 +154,7 @@
 			class="btn min-h-12 px-2 {activeTab === status ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
 			onclick={() => (activeTab = status)}
 		>
-			<span class="flex flex-col items-center leading-tight">
-				<span class="text-sm font-medium">{statusLabels[status]}</span>
-				<span class="text-xs opacity-80">{byStatus(status).length}</span>
-			</span>
+			<span class="text-sm leading-tight font-medium">{statusLabels[status]}</span>
 		</button>
 	{/each}
 </div>
