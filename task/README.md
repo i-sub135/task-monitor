@@ -10,7 +10,7 @@ Kosong.
 
 ## Backlog
 
-- [TM-9](backlog/TM-9.md) — Upload lampiran ke Wasabi/object storage (driver `s3` di samping `local`) — kode jadi, nunggu region + bucket + kunci buat tes ke Wasabi (AC 2, 3, 7, 8)
+Kosong.
 
 ## Done
 
@@ -21,4 +21,5 @@ Kosong.
 - [TM-5](done/TM-5.md) — Papan 5 kolom, kartu, detail, ordering per role — Done
 - [TM-6](done/TM-6.md) — Transisi status maju + reject, tiap pindah = 1 baris history — Done
 - [TM-7](done/TM-7.md) — Kelola users (admin) — Done
-- [TM-8](done/TM-8.md) — Docker: image, compose, mount storage, Postgres eksisting — Done (AC 1–5 belum dites di container)
+- [TM-8](done/TM-8.md) — Docker: image, compose, mount storage, Postgres eksisting — Done (AC 1–5 lulus di Docker host uji, lihat History)
+- [TM-9](done/TM-9.md) — Upload lampiran ke Wasabi/object storage (driver `s3` di samping `local`) — Done
