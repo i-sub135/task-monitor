@@ -13,6 +13,16 @@
 
 	const byStatus = (status: Status) => tasks.filter((t) => t.status === status);
 
+	// Label pendek buat tab di HP (satu baris, 6 segmen). Nama lengkap tetap di aria-label dan tooltip.
+	const tabLabels: Record<Status, string> = {
+		request: 'Request',
+		queue: 'Queue',
+		'in-progress': 'Progress',
+		'ready-to-test': 'Test',
+		done: 'Done',
+		rejected: 'Reject'
+	};
+
 	// HP: kolom ditampilin satu-satu lewat tab. Desktop: semua kolom sejajar.
 	let activeTab = $state<Status>('request');
 
@@ -143,18 +153,23 @@
 	<input type="hidden" name="position" value={reorderFields.position} />
 </form>
 
-<!-- HP: 6 tab status dalam grid 3x2, semua kelihatan tanpa digeser, dan cukup tinggi buat disentuh (min 48px). -->
-<div class="mb-4 grid grid-cols-3 gap-2 xs:hidden" role="tablist" aria-label="Kolom status">
+<!-- HP: 6 tab status jadi satu button group satu baris (segmen menyambung). Label dipendekin biar muat di 1/6 lebar. -->
+<div class="mb-4 flex xs:hidden" role="tablist" aria-label="Kolom status">
 	{#each statuses as status (status)}
 		<button
 			type="button"
 			role="tab"
 			aria-selected={activeTab === status}
+			aria-label={statusLabels[status]}
+			title={statusLabels[status]}
 			data-tab-status={status}
-			class="btn min-h-12 px-2 {activeTab === status ? 'preset-filled-primary-500' : 'btn-outline-neutral'}"
+			class="btn relative min-h-10 min-w-0 flex-1 rounded-none! px-1 text-[11px] leading-tight -ml-px first:ml-0 first:rounded-s-full! last:rounded-e-full! aria-selected:z-10 {activeTab ===
+			status
+				? 'preset-filled-primary-500'
+				: 'btn-outline-neutral'}"
 			onclick={() => (activeTab = status)}
 		>
-			<span class="text-sm leading-tight font-medium">{statusLabels[status]}</span>
+			{tabLabels[status]}
 		</button>
 	{/each}
 </div>
