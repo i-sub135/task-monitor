@@ -176,6 +176,8 @@
 		<section
 			role="group"
 			aria-label="Kolom {statusLabels[status]}"
+			data-status={status}
+			data-over={overColumn === status}
 			class="card preset-filled-surface-100-900 min-h-32 flex-col gap-4 p-4 transition {activeTab === status
 				? 'flex'
 				: 'hidden'} xs:flex {dragging ? (valid ? 'ring-primary-500 ring-2' : 'opacity-50') : ''} {overColumn ===
