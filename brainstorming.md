@@ -79,7 +79,7 @@ Dikunci 2026-09-24 11:07.
 | DB | PostgreSQL **eksisting** — nol container baru, cuma bikin database baru di instance yang udah ada | enum + uuid native. Instance yang mana belum disebut |
 | ORM | Prisma 7 + driver adapter `pg` | `schema.prisma` = sumber tabel bagian 1, migration dari Prisma. Client di-generate ke `src/lib/server/generated/prisma` (gitignored), jadi `npm run db:generate` wajib setelah install |
 | Session | cookie HMAC (`COOKIE_SIGN_SECRET`), isi `uid` + `exp` (7 hari) | role dan status dibaca ulang dari DB di tiap request, jadi user yang di-non-aktifin langsung gak sah. Guard terpusat di `hooks.server.ts` lewat array `GUEST_ONLY_ROUTES` (`/`) / `PUBLIC_ROUTES`, nol guard per-route |
-| Upload | file ke folder lokal `[root-project]/storage/attachment/<task_id>/<uuid>.<ext>`, DB nyimpen path relatif | di Docker folder itu di-mount jadi volume; object storage kalau nanti perlu. `storage/` masuk `.gitignore` |
+| Upload | file ke folder lokal `[root-project]/storage/attachment/<task_id>/<uuid>.<ext>`, DB nyimpen path relatif | di Docker folder itu di-mount jadi volume. Driver `s3` (Wasabi, lewat AWS SDK S3) dipilih dengan `STORAGE_DRIVER=s3`; key objek sama dengan path relatif itu. `storage/` masuk `.gitignore` |
 | Logger | winston — event key + metadata, JSON di prod, pretty di dev | |
 | Layer | `routes` → `service` (Prisma) → `utils` / `server` / `components` | |
 | Deploy | Docker **1 container**: app jalan lewat `npm start` (`scripts/start.mjs`), entrypoint `prisma migrate deploy` dulu; volume `./storage/attachment` → `/app/storage/attachment`; `DATABASE_URL` nunjuk ke Postgres eksisting | `UPLOAD_SIZE_LIMIT` nurunin `BODY_SIZE_LIMIT` adapter-node otomatis |

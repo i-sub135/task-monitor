@@ -10,7 +10,7 @@ Kosong.
 
 ## Backlog
 
-- [TM-9](backlog/TM-9.md) — Upload lampiran ke Wasabi/object storage (driver `s3` di samping `local`) — Ready, AC 1–8; nunggu region + nama bucket
+- [TM-9](backlog/TM-9.md) — Upload lampiran ke Wasabi/object storage (driver `s3` di samping `local`) — kode jadi, nunggu region + bucket + kunci buat tes ke Wasabi (AC 2, 3, 7, 8)
 
 ## Done
 

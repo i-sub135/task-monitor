@@ -4,6 +4,7 @@ import { checkUploads, removeStored, storeFiles, type StoredFile } from '$lib/se
 import { getDb } from '$lib/server/db';
 import { logger } from '$lib/server/logger';
 import { createTask } from '$lib/server/tasks';
+import { getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { MAX_FILES } from '$lib/upload-limits';
 import type { TaskType } from '$lib/tasks';
@@ -41,9 +42,10 @@ export const actions: Actions = {
 
 		// File ditulis dulu, baru DB. Kalau transaksi gagal, file yang udah ditulis dihapus lagi.
 		const id = randomUUID();
+		const storage = getStorage();
 		let stored: StoredFile[] = [];
 		try {
-			stored = await storeFiles(id, uploads.files);
+			stored = await storeFiles(storage, id, uploads.files);
 			await createTask(getDb(), {
 				id,
 				title,
@@ -53,8 +55,17 @@ export const actions: Actions = {
 				attachments: stored
 			});
 		} catch (e) {
-			await removeStored(id, stored).catch(() => undefined);
-			logger.error('task.create.failed', { error: e instanceof Error ? e.message : String(e) });
+			await removeStored(storage, stored).catch((cleanup) =>
+				logger.error('task.create.cleanup_failed', {
+					storage: storage.name,
+					keys: stored.map((f) => f.filePath),
+					error: cleanup instanceof Error ? cleanup.message : String(cleanup)
+				})
+			);
+			logger.error('task.create.failed', {
+				storage: storage.name,
+				error: e instanceof Error ? e.message : String(e)
+			});
 			const saveErrors: Record<string, string> = { form: 'Gagal menyimpan task. Coba lagi.' };
 			return fail(500, { errors: saveErrors, values: { title, description, type } });
 		}

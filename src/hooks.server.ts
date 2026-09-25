@@ -2,6 +2,7 @@ import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { SESSION_COOKIE, endSession, readSession } from '$lib/server/auth';
 import { getLoginPassword } from '$lib/server/secret';
+import { describeStorage, getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { guardRedirect } from '$lib/server/guard';
 import { getDb } from '$lib/server/db';
@@ -13,6 +14,8 @@ export const init: ServerInit = async () => {
 	try {
 		getLoginPassword();
 		getUploadLimitBytes();
+		getStorage();
+		logger.info('storage.ready', describeStorage());
 		await seedAdminIfEmpty(
 			getDb(),
 			{ email: env.SEED_ADMIN_EMAIL, name: env.SEED_ADMIN_NAME },

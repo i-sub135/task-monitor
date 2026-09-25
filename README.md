@@ -40,6 +40,11 @@ Docker (1 container, Postgres tetap yang eksisting lewat `DATABASE_URL`): isi `.
 | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_NAME` | ya | admin pertama, dipakai cuma kalau `users` kosong |
 | `ORIGIN` | production | URL yang dibuka di browser, mis. `https://tasks.example.com`. Tanpa ini POST form ditolak 403 |
 | `UPLOAD_SIZE_LIMIT` | tidak | ukuran maksimal per file lampiran, default `5M` |
+| `STORAGE_DRIVER` | tidak | tempat lampiran: `local` (default, folder `storage/attachment`) atau `s3` |
+| `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | kalau `s3` | bucket Wasabi/S3. Pakai sub-user khusus bucket itu, bukan root key |
+| `S3_ENDPOINT` | tidak | default `https://s3.<S3_REGION>.wasabisys.com` |
+| `S3_FORCE_PATH_STYLE` | tidak | `true` cuma buat MinIO |
+| `S3_CHECKSUM` | tidak | `default` atau `when_required`; pakai `when_required` kalau provider nolak checksum bawaan SDK |
 | `APP_VERSION` | tidak | tag image Docker, default `dev` |
 | `APP_PORT` | tidak | port di host untuk Docker, default `3000` |
 

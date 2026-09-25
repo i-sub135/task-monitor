@@ -1,10 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { DEFAULT_UPLOAD_SIZE_LIMIT, MAX_FILES, formatSize, parseSize } from '../upload-limits.js';
+import { ATTACHMENT_PREFIX, isAttachmentKey } from './storage/keys.ts';
+import type { StorageDriver } from './storage/types.ts';
 
 export { MAX_FILES };
-export const ATTACHMENT_DIR = 'storage/attachment';
 
 export type DetectedType = { mime: string; ext: string };
 
@@ -66,43 +65,35 @@ export async function checkUploads(
 
 export type StoredFile = { name: string; mime: string; size: number; filePath: string };
 
-/** Tulis ke storage/attachment/<taskId>/<uuid>.<ext>. filePath yang dikembaliin relatif dari root project. */
-export async function storeFiles(taskId: string, files: AcceptedFile[], root = process.cwd()): Promise<StoredFile[]> {
+/**
+ * Simpan ke storage di storage/attachment/<taskId>/<uuid>.<ext>. filePath yang dikembaliin = key di storage
+ * = nilai task_attachment.file_path, sama buat semua driver. Gagal di tengah: yang udah ditulis dihapus lagi.
+ */
+export async function storeFiles(storage: StorageDriver, taskId: string, files: AcceptedFile[]): Promise<StoredFile[]> {
 	const stored: StoredFile[] = [];
+	const attempted: string[] = [];
 	try {
 		for (const file of files) {
-			const filePath = `${ATTACHMENT_DIR}/${taskId}/${randomUUID()}.${file.ext}`;
-			const absolute = path.resolve(root, filePath);
-			await mkdir(path.dirname(absolute), { recursive: true });
-			await writeFile(absolute, file.bytes, { flag: 'wx' });
+			const filePath = `${ATTACHMENT_PREFIX}/${taskId}/${randomUUID()}.${file.ext}`;
+			// Dicatat sebelum put: file yang gagal di tengah nulis pun ikut dibersihin.
+			attempted.push(filePath);
+			await storage.put(filePath, file.bytes, file.mime);
 			stored.push({ name: file.name, mime: file.mime, size: file.size, filePath });
 		}
 		return stored;
 	} catch (e) {
-		await removeStored(taskId, stored, root);
+		await storage.remove(attempted).catch(() => undefined);
 		throw e;
 	}
 }
 
-/** Bersihin file yang udah ditulis (dipanggil kalau transaksi DB gagal). Folder task ikut dibuang. */
-export async function removeStored(taskId: string, files: StoredFile[], root = process.cwd()): Promise<void> {
-	for (const f of files) await rm(path.resolve(root, f.filePath), { force: true });
-	await rm(path.resolve(root, ATTACHMENT_DIR, taskId), { recursive: true, force: true });
+/** Bersihin file yang udah ditulis (dipanggil kalau transaksi DB gagal). */
+export async function removeStored(storage: StorageDriver, files: StoredFile[]): Promise<void> {
+	await storage.remove(files.map((f) => f.filePath));
 }
 
-/** Path absolut file, atau null kalau keluar dari storage/attachment (cegah path traversal). */
-export function resolveAttachmentPath(filePath: string, root = process.cwd()): string | null {
-	const base = path.resolve(root, ATTACHMENT_DIR);
-	const target = path.resolve(root, filePath);
-	return target.startsWith(base + path.sep) ? target : null;
-}
-
-export async function readAttachment(filePath: string, root = process.cwd()): Promise<Uint8Array | null> {
-	const target = resolveAttachmentPath(filePath, root);
-	if (!target) return null;
-	try {
-		return await readFile(target);
-	} catch {
-		return null;
-	}
+/** Isi file, atau null kalau key-nya di luar storage/attachment atau objeknya gak ada. */
+export async function readAttachment(storage: StorageDriver, filePath: string): Promise<Uint8Array | null> {
+	if (!isAttachmentKey(filePath)) return null;
+	return storage.get(filePath);
 }
