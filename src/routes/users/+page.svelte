@@ -14,12 +14,6 @@
 
 	const users = $derived(data.users);
 	const activeCount = $derived(users.filter((u) => u.status === 'active').length);
-
-	const roleBadge = {
-		marketing: 'preset-tonal',
-		developer: 'preset-filled-primary-500',
-		admin: 'preset-filled-warning-500'
-	} as const;
 </script>
 
 {#snippet addUserFields()}
@@ -55,10 +49,10 @@
 {#snippet roleControl(u: (typeof users)[number])}
 	<form method="POST" action="?/setRole" use:enhance class="flex items-center gap-2">
 		<input type="hidden" name="id" value={u.id} />
-		<span class="badge {roleBadge[u.role]}">{u.role}</span>
+		<!-- Lebar tetap: w-auto bikin lebar select ngikutin opsi terpanjang, jadi "admin" longgar dan "developer" mepet panah. -->
 		<select
 			name="role"
-			class="select w-auto"
+			class="select w-40"
 			aria-label="Ganti role {u.name}"
 			value={u.role}
 			onchange={(e) => e.currentTarget.form?.requestSubmit()}
