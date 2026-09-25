@@ -5,6 +5,13 @@
 
 	let { data, form } = $props();
 
+	// HP (di bawah 500px): form tambah user jadi modal, dibuka dari tombol di header. 500px ke atas: kartu di samping.
+	let addOpen = $state(false);
+	let addDialog = $state<HTMLDialogElement>();
+	$effect(() => {
+		if (addOpen && addDialog && !addDialog.open) addDialog.showModal();
+	});
+
 	const users = $derived(data.users);
 	const activeCount = $derived(users.filter((u) => u.status === 'active').length);
 
@@ -15,13 +22,43 @@
 	} as const;
 </script>
 
+{#snippet addUserFields()}
+	<label class="label">
+		<span class="label-text font-semibold">Nama</span>
+		<input class="input" type="text" name="name" maxlength="100" required value={form?.values?.name ?? ''} />
+		{#if form?.errors?.name}<span class="text-error-500 text-sm">{form.errors.name}</span>{/if}
+	</label>
+
+	<label class="label">
+		<span class="label-text font-semibold">Email</span>
+		<input class="input" type="email" name="email" required value={form?.values?.email ?? ''} />
+		{#if form?.errors?.email}<span class="text-error-500 text-sm">{form.errors.email}</span>{/if}
+	</label>
+
+	<label class="label">
+		<span class="label-text font-semibold">Role</span>
+		<select class="select" name="role" required>
+			{#each roles as r (r)}
+				<option value={r} selected={(form?.values?.role ?? 'marketing') === r}>{r}</option>
+			{/each}
+		</select>
+		{#if form?.errors?.role}<span class="text-error-500 text-sm">{form.errors.role}</span>{/if}
+	</label>
+{/snippet}
+
+{#snippet addUserHint()}
+	<p class="text-xs opacity-70">
+		Developer dan marketing login cukup pakai email. Admin butuh password. Gak ada pendaftaran sendiri.
+	</p>
+{/snippet}
+
 {#snippet roleControl(u: (typeof users)[number])}
 	<form method="POST" action="?/setRole" use:enhance class="flex items-center gap-2">
 		<input type="hidden" name="id" value={u.id} />
 		<span class="badge {roleBadge[u.role]}">{u.role}</span>
 		<select
 			name="role"
-			class="select w-auto py-1 text-xs"
+			class="select w-auto"
 			aria-label="Ganti role {u.name}"
 			value={u.role}
 			onchange={(e) => e.currentTarget.form?.requestSubmit()}
@@ -57,9 +94,14 @@
 	<title>Users · Task Monitor</title>
 </svelte:head>
 
-<div class="mb-6 flex flex-wrap items-baseline justify-between gap-x-4">
+<div class="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
 	<h1 class="h3">Users</h1>
-	<p class="text-sm opacity-70">{users.length} user, {activeCount} aktif</p>
+	<div class="flex items-center gap-3">
+		<p class="text-sm opacity-70">{users.length} user, {activeCount} aktif</p>
+		<button type="button" class="btn btn-sm btn-outline-primary xs:hidden" onclick={() => (addOpen = true)}>
+			<UserPlusIcon class="size-4" /> Tambah user
+		</button>
+	</div>
 </div>
 
 {#if form?.rowError}
@@ -76,36 +118,12 @@
 		method="POST"
 		action="?/create"
 		use:enhance
-		class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy flex h-fit flex-col gap-5 border p-6 shadow-xl"
+		class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy hidden h-fit flex-col gap-5 border p-6 shadow-xl xs:flex"
 	>
 		<h2 class="h5 flex items-center gap-2"><UserPlusIcon class="size-5" /> Tambah user</h2>
-
-		<label class="label">
-			<span class="label-text font-semibold">Nama</span>
-			<input class="input" type="text" name="name" maxlength="100" required value={form?.values?.name ?? ''} />
-			{#if form?.errors?.name}<span class="text-error-500 text-sm">{form.errors.name}</span>{/if}
-		</label>
-
-		<label class="label">
-			<span class="label-text font-semibold">Email</span>
-			<input class="input" type="email" name="email" required value={form?.values?.email ?? ''} />
-			{#if form?.errors?.email}<span class="text-error-500 text-sm">{form.errors.email}</span>{/if}
-		</label>
-
-		<label class="label">
-			<span class="label-text font-semibold">Role</span>
-			<select class="select" name="role" required>
-				{#each roles as r (r)}
-					<option value={r} selected={(form?.values?.role ?? 'marketing') === r}>{r}</option>
-				{/each}
-			</select>
-			{#if form?.errors?.role}<span class="text-error-500 text-sm">{form.errors.role}</span>{/if}
-		</label>
-
+		{@render addUserFields()}
 		<button type="submit" class="btn btn-outline-primary">Tambah</button>
-		<p class="text-xs opacity-70">
-			Developer dan marketing login cukup pakai email. Admin butuh password. Gak ada pendaftaran sendiri.
-		</p>
+		{@render addUserHint()}
 	</form>
 
 	<div class="min-w-0">
@@ -165,3 +183,38 @@
 		</div>
 	</div>
 </div>
+
+{#if addOpen}
+	<!-- Klik di luar kotak (backdrop) menutup; Esc ditangani dialog bawaan. Sukses tambah = modal menutup sendiri. -->
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+	<dialog
+		bind:this={addDialog}
+		onclose={() => (addOpen = false)}
+		onclick={(e) => {
+			if (e.target === addDialog) addDialog?.close();
+		}}
+		aria-labelledby="add-user-title"
+		class="card preset-filled-surface-50-950 border-surface-300-700 m-auto w-[min(94vw,28rem)] max-w-none overflow-hidden border p-0 shadow-2xl backdrop:bg-black/60"
+	>
+		<form
+			method="POST"
+			action="?/create"
+			use:enhance={() =>
+				async ({ result, update }) => {
+					await update();
+					if (result.type === 'success') addOpen = false;
+				}}
+			class="form-comfy flex max-h-[92vh] flex-col gap-5 overflow-y-auto p-5"
+		>
+			<h2 id="add-user-title" class="h5 flex items-center gap-2">
+				<UserPlusIcon class="size-5" /> Tambah user
+			</h2>
+			{@render addUserFields()}
+			<div class="flex justify-end gap-3">
+				<button type="button" class="btn btn-outline-neutral" onclick={() => addDialog?.close()}>Batal</button>
+				<button type="submit" class="btn btn-outline-primary">Tambah</button>
+			</div>
+			{@render addUserHint()}
+		</form>
+	</dialog>
+{/if}
