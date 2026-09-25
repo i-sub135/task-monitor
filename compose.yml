@@ -11,6 +11,8 @@ services:
     user: "${APP_UID:-1000}:${APP_GID:-1000}"
     environment:
       NODE_ENV: production
+      # Versi yang tampil di header. Kosong = pakai versi di package.json.
+      APP_VERSION: ${APP_VERSION:-}
       DATABASE_URL: ${DATABASE_URL:?isi DATABASE_URL}
       COOKIE_SIGN_SECRET: ${COOKIE_SIGN_SECRET:?isi COOKIE_SIGN_SECRET}
       AUTH_ADMIN: ${AUTH_ADMIN:?isi AUTH_ADMIN}

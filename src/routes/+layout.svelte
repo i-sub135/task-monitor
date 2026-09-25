@@ -14,6 +14,8 @@
 	];
 	// Board dilebarin penuh biar 6 kolom gak sempit di layar lebar. Halaman lain tetap dibatasi.
 	const wide = $derived(page.url.pathname === '/board');
+	// "0.0.83" tampil "v0.0.83"; nilai bukan angka (mis. "dev") tampil apa adanya.
+	const versionLabel = $derived(data.version ? (/^\d/.test(data.version) ? `v${data.version}` : data.version) : '');
 	// Kelola users cuma buat admin, jadi link-nya disembunyiin buat role lain.
 	const navItems = $derived(
 		data.user ? allNavItems.filter((i) => !i.adminOnly || data.user?.role === 'admin') : []
@@ -38,6 +40,9 @@
 				<KanbanIcon class="size-6 shrink-0" />
 				<span class="text-lg font-bold whitespace-nowrap sm:text-xl">Task Monitor</span>
 			</a>
+			{#if data.version}
+				<span class="ml-2 shrink-0 text-xs whitespace-nowrap opacity-60" title="Versi app">{versionLabel}</span>
+			{/if}
 		</AppBar.Lead>
 		{#if data.user}
 			<AppBar.Headline class="hidden min-w-0 xs:col-start-2 xs:row-start-1 xs:block">

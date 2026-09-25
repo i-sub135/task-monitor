@@ -45,7 +45,7 @@ Docker (1 container, Postgres tetap yang eksisting lewat `DATABASE_URL`): isi `.
 | `S3_ENDPOINT` | tidak | default `https://s3.<S3_REGION>.wasabisys.com` |
 | `S3_FORCE_PATH_STYLE` | tidak | `true` cuma buat MinIO |
 | `S3_CHECKSUM` | tidak | `default` atau `when_required`; pakai `when_required` kalau provider nolak checksum bawaan SDK |
-| `APP_VERSION` | tidak | tag image Docker, default `dev` |
+| `APP_VERSION` | tidak | versi yang tampil di header (kosong = versi di `package.json`) dan tag image Docker (kosong = `dev`) |
 | `APP_PORT` | tidak | port di host untuk Docker, default `3000` |
 
 ## Referensi
