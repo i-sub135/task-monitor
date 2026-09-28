@@ -34,6 +34,9 @@ export function canReorder(role: Role, status: Status): boolean {
 
 export const hasOrdering = (status: Status): boolean => status === 'request' || status === 'queue';
 
+/** TM-11: title/description cuma boleh diedit selama task masih Request atau Queue, role apa pun. */
+export const canEditTask = (status: Status): boolean => status === 'request' || status === 'queue';
+
 export type RuleResult = { ok: true } | { ok: false; status: number; error: string };
 
 /** Aturan transisi di satu tempat. Server yang jadi hakim, UI cuma ngikutin buat nampilin tombol. */
@@ -79,6 +82,14 @@ export type HistoryEntry = {
 
 export type AttachmentInfo = { id: string; name: string; mime: string; size: number };
 
+/** TM-11: satu baris per edit title/description yang sukses. */
+export type EditEntry = {
+	id: string;
+	field: 'title' | 'description';
+	by: string;
+	at: string;
+};
+
 export type TaskDetail = {
 	id: string;
 	title: string;
@@ -92,4 +103,5 @@ export type TaskDetail = {
 	createdAt: string;
 	attachments: AttachmentInfo[];
 	history: HistoryEntry[];
+	edits: EditEntry[];
 };

@@ -6,11 +6,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-_(kosong)_
+- [TM-11](running/TM-11.md) — Edit title/description di halaman detail task (Request/Queue saja) — Running (kode + migration jadi, nunggu migration ke-jalanin lawan DB asli + cek visual Iyan)
 
 ## Backlog
 
-- [TM-11](backlog/TM-11.md) — Edit title/description di halaman detail task (Request/Queue saja) — Ready
+_(kosong)_
 
 ## Done
 

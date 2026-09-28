@@ -1,9 +1,10 @@
 import { calendarDaysAgo, formatJakarta } from '../time.ts';
-import { renderDescriptionHtml } from './richtext.ts';
+import { renderDescriptionHtml, sanitizeDescription, descriptionText } from './richtext.ts';
 import type { SessionUser } from '../roles.ts';
 import {
 	checkTransition,
 	canReorder,
+	canEditTask,
 	hasOrdering,
 	statuses,
 	type BoardTask,
@@ -103,7 +104,8 @@ export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskD
 		include: {
 			createdBy: { select: { name: true } },
 			attachments: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
-			history: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { createdBy: { select: { name: true } } } }
+			history: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { createdBy: { select: { name: true } } } },
+			edits: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { editedBy: { select: { name: true } } } }
 		}
 	});
 	if (!t) return null;
@@ -124,7 +126,8 @@ export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskD
 			by: h.createdBy.name,
 			at: formatJakarta(h.createdAt),
 			note: h.note
-		}))
+		})),
+		edits: t.edits.map((e) => ({ id: e.id, field: e.field, by: e.editedBy.name, at: formatJakarta(e.createdAt) }))
 	};
 }
 
@@ -223,6 +226,69 @@ export async function transitionTask(
 			}
 		});
 		if (hasOrdering(from)) await renumberColumn(tx, statusToDb[from]);
+		return { ok: true };
+	});
+}
+
+/**
+ * TM-11: ganti title task. Cuma boleh selama status Request/Queue (dicek ulang di sini, bukan cuma
+ * di UI, buat nutup race: status bisa pindah persis sebelum submit). Nilai lama disimpan di
+ * `task_edit` buat audit. No-op (nol baris audit) kalau nilainya sama persis.
+ */
+export async function updateTaskTitle(
+	db: PrismaClient,
+	input: { id: string; title: string; user: SessionUser }
+): Promise<ActionResult> {
+	const title = input.title.trim();
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!title) return { ok: false, status: 400, error: 'Title is required' };
+	if (title.length > 120) return { ok: false, status: 400, error: 'Title must be at most 120 characters' };
+
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, title: true } });
+		if (!row) return { ok: false, status: 404, error: 'Task not found' };
+		if (!canEditTask(statusToApp[row.status])) {
+			return { ok: false, status: 403, error: 'Task can only be edited while in Request or Queue' };
+		}
+		if (row.title === title) return { ok: true };
+
+		await tx.task.update({ where: { id: input.id }, data: { title } });
+		await tx.taskEdit.create({
+			data: { taskId: input.id, field: 'title', oldValue: row.title, newValue: title, editedById: input.user.id }
+		});
+		return { ok: true };
+	});
+}
+
+/**
+ * TM-11: ganti description task. `description` sudah harus disaring (`sanitizeDescription`) oleh
+ * pemanggil, sama seperti `createTask`. Aturan status dan audit sama dengan `updateTaskTitle`.
+ */
+export async function updateTaskDescription(
+	db: PrismaClient,
+	input: { id: string; description: string; user: SessionUser }
+): Promise<ActionResult> {
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!descriptionText(input.description)) return { ok: false, status: 400, error: 'Description is required' };
+
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, description: true } });
+		if (!row) return { ok: false, status: 404, error: 'Task not found' };
+		if (!canEditTask(statusToApp[row.status])) {
+			return { ok: false, status: 403, error: 'Task can only be edited while in Request or Queue' };
+		}
+		if (row.description === input.description) return { ok: true };
+
+		await tx.task.update({ where: { id: input.id }, data: { description: input.description } });
+		await tx.taskEdit.create({
+			data: {
+				taskId: input.id,
+				field: 'description',
+				oldValue: row.description,
+				newValue: input.description,
+				editedById: input.user.id
+			}
+		});
 		return { ok: true };
 	});
 }

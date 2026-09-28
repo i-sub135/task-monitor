@@ -45,6 +45,13 @@ enum UserStatus {
   @@map("user_status")
 }
 
+enum TaskEditField {
+  title
+  description
+
+  @@map("task_edit_field")
+}
+
 model User {
   id        String     @id @default(uuid()) @db.Uuid
   name      String
@@ -57,6 +64,7 @@ model User {
   tasks           Task[]
   taskHistory     TaskHistory[]
   taskAttachments TaskAttachment[]
+  taskEdits       TaskEdit[]
 
   @@map("users")
 }
@@ -76,6 +84,7 @@ model Task {
   createdBy   User             @relation(fields: [createdById], references: [id])
   history     TaskHistory[]
   attachments TaskAttachment[]
+  edits       TaskEdit[]
 
   @@index([status, ordering])
   @@map("task")
@@ -97,6 +106,24 @@ model TaskHistory {
 
   @@index([taskId])
   @@map("task_history")
+}
+
+/// TM-11: 1 baris per edit title/description yang sukses (status Request/Queue saja). Nilai lama disimpan
+/// biar audit-nya beneran bisa jawab "sebelumnya apa", bukan cuma "berubah".
+model TaskEdit {
+  id          String        @id @default(uuid()) @db.Uuid
+  taskId      String        @map("task_id") @db.Uuid
+  field       TaskEditField
+  oldValue    String        @map("old_value")
+  newValue    String        @map("new_value")
+  editedById  String        @map("edited_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  task     Task @relation(fields: [taskId], references: [id])
+  editedBy User @relation(fields: [editedById], references: [id])
+
+  @@index([taskId])
+  @@map("task_edit")
 }
 
 model TaskAttachment {

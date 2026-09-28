@@ -11,14 +11,23 @@
 		XIcon
 	} from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
-	import { statusLabels, transitions, type Status } from '$lib/tasks';
+	import { canEditTask, statusLabels, transitions, type Status } from '$lib/tasks';
 	import { linkify } from '$lib/linkify';
+	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import type { AttachmentInfo } from '$lib/tasks';
 
 	let { data, form } = $props();
 	const task = $derived(data.task);
 	const nextStatuses = $derived(transitions[task.status]);
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
+	// TM-11: siapa pun yang login boleh edit title/description, selama status Request/Queue.
+	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));
+	let editingTitle = $state(false);
+	let editingDescription = $state(false);
+	/** Ganti `autofocus` (dilarang lint a11y): fokus pas element ini pertama kali dipasang ke DOM. */
+	function focusOnMount(node: HTMLElement) {
+		node.focus();
+	}
 
 	// HP (di bawah 500px): pindah status lewat modal, dibuka dari tombol. Tab = target yang mungkin; catatan wajib
 	// cuma buat reject (aturan yang sama dengan server dan kartu di desktop).
@@ -85,14 +94,107 @@
 			<span class="badge preset-tonal">{statusLabels[task.status]}</span>
 		</div>
 
-		<h1 class="h3">{task.title}</h1>
+		{#if editingTitle}
+			<form
+				method="POST"
+				action="?/updateTitle"
+				use:enhance={() =>
+					async ({ result, update }) => {
+						await update();
+						if (result.type === 'success') editingTitle = false;
+					}}
+				class="flex flex-wrap items-center gap-2"
+			>
+				<input
+					class="input h3 min-w-0 flex-1"
+					name="title"
+					value={task.title}
+					maxlength="120"
+					required
+					use:focusOnMount
+				/>
+				<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+				<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingTitle = false)}
+					>Cancel</button
+				>
+			</form>
+		{:else}
+			<h1 class="h3">
+				{#if canEdit}
+					<button
+						type="button"
+						class="cursor-text text-left decoration-dashed underline-offset-4 hover:underline"
+						title="Click to edit"
+						onclick={() => (editingTitle = true)}
+					>
+						{task.title}
+					</button>
+				{:else}
+					{task.title}
+				{/if}
+			</h1>
+		{/if}
+		{#if form?.editError && editingTitle}
+			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
+		{/if}
 		<p class="text-sm opacity-70">by {task.createdBy} · {task.createdAt}</p>
 
 		<section>
 			<h2 class="mb-2 font-semibold">Description</h2>
-			<!-- TM-10: task.descriptionHtml sudah disaring server (getTaskDetail -> renderDescriptionHtml),
-			     nol markup mentah dari user yang nyampe ke sini. Satu-satunya {@html} di app ini. -->
-			<div class="rich-text">{@html task.descriptionHtml}</div>
+			{#if editingDescription}
+				<form
+					method="POST"
+					action="?/updateDescription"
+					use:enhance={() =>
+						async ({ result, update }) => {
+							await update();
+							if (result.type === 'success') editingDescription = false;
+						}}
+					class="flex flex-col gap-3"
+				>
+					<RichTextEditor
+						name="description"
+						value={task.descriptionHtml}
+						required
+						placeholder="Describe the details: what happened, where, how often"
+						invalid={Boolean(form?.editError)}
+					/>
+					{#if form?.editError}
+						<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
+					{/if}
+					<div class="flex justify-end gap-3">
+						<button
+							type="button"
+							class="btn btn-sm btn-outline-neutral"
+							onclick={() => (editingDescription = false)}>Cancel</button
+						>
+						<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+					</div>
+				</form>
+			{:else if canEdit}
+				<!-- Klik buat edit: sengaja bukan <label>, biar gak kena bug forwarding klik yang sama kayak TM-10. -->
+				<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+				<div
+					class="rich-text rounded-container -m-2 cursor-pointer p-2 transition hover:bg-surface-100-900"
+					role="button"
+					tabindex="0"
+					title="Click to edit"
+					onclick={() => (editingDescription = true)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							editingDescription = true;
+						}
+					}}
+				>
+					<!-- TM-10: task.descriptionHtml sudah disaring server (getTaskDetail -> renderDescriptionHtml),
+					     nol markup mentah dari user yang nyampe ke sini. Sama sumbernya dengan {@html} di bawah
+					     (dua cabang if/else yang gak pernah render bareng), bukan input mentah baru. -->
+					{@html task.descriptionHtml}
+				</div>
+			{:else}
+				<div class="rich-text">{@html task.descriptionHtml}</div>
+			{/if}
 		</section>
 
 		<section>
@@ -186,6 +288,20 @@
 				{/each}
 			</ol>
 		</aside>
+
+		{#if task.edits.length > 0}
+			<aside class="card preset-filled-surface-50-950 border-surface-300-700 border p-6 shadow-xl">
+				<h2 class="mb-4 font-semibold">Edit history</h2>
+				<ol class="flex flex-col gap-3 text-sm">
+					{#each task.edits as e (e.id)}
+						<li class="border-surface-300-700 border-l-2 pl-3">
+							<p class="font-medium">{e.field === 'title' ? 'Title' : 'Description'} edited</p>
+							<p class="text-xs opacity-70">{e.by} · {e.at}</p>
+						</li>
+					{/each}
+				</ol>
+			</aside>
+		{/if}
 	</div>
 </div>
 
