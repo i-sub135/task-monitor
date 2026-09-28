@@ -62,6 +62,11 @@
 			},
 			onUpdate: ({ editor: e }) => {
 				if (hiddenInput) hiddenInput.value = e.getHTML();
+				// ProseMirror "sticky marks": abis semua isi dihapus, mark terakhir (mis. bold) masih
+				// nempel di storedMarks dan ke-warisin ke karakter berikutnya walau gak keliatan apa-apa
+				// di layar. Reset begitu dokumen kosong biar toolbar/format gak nyala sendiri pas mulai
+				// ngetik ulang.
+				if (e.isEmpty && e.state.storedMarks?.length) e.commands.unsetAllMarks();
 				syncActive();
 			},
 			onSelectionUpdate: syncActive,
@@ -83,7 +88,7 @@
 </script>
 
 <div class="rich-text-editor rounded-container border-surface-300-700 border" class:border-error-500={invalid}>
-	<div class="border-surface-300-700 flex gap-1 border-b p-1">
+	<div class="border-surface-300-700 flex justify-end gap-1 border-b p-1 pr-3">
 		{#each toolbar as tool (tool.key)}
 			<button
 				type="button"
