@@ -7,6 +7,7 @@ import {
 	canEditTask,
 	hasOrdering,
 	statuses,
+	taskTypes,
 	type BoardTask,
 	type RuleResult,
 	type Status,
@@ -288,6 +289,31 @@ export async function updateTaskDescription(
 				newValue: input.description,
 				editedById: input.user.id
 			}
+		});
+		return { ok: true };
+	});
+}
+
+/** TM-11: ganti type (bug/feature) task. Aturan status dan audit sama dengan `updateTaskTitle`. */
+export async function updateTaskType(
+	db: PrismaClient,
+	input: { id: string; type: string; user: SessionUser }
+): Promise<ActionResult> {
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!taskTypes.includes(input.type as TaskType)) return { ok: false, status: 400, error: 'Choose bug or feature' };
+	const type = input.type as TaskType;
+
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, type: true } });
+		if (!row) return { ok: false, status: 404, error: 'Task not found' };
+		if (!canEditTask(statusToApp[row.status])) {
+			return { ok: false, status: 403, error: 'Task can only be edited while in Request or Queue' };
+		}
+		if (row.type === type) return { ok: true };
+
+		await tx.task.update({ where: { id: input.id }, data: { type } });
+		await tx.taskEdit.create({
+			data: { taskId: input.id, field: 'type', oldValue: row.type, newValue: type, editedById: input.user.id }
 		});
 		return { ok: true };
 	});

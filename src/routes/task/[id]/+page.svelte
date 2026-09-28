@@ -20,10 +20,11 @@
 	const task = $derived(data.task);
 	const nextStatuses = $derived(transitions[task.status]);
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
-	// TM-11: siapa pun yang login boleh edit title/description, selama status Request/Queue.
+	// TM-11: siapa pun yang login boleh edit title/description/type, selama status Request/Queue.
 	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));
 	let editingTitle = $state(false);
 	let editingDescription = $state(false);
+	let editingType = $state(false);
 	/** Ganti `autofocus` (dilarang lint a11y): fokus pas element ini pertama kali dipasang ke DOM. */
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -84,7 +85,46 @@
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
 	<article class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-6 border p-6 shadow-xl">
 		<div class="flex flex-wrap items-center gap-2 text-xs">
-			{#if task.type === 'bug'}
+			{#if editingType}
+				<form
+					method="POST"
+					action="?/updateType"
+					use:enhance={() =>
+						async ({ result, update }) => {
+							await update();
+							if (result.type === 'success') editingType = false;
+						}}
+				>
+					<input type="hidden" name="type" value="bug" />
+					<button type="submit" class="badge preset-filled-error-500 cursor-pointer"
+						><BugIcon class="size-3" /> bug</button
+					>
+				</form>
+				<form
+					method="POST"
+					action="?/updateType"
+					use:enhance={() =>
+						async ({ result, update }) => {
+							await update();
+							if (result.type === 'success') editingType = false;
+						}}
+				>
+					<input type="hidden" name="type" value="feature" />
+					<button type="submit" class="badge preset-filled-primary-500 cursor-pointer"
+						><SparklesIcon class="size-3" /> feature</button
+					>
+				</form>
+				<button type="button" class="badge preset-tonal" onclick={() => (editingType = false)}>Cancel</button>
+			{:else if canEdit}
+				<button
+					type="button"
+					class="badge cursor-pointer {task.type === 'bug' ? 'preset-filled-error-500' : 'preset-filled-primary-500'}"
+					title="Click to change"
+					onclick={() => (editingType = true)}
+				>
+					{#if task.type === 'bug'}<BugIcon class="size-3" /> bug{:else}<SparklesIcon class="size-3" /> feature{/if}
+				</button>
+			{:else if task.type === 'bug'}
 				<span class="badge preset-filled-error-500"><BugIcon class="size-3" /> bug</span>
 			{:else}
 				<span class="badge preset-filled-primary-500"
@@ -93,6 +133,9 @@
 			{/if}
 			<span class="badge preset-tonal">{statusLabels[task.status]}</span>
 		</div>
+		{#if form?.editError && editingType}
+			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
+		{/if}
 
 		{#if editingTitle}
 			<form
@@ -295,7 +338,9 @@
 				<ol class="flex flex-col gap-3 text-sm">
 					{#each task.edits as e (e.id)}
 						<li class="border-surface-300-700 border-l-2 pl-3">
-							<p class="font-medium">{e.field === 'title' ? 'Title' : 'Description'} edited</p>
+							<p class="font-medium">
+								{e.field === 'title' ? 'Title' : e.field === 'description' ? 'Description' : 'Type'} edited
+							</p>
 							<p class="text-xs opacity-70">{e.by} · {e.at}</p>
 						</li>
 					{/each}

@@ -1,7 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { descriptionText, sanitizeDescription } from '$lib/server/richtext';
-import { getTaskDetail, transitionTask, updateTaskDescription, updateTaskTitle } from '$lib/server/tasks';
+import { getTaskDetail, transitionTask, updateTaskDescription, updateTaskTitle, updateTaskType } from '$lib/server/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -46,5 +46,17 @@ export const actions: Actions = {
 		const result = await updateTaskDescription(getDb(), { id: params.id, description, user: locals.user });
 		if (!result.ok) return fail(result.status, { editError: result.error });
 		return { descriptionUpdated: true };
+	},
+
+	updateType: async ({ request, params, locals }) => {
+		if (!locals.user) return fail(401, { editError: 'Session expired, please log in again' });
+		const form = await request.formData();
+		const result = await updateTaskType(getDb(), {
+			id: params.id,
+			type: String(form.get('type') ?? ''),
+			user: locals.user
+		});
+		if (!result.ok) return fail(result.status, { editError: result.error });
+		return { typeUpdated: true };
 	}
 };

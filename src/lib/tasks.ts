@@ -82,10 +82,10 @@ export type HistoryEntry = {
 
 export type AttachmentInfo = { id: string; name: string; mime: string; size: number };
 
-/** TM-11: satu baris per edit title/description yang sukses. */
+/** TM-11: satu baris per edit title/description/type yang sukses. */
 export type EditEntry = {
 	id: string;
-	field: 'title' | 'description';
+	field: 'title' | 'description' | 'type';
 	by: string;
 	at: string;
 };
