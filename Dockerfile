@@ -22,17 +22,22 @@ RUN apk add --no-cache openssl
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/build ./build
-COPY package.json prisma.config.ts ./
-COPY prisma ./prisma
+# --chown di tiap COPY (bukan `chown -R /app` sesudahnya): di overlay filesystem, chown rekursif
+# atas node_modules yang udah di-copy bikin layer baru yang isinya salinan ULANG semua file itu
+# (~350 MB kepakai sia-sia cuma buat ganti pemilik, sempet kejadian pas image ini 872 MB). --chown
+# nulis file langsung dengan pemilik yang bener pas di-copy, nol layer duplikat.
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/build ./build
+COPY --chown=node:node package.json prisma.config.ts ./
+COPY --chown=node:node prisma ./prisma
 # scripts/start.mjs import upload-limits.js buat nurunin BODY_SIZE_LIMIT dari UPLOAD_SIZE_LIMIT.
-COPY scripts ./scripts
-COPY src/lib/upload-limits.js ./src/lib/upload-limits.js
-COPY docker-entrypoint.sh ./
+COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node src/lib/upload-limits.js ./src/lib/upload-limits.js
+COPY --chown=node:node docker-entrypoint.sh ./
 
-# Lampiran ditulis ke /app/storage/attachment (di-mount dari host lewat compose).
-RUN mkdir -p storage/attachment && chown -R node:node /app
+# Lampiran ditulis ke /app/storage/attachment (di-mount dari host lewat compose, atau volume
+# bernama lewat komodo.stack.yml). Folder ini doang yang di-chown, bukan seisi /app.
+RUN mkdir -p storage/attachment && chown node:node storage/attachment
 USER node
 
 EXPOSE 3000
