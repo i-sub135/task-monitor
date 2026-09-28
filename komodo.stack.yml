@@ -1,0 +1,89 @@
+# Stack produksi buat Komodo.
+#
+# BENTUKNYA NGIKUTIN POLA compose.komodo.yml YANG UDAH JALAN (ternakagentic),
+# bukan dikarang: image di-build di mesin tujuan (`pull_policy: never`), nol
+# fallback diam-diam buat versi image, DB eksisting di luar container, nyambung
+# ke jaringan proxy tanpa buka port ke host.
+#
+# Nilai yang beda per mesin TIDAK ditulis di sini — semuanya dari `.env`
+# (contohnya `.env.komodo.example`). Di Komodo, isinya ditempel ke kolom
+# Environment stack-nya.
+#
+# Beda sama `compose.yml`: file itu buat dev lokal (`make docker-up`) — bind
+# mount `./storage/attachment` dari host, UID/GID disamain otomatis biar upload
+# gak EACCES, port ke 127.0.0.1. Yang ini buat server di belakang proxy/tunnel,
+# lampiran ke volume bernama (image sudah `chown` folder itu ke user `node`
+# saat build, jadi volume baru otomatis kewarisan permission itu — nol
+# penyesuaian UID manual kayak versi dev). Dua-duanya sengaja dipisah biar
+# ngubah satu gak nyenggol yang lain.
+
+services:
+  app:
+    # Wajib diisi, GAK ADA nilai cadangan — sengaja. Cadangan diam-diam itu
+    # yang bisa bikin `up -d` polosan balik ke image lama. Lupa ngisi = Komodo
+    # nolak jalan, bukan naik versi yang salah.
+    image: task-monitor:${APP_VERSION:?APP_VERSION wajib diisi, mis. 1.0.0}
+
+    # Image di-build di mesin tujuan (Dockerfile di repo ini), bukan ditarik
+    # dari registry.
+    pull_policy: never
+
+    container_name: task-monitor
+    restart: unless-stopped
+
+    # Belum ada limit CPU/RAM — task-monitor belum pernah diukur beban
+    # produksinya (beda dari ternakagentic yang udah punya baseline stack v2).
+    # Tambahin `deploy.resources` di sini begitu ada angka nyata.
+
+    environment:
+      NODE_ENV: production
+      APP_VERSION: ${APP_VERSION}
+
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL wajib diisi (Postgres eksisting, bukan container di stack ini)}
+      COOKIE_SIGN_SECRET: ${COOKIE_SIGN_SECRET:?COOKIE_SIGN_SECRET wajib diisi, minimal 32 karakter (mis. output openssl rand -hex 32)}
+      AUTH_ADMIN: ${AUTH_ADMIN:?AUTH_ADMIN wajib diisi, password login satu-satunya}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:?SEED_ADMIN_EMAIL wajib diisi}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:?SEED_ADMIN_NAME wajib diisi}
+
+      # ALAMAT PUBLIK SITUS — WAJIB. Server cuma lihat alamat dalem lewat
+      # jaringan proxy; tanpa ORIGIN yang cocok, SEMUA POST form ditolak 403
+      # diam-diam (task baru, transisi status, upload, dst tetap kebuka biasa,
+      # tapi submit-nya gagal).
+      ORIGIN: ${ORIGIN:?ORIGIN wajib diisi, mis. https://tasks.example.com}
+
+      UPLOAD_SIZE_LIMIT: ${UPLOAD_SIZE_LIMIT:-5M}
+
+      # Lampiran: local (volume di bawah) atau s3. Env S3_* wajib kalau
+      # STORAGE_DRIVER=s3; app gagal nyala dengan pesan yang nyebut env mana
+      # yang kosong (bukan nyala diam-diam dengan driver salah).
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      S3_REGION: ${S3_REGION:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-}
+      S3_CHECKSUM: ${S3_CHECKSUM:-}
+
+    volumes:
+      # Nama volume ATAU path di host. Diisi path (ada garis miringnya) = bind
+      # mount; kalau gitu, folder host itu harus di-`chown 1000:1000` dulu
+      # (uid/gid user `node` di image), atau upload gagal EACCES. Dibiarin
+      # kosong = volume bernama, nol penyesuaian manual.
+      - ${TM_STORAGE_DIR:-task-monitor-storage}:/app/storage/attachment
+
+    # Nol `ports:` — dicapai proxy/tunnel lewat jaringan docker, bukan lewat
+    # port yang kebuka ke host (sama kayak stack lain di maal-app-s01).
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    # Jaringan tempat Cloudflare Tunnel nongkrong di maal-app-s01 (dari stack
+    # lain yang udah jalan di situ — cek ulang sebelum deploy pertama kali,
+    # ganti lewat TM_PROXY_NETWORK kalau ternyata beda).
+    name: ${TM_PROXY_NETWORK:-cf-tunnel_cf-tunnel}
+    external: true
+
+volumes:
+  task-monitor-storage:
