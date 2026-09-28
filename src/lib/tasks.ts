@@ -88,6 +88,9 @@ export type EditEntry = {
 	field: 'title' | 'description' | 'type';
 	by: string;
 	at: string;
+	/** Buat title/type: teks polos. Buat description: HTML yang udah disaring, aman dipakai lewat {@html}. */
+	oldValue: string;
+	newValue: string;
 };
 
 export type TaskDetail = {

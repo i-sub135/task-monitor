@@ -342,6 +342,14 @@
 								{e.field === 'title' ? 'Title' : e.field === 'description' ? 'Description' : 'Type'} edited
 							</p>
 							<p class="text-xs opacity-70">{e.by} · {e.at}</p>
+							{#if e.field === 'description'}
+								<div class="rich-text mt-1 text-xs opacity-60 line-through">{@html e.oldValue}</div>
+								<div class="rich-text mt-1 text-xs">{@html e.newValue}</div>
+							{:else}
+								<p class="mt-1 text-xs break-words">
+									<span class="opacity-60 line-through">{e.oldValue}</span> → {e.newValue}
+								</p>
+							{/if}
 						</li>
 					{/each}
 				</ol>

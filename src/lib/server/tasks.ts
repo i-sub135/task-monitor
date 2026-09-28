@@ -128,7 +128,16 @@ export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskD
 			at: formatJakarta(h.createdAt),
 			note: h.note
 		})),
-		edits: t.edits.map((e) => ({ id: e.id, field: e.field, by: e.editedBy.name, at: formatJakarta(e.createdAt) }))
+		edits: t.edits.map((e) => ({
+			id: e.id,
+			field: e.field,
+			by: e.editedBy.name,
+			at: formatJakarta(e.createdAt),
+			// description: nilai lama bisa aja teks polos legacy (task pra-TM-10) atau HTML — disaring ulang
+			// lewat fungsi yang sama kayak descriptionHtml, biar aman dipakai lewat {@html} di UI.
+			oldValue: e.field === 'description' ? renderDescriptionHtml(e.oldValue) : e.oldValue,
+			newValue: e.field === 'description' ? renderDescriptionHtml(e.newValue) : e.newValue
+		}))
 	};
 }
 
