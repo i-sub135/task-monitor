@@ -82,7 +82,10 @@ export type AttachmentInfo = { id: string; name: string; mime: string; size: num
 export type TaskDetail = {
 	id: string;
 	title: string;
+	/** Isi asli tersimpan (HTML rich text, atau teks polos buat task dari sebelum TM-10). */
 	description: string;
+	/** Sudah diproses buat ditampilin lewat `{@html}`: teks lama di-escape, HTML disaring ulang. */
+	descriptionHtml: string;
 	type: TaskType;
 	status: Status;
 	createdBy: string;

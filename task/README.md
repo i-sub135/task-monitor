@@ -6,11 +6,10 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-Kosong.
+- [TM-10](running/TM-10.md) — Rich text editor untuk description di form Task baru — Running (kode + test lulus, nunggu cek visual Iyan)
 
 ## Backlog
 
-- [TM-10](backlog/TM-10.md) — Rich text editor untuk description di form Task baru — Ready
 - [TM-11](backlog/TM-11.md) — Edit title/description di halaman detail task (Request/Queue saja) — Ready
 
 ## Done

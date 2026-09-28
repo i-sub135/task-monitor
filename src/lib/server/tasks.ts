@@ -1,4 +1,5 @@
 import { calendarDaysAgo, formatJakarta } from '../time.ts';
+import { renderDescriptionHtml } from './richtext.ts';
 import type { SessionUser } from '../roles.ts';
 import {
 	checkTransition,
@@ -110,6 +111,7 @@ export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskD
 		id: t.id,
 		title: t.title,
 		description: t.description,
+		descriptionHtml: renderDescriptionHtml(t.description),
 		type: t.type,
 		status: statusToApp[t.status],
 		createdBy: t.createdBy.name,

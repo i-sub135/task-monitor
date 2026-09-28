@@ -6,6 +6,7 @@ import { logger } from '$lib/server/logger';
 import { createTask } from '$lib/server/tasks';
 import { getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
+import { descriptionText, sanitizeDescription } from '$lib/server/richtext';
 import { MAX_FILES } from '$lib/upload-limits';
 import type { TaskType } from '$lib/tasks';
 import type { Actions, PageServerLoad } from './$types';
@@ -21,7 +22,10 @@ export const actions: Actions = {
 
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();
-		const description = String(form.get('description') ?? '').trim();
+		// TM-10: description sekarang HTML dari rich text editor. Disaring di sini (bukan cuma di
+		// render) sebelum disentuh lagi, jadi apa yang kesimpan dan yang di-echo balik ke form
+		// (kalau validasi field lain gagal) udah pasti bersih, nol markup mentah dari klien.
+		const description = sanitizeDescription(String(form.get('description') ?? ''));
 		const type = String(form.get('type') ?? '');
 		const files = form
 			.getAll('attachments')
@@ -30,7 +34,7 @@ export const actions: Actions = {
 		const errors: Record<string, string> = {};
 		if (!title) errors.title = 'Title is required';
 		else if (title.length > 120) errors.title = 'Title must be at most 120 characters';
-		if (!description) errors.description = 'Description is required';
+		if (!descriptionText(description)) errors.description = 'Description is required';
 		if (type !== 'bug' && type !== 'feature') errors.type = 'Choose bug or feature';
 
 		const uploads = await checkUploads(files, getUploadLimitBytes());

@@ -90,7 +90,9 @@
 
 		<section>
 			<h2 class="mb-2 font-semibold">Description</h2>
-			<p class="whitespace-pre-wrap">{task.description}</p>
+			<!-- TM-10: task.descriptionHtml sudah disaring server (getTaskDetail -> renderDescriptionHtml),
+			     nol markup mentah dari user yang nyampe ke sini. Satu-satunya {@html} di app ini. -->
+			<div class="rich-text">{@html task.descriptionHtml}</div>
 		</section>
 
 		<section>

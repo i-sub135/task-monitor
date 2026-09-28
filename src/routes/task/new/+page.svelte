@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { onDestroy } from 'svelte';
 	import { formatSize } from '$lib/upload-limits';
+	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import {
 		ArrowLeftIcon,
 		BugIcon,
@@ -146,14 +147,13 @@
 
 	<label class="label">
 		<span class="label-text font-semibold">Description</span>
-		<textarea
-			class="textarea"
+		<RichTextEditor
 			name="description"
-			rows="5"
+			value={form?.values?.description ?? ''}
 			required
 			placeholder="Describe the details: what happened, where, how often"
-			>{form?.values?.description ?? ''}</textarea
-		>
+			invalid={Boolean(form?.errors?.description)}
+		/>
 		{#if form?.errors?.description}<span class="text-error-500 text-sm"
 				>{form.errors.description}</span
 			>{/if}
