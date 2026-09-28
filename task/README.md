@@ -6,11 +6,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-- [TM-11](running/TM-11.md) — Edit title/description/type di halaman detail task (Request/Queue saja) — Running (kode + migration jadi, migration udah kepasang di DB dev Iyan, nunggu cek visual)
+_(kosong)_
 
 ## Backlog
 
-_(kosong)_
+- [TM-12](backlog/TM-12.md) — Tambah field platform di Task (enum API/Mobile/AI Chat) — Ready
 
 ## Done
 
@@ -24,3 +24,4 @@ _(kosong)_
 - [TM-8](done/TM-8.md) — Docker: image, compose, mount storage, Postgres eksisting — Done (AC 1–5 lulus di Docker host uji, lihat History)
 - [TM-9](done/TM-9.md) — Upload lampiran ke Wasabi/object storage (driver `s3` di samping `local`) — Done
 - [TM-10](done/TM-10.md) — Rich text editor untuk description di form Task baru — Done
+- [TM-11](done/TM-11.md) — Edit title/description/type di halaman detail task (Request/Queue saja) — Done
