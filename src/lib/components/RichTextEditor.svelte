@@ -106,7 +106,7 @@
 	</div>
 	<div bind:this={mount}></div>
 	<!-- Isi editor disinkron ke sini tiap update, jadi form action server tetap baca FormData biasa. -->
-	<input bind:this={hiddenInput} type="hidden" {name} {required} />
+	<input bind:this={hiddenInput} id={name} type="hidden" {name} {required} />
 </div>
 
 <style>

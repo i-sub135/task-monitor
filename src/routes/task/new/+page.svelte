@@ -145,7 +145,7 @@
 		{#if form?.errors?.type}<span class="text-error-500 text-sm">{form.errors.type}</span>{/if}
 	</fieldset>
 
-	<label class="label">
+	<label class="label" for="description">
 		<span class="label-text font-semibold">Description</span>
 		<RichTextEditor
 			name="description"
