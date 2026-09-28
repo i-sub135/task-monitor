@@ -8,7 +8,7 @@ import { getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { descriptionText, sanitizeDescription } from '$lib/server/richtext';
 import { MAX_FILES } from '$lib/upload-limits';
-import type { TaskType } from '$lib/tasks';
+import { platforms, type Platform, type TaskType } from '$lib/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = () => ({
@@ -27,6 +27,8 @@ export const actions: Actions = {
 		// (kalau validasi field lain gagal) udah pasti bersih, nol markup mentah dari klien.
 		const description = sanitizeDescription(String(form.get('description') ?? ''));
 		const type = String(form.get('type') ?? '');
+		// TM-12: wajib diisi, sama kayak type — nol default diam-diam pas bikin task baru.
+		const platform = String(form.get('platform') ?? '');
 		const files = form
 			.getAll('attachments')
 			.filter((f): f is File => f instanceof File && f.size > 0);
@@ -36,12 +38,13 @@ export const actions: Actions = {
 		else if (title.length > 120) errors.title = 'Title must be at most 120 characters';
 		if (!descriptionText(description)) errors.description = 'Description is required';
 		if (type !== 'bug' && type !== 'feature') errors.type = 'Choose bug or feature';
+		if (!platforms.includes(platform as Platform)) errors.platform = 'Choose a platform';
 
 		const uploads = await checkUploads(files, getUploadLimitBytes());
 		if (!uploads.ok) errors.attachments = uploads.error;
 
 		if (Object.keys(errors).length > 0 || !uploads.ok) {
-			return fail(400, { errors, values: { title, description, type } });
+			return fail(400, { errors, values: { title, description, type, platform } });
 		}
 
 		// File ditulis dulu, baru DB. Kalau transaksi gagal, file yang udah ditulis dihapus lagi.
@@ -55,6 +58,7 @@ export const actions: Actions = {
 				title,
 				description,
 				type: type as TaskType,
+				platform: platform as Platform,
 				userId: locals.user.id,
 				attachments: stored
 			});
@@ -71,7 +75,7 @@ export const actions: Actions = {
 				error: e instanceof Error ? e.message : String(e)
 			});
 			const saveErrors: Record<string, string> = { form: 'Failed to save the task. Please try again.' };
-			return fail(500, { errors: saveErrors, values: { title, description, type } });
+			return fail(500, { errors: saveErrors, values: { title, description, type, platform } });
 		}
 
 		redirect(303, `/task/${id}`);

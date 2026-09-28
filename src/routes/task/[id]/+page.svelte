@@ -11,20 +11,30 @@
 		XIcon
 	} from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
-	import { canEditTask, statusLabels, transitions, type Status } from '$lib/tasks';
+	import {
+		canEditTask,
+		platformLabels,
+		platforms,
+		statusLabels,
+		transitions,
+		type Platform,
+		type Status
+	} from '$lib/tasks';
 	import { linkify } from '$lib/linkify';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
+	import { platformIcons } from '$lib/platform-icons';
 	import type { AttachmentInfo } from '$lib/tasks';
 
 	let { data, form } = $props();
 	const task = $derived(data.task);
 	const nextStatuses = $derived(transitions[task.status]);
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
-	// TM-11: siapa pun yang login boleh edit title/description/type, selama status Request/Queue.
+	// TM-11/TM-12: siapa pun yang login boleh edit title/description/type/platform, selama status Request/Queue.
 	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));
 	let editingTitle = $state(false);
 	let editingDescription = $state(false);
 	let editingType = $state(false);
+	let editingPlatform = $state(false);
 	/** Ganti `autofocus` (dilarang lint a11y): fokus pas element ini pertama kali dipasang ke DOM. */
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -131,9 +141,45 @@
 					><SparklesIcon class="size-3" /> feature</span
 				>
 			{/if}
+
+			{#if editingPlatform}
+				{#each platforms as p (p)}
+					{@const Icon = platformIcons[p]}
+					<form
+						method="POST"
+						action="?/updatePlatform"
+						use:enhance={() =>
+							async ({ result, update }) => {
+								await update();
+								if (result.type === 'success') editingPlatform = false;
+							}}
+					>
+						<input type="hidden" name="platform" value={p} />
+						<button type="submit" class="badge preset-filled-primary-500 cursor-pointer"
+							><Icon class="size-3" /> {platformLabels[p]}</button
+						>
+					</form>
+				{/each}
+				<button type="button" class="badge preset-tonal" onclick={() => (editingPlatform = false)}>Cancel</button>
+			{:else if canEdit}
+				{@const Icon = platformIcons[task.platform]}
+				<button
+					type="button"
+					class="badge preset-filled-primary-500 cursor-pointer"
+					title="Click to change"
+					onclick={() => (editingPlatform = true)}
+				>
+					<Icon class="size-3" />
+					{platformLabels[task.platform]}
+				</button>
+			{:else}
+				{@const Icon = platformIcons[task.platform]}
+				<span class="badge preset-filled-primary-500"><Icon class="size-3" /> {platformLabels[task.platform]}</span>
+			{/if}
+
 			<span class="badge preset-tonal">{statusLabels[task.status]}</span>
 		</div>
-		{#if form?.editError && editingType}
+		{#if form?.editError && (editingType || editingPlatform)}
 			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
 		{/if}
 
@@ -339,12 +385,24 @@
 					{#each task.edits as e (e.id)}
 						<li class="border-surface-300-700 border-l-2 pl-3">
 							<p class="font-medium">
-								{e.field === 'title' ? 'Title' : e.field === 'description' ? 'Description' : 'Type'} edited
+								{e.field === 'title'
+									? 'Title'
+									: e.field === 'description'
+										? 'Description'
+										: e.field === 'type'
+											? 'Type'
+											: 'Platform'} edited
 							</p>
 							<p class="text-xs opacity-70">{e.by} · {e.at}</p>
 							{#if e.field === 'description'}
 								<div class="rich-text mt-1 text-xs opacity-60 line-through">{@html e.oldValue}</div>
 								<div class="rich-text mt-1 text-xs">{@html e.newValue}</div>
+							{:else if e.field === 'platform'}
+								<p class="mt-1 text-xs break-words">
+									<span class="opacity-60 line-through">{platformLabels[e.oldValue as Platform]}</span> to {platformLabels[
+										e.newValue as Platform
+									]}
+								</p>
 							{:else}
 								<p class="mt-1 text-xs break-words">
 									<span class="opacity-60 line-through">{e.oldValue}</span> → {e.newValue}

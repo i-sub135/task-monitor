@@ -2,6 +2,8 @@ import { canAdvance, type Role } from './roles.ts';
 
 export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'rejected';
 export type TaskType = 'bug' | 'feature';
+/** TM-12: platform yang kena task. Satu task = satu platform, wajib diisi, `other` = fallback. */
+export type Platform = 'api' | 'mobile' | 'ai-chat' | 'other';
 
 export const statusLabels: Record<Status, string> = {
 	request: 'Request',
@@ -12,8 +14,16 @@ export const statusLabels: Record<Status, string> = {
 	rejected: 'Rejected'
 };
 
+export const platformLabels: Record<Platform, string> = {
+	api: 'API',
+	mobile: 'Mobile',
+	'ai-chat': 'AI Chat',
+	other: 'Other'
+};
+
 export const statuses = Object.keys(statusLabels) as Status[];
 export const taskTypes: TaskType[] = ['bug', 'feature'];
+export const platforms = Object.keys(platformLabels) as Platform[];
 
 /** Transisi maju doang (brainstorming.md bagian 3). done dan rejected terminal. */
 export const transitions: Record<Status, Status[]> = {
@@ -61,6 +71,7 @@ export type BoardTask = {
 	id: string;
 	title: string;
 	type: TaskType;
+	platform: Platform;
 	status: Status;
 	createdBy: string;
 	createdAt: string;
@@ -82,13 +93,13 @@ export type HistoryEntry = {
 
 export type AttachmentInfo = { id: string; name: string; mime: string; size: number };
 
-/** TM-11: satu baris per edit title/description/type yang sukses. */
+/** TM-11/TM-12: satu baris per edit title/description/type/platform yang sukses. */
 export type EditEntry = {
 	id: string;
-	field: 'title' | 'description' | 'type';
+	field: 'title' | 'description' | 'type' | 'platform';
 	by: string;
 	at: string;
-	/** Buat title/type: teks polos. Buat description: HTML yang udah disaring, aman dipakai lewat {@html}. */
+	/** Buat title/type/platform: teks polos. Buat description: HTML yang udah disaring, aman dipakai lewat {@html}. */
 	oldValue: string;
 	newValue: string;
 };
@@ -101,6 +112,7 @@ export type TaskDetail = {
 	/** Sudah diproses buat ditampilin lewat `{@html}`: teks lama di-escape, HTML disaring ulang. */
 	descriptionHtml: string;
 	type: TaskType;
+	platform: Platform;
 	status: Status;
 	createdBy: string;
 	createdAt: string;

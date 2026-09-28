@@ -8,14 +8,16 @@ import {
 	hasOrdering,
 	statuses,
 	taskTypes,
+	platforms,
 	type BoardTask,
+	type Platform,
 	type RuleResult,
 	type Status,
 	type TaskDetail,
 	type TaskType
 } from '../tasks.ts';
 import type { Prisma, PrismaClient } from './generated/prisma/client.ts';
-import type { TaskStatus } from './generated/prisma/enums.ts';
+import type { TaskStatus, TaskPlatform } from './generated/prisma/enums.ts';
 import type { StoredFile } from './attachments.ts';
 
 // Di DB label enum pakai tanda hubung (@map), di client Prisma jadi in_progress dst. Di app tetap 'in-progress'.
@@ -34,6 +36,20 @@ const statusToDb: Record<Status, TaskStatus> = {
 	'ready-to-test': 'ready_to_test',
 	done: 'done',
 	rejected: 'rejected'
+};
+
+// TM-12: sama pola kayak statusToApp/statusToDb, cuma buat platform (client 'ai_chat' <-> DB/app 'ai-chat').
+const platformToApp: Record<TaskPlatform, Platform> = {
+	api: 'api',
+	mobile: 'mobile',
+	ai_chat: 'ai-chat',
+	other: 'other'
+};
+const platformToDb: Record<Platform, TaskPlatform> = {
+	api: 'api',
+	mobile: 'mobile',
+	'ai-chat': 'ai_chat',
+	other: 'other'
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -85,6 +101,7 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 				id: r.id,
 				title: r.title,
 				type: r.type,
+				platform: platformToApp[r.platform],
 				status,
 				createdBy: r.createdBy.name,
 				createdAt: formatJakarta(r.createdAt),
@@ -116,6 +133,7 @@ export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskD
 		description: t.description,
 		descriptionHtml: renderDescriptionHtml(t.description),
 		type: t.type,
+		platform: platformToApp[t.platform],
 		status: statusToApp[t.status],
 		createdBy: t.createdBy.name,
 		createdAt: formatJakarta(t.createdAt),
@@ -153,6 +171,7 @@ export type NewTask = {
 	title: string;
 	description: string;
 	type: TaskType;
+	platform: Platform;
 	userId: string;
 	attachments: StoredFile[];
 };
@@ -169,6 +188,7 @@ export async function createTask(db: PrismaClient, input: NewTask): Promise<void
 				title: input.title,
 				description: input.description,
 				type: input.type,
+				platform: platformToDb[input.platform],
 				status: 'request',
 				ordering: (last._max.ordering ?? 0) + 1,
 				createdById: input.userId,
@@ -323,6 +343,41 @@ export async function updateTaskType(
 		await tx.task.update({ where: { id: input.id }, data: { type } });
 		await tx.taskEdit.create({
 			data: { taskId: input.id, field: 'type', oldValue: row.type, newValue: type, editedById: input.user.id }
+		});
+		return { ok: true };
+	});
+}
+
+/** TM-12: ganti platform task. Aturan status dan audit sama dengan `updateTaskTitle`. */
+export async function updateTaskPlatform(
+	db: PrismaClient,
+	input: { id: string; platform: string; user: SessionUser }
+): Promise<ActionResult> {
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!platforms.includes(input.platform as Platform)) {
+		return { ok: false, status: 400, error: 'Choose a valid platform' };
+	}
+	const platform = input.platform as Platform;
+
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, platform: true } });
+		if (!row) return { ok: false, status: 404, error: 'Task not found' };
+		if (!canEditTask(statusToApp[row.status])) {
+			return { ok: false, status: 403, error: 'Task can only be edited while in Request or Queue' };
+		}
+		if (row.platform === platformToDb[platform]) return { ok: true };
+
+		await tx.task.update({ where: { id: input.id }, data: { platform: platformToDb[platform] } });
+		await tx.taskEdit.create({
+			// oldValue/newValue disimpen dalam bentuk app-level ('ai-chat', bukan 'ai_chat' punya client),
+			// biar UI bisa langsung map lewat platformLabels tanpa perlu tau representasi DB.
+			data: {
+				taskId: input.id,
+				field: 'platform',
+				oldValue: platformToApp[row.platform],
+				newValue: platform,
+				editedById: input.user.id
+			}
 		});
 		return { ok: true };
 	});

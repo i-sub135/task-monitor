@@ -49,8 +49,20 @@ enum TaskEditField {
   title
   description
   type
+  platform
 
   @@map("task_edit_field")
+}
+
+/// TM-12: platform yang kena task. Satu task = satu platform, wajib diisi. `other` dipakai
+/// juga sebagai default buat task lama (migration) dan safety-net kolom.
+enum TaskPlatform {
+  api
+  mobile
+  ai_chat @map("ai-chat")
+  other
+
+  @@map("task_platform")
 }
 
 model User {
@@ -71,16 +83,17 @@ model User {
 }
 
 model Task {
-  id          String     @id @default(uuid()) @db.Uuid
+  id          String       @id @default(uuid()) @db.Uuid
   title       String
   description String
   type        TaskType
-  status      TaskStatus @default(request)
+  platform    TaskPlatform @default(other)
+  status      TaskStatus   @default(request)
   /// Urutan antrean, kecil = duluan. Dipakai di kolom request dan queue, diabaikan di status lain.
-  ordering    Int        @default(0)
-  createdById String     @map("created_by") @db.Uuid
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  ordering    Int          @default(0)
+  createdById String       @map("created_by") @db.Uuid
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   createdBy   User             @relation(fields: [createdById], references: [id])
   history     TaskHistory[]
@@ -112,13 +125,13 @@ model TaskHistory {
 /// TM-11: 1 baris per edit title/description yang sukses (status Request/Queue saja). Nilai lama disimpan
 /// biar audit-nya beneran bisa jawab "sebelumnya apa", bukan cuma "berubah".
 model TaskEdit {
-  id          String        @id @default(uuid()) @db.Uuid
-  taskId      String        @map("task_id") @db.Uuid
-  field       TaskEditField
-  oldValue    String        @map("old_value")
-  newValue    String        @map("new_value")
-  editedById  String        @map("edited_by") @db.Uuid
-  createdAt   DateTime      @default(now()) @map("created_at")
+  id         String        @id @default(uuid()) @db.Uuid
+  taskId     String        @map("task_id") @db.Uuid
+  field      TaskEditField
+  oldValue   String        @map("old_value")
+  newValue   String        @map("new_value")
+  editedById String        @map("edited_by") @db.Uuid
+  createdAt  DateTime      @default(now()) @map("created_at")
 
   task     Task @relation(fields: [taskId], references: [id])
   editedBy User @relation(fields: [editedById], references: [id])

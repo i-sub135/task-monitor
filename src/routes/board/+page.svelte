@@ -3,7 +3,8 @@
 	import { enhance } from '$app/forms';
 	import { ArrowDownIcon, ArrowUpIcon, BugIcon, PaperclipIcon, SparklesIcon } from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
-	import { canReorder, statusLabels, statuses, transitions, type BoardTask, type Status } from '$lib/tasks';
+	import { canReorder, platformLabels, statusLabels, statuses, transitions, type BoardTask, type Status } from '$lib/tasks';
+	import { platformIcons } from '$lib/platform-icons';
 
 	let { data, form } = $props();
 
@@ -196,6 +197,7 @@
 			</header>
 
 			{#each items as task, i (task.id)}
+				{@const PlatformIcon = platformIcons[task.platform]}
 				<article
 					draggable={isDraggable(task)}
 					ondragstart={(e) => onDragStart(e, task)}
@@ -216,6 +218,9 @@
 								><SparklesIcon class="size-3" /> feature</span
 							>
 						{/if}
+						<span class="badge preset-filled-primary-500"
+							><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
+						>
 					</div>
 
 					<a

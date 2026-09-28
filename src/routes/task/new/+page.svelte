@@ -3,14 +3,9 @@
 	import { onDestroy } from 'svelte';
 	import { formatSize } from '$lib/upload-limits';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import {
-		ArrowLeftIcon,
-		BugIcon,
-		SparklesIcon,
-		FileTextIcon,
-		InfoIcon,
-		XIcon
-	} from '@lucide/svelte';
+	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, InfoIcon, XIcon } from '@lucide/svelte';
+	import { platforms, platformLabels } from '$lib/tasks';
+	import { platformIcons } from '$lib/platform-icons';
 
 	let { form, data } = $props();
 
@@ -143,6 +138,23 @@
 			</label>
 		</div>
 		{#if form?.errors?.type}<span class="text-error-500 text-sm">{form.errors.type}</span>{/if}
+	</fieldset>
+
+	<fieldset class="flex flex-col gap-2">
+		<legend class="label-text mb-2 font-semibold">Platform</legend>
+		<div class="flex flex-wrap gap-3">
+			{#each platforms as p (p)}
+				{@const Icon = platformIcons[p]}
+				<label
+					class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-primary-500"
+				>
+					<input class="radio" type="radio" name="platform" value={p} required checked={form?.values?.platform === p} />
+					<Icon class="size-4" />
+					{platformLabels[p]}
+				</label>
+			{/each}
+		</div>
+		{#if form?.errors?.platform}<span class="text-error-500 text-sm">{form.errors.platform}</span>{/if}
 	</fieldset>
 
 	<label class="label" for="description">
