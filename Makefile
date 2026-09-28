@@ -1,10 +1,19 @@
-.PHONY: install dev build check test docker-build docker-up docker-down docker-logs
+.PHONY: install dev sync-dev build check test docker-build docker-up docker-down docker-logs
 
 install:
 	npm install
 
 dev:
 	npm run dev
+
+# Shortcut abis git pull: tarik migration terbaru ke DB dev lokal (prisma migrate deploy, gak butuh
+# shadow db), regenerate Prisma client (biar field/enum baru dikenal), baru nyalain dev server yang
+# bisa diakses dari HP di jaringan yang sama (--host).
+sync-dev:
+	git pull
+	npm run db:deploy
+	npm run db:generate
+	npm run dev -- --host
 
 build:
 	npm run build
