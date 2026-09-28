@@ -10,7 +10,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Backlog
 
-_(kosong)_
+- [TM-13](backlog/TM-13.md) — Batasi kartu per kolom di /board (maks 5), "read more" ke /board/list/[status] — Ready
 
 ## Done
 
