@@ -3,7 +3,7 @@ import { canAdvance, type Role } from './roles.ts';
 export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'rejected';
 export type TaskType = 'bug' | 'feature';
 /** TM-12: platform yang kena task. Satu task = satu platform, wajib diisi, `other` = fallback. */
-export type Platform = 'api' | 'mobile' | 'ai-chat' | 'other';
+export type Platform = 'api' | 'mobile' | 'ai-chat' | 'web' | 'other';
 
 export const statusLabels: Record<Status, string> = {
 	request: 'Request',
@@ -18,6 +18,7 @@ export const platformLabels: Record<Platform, string> = {
 	api: 'API',
 	mobile: 'Mobile',
 	'ai-chat': 'AI Chat',
+	web: 'Web',
 	other: 'Other'
 };
 

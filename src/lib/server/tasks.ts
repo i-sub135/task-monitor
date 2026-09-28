@@ -43,12 +43,14 @@ const platformToApp: Record<TaskPlatform, Platform> = {
 	api: 'api',
 	mobile: 'mobile',
 	ai_chat: 'ai-chat',
+	web: 'web',
 	other: 'other'
 };
 const platformToDb: Record<Platform, TaskPlatform> = {
 	api: 'api',
 	mobile: 'mobile',
 	'ai-chat': 'ai_chat',
+	web: 'web',
 	other: 'other'
 };
 

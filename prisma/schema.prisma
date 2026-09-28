@@ -60,6 +60,7 @@ enum TaskPlatform {
   api
   mobile
   ai_chat @map("ai-chat")
+  web
   other
 
   @@map("task_platform")
