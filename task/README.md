@@ -6,11 +6,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-_(kosong)_
+- [TM-12](running/TM-12.md) — Tambah field platform di Task (enum API/Mobile/AI Chat/Other) — Running (kode + migration + styling chip jadi, nunggu migration ke-jalanin lawan DB asli + cek visual Iyan)
 
 ## Backlog
 
-- [TM-12](backlog/TM-12.md) — Tambah field platform di Task (enum API/Mobile/AI Chat) — Ready
+_(kosong)_
 
 ## Done
 
