@@ -22,7 +22,7 @@
 	} from '$lib/tasks';
 	import { linkify } from '$lib/linkify';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import { platformIcons } from '$lib/platform-icons';
+	import { platformIcons, platformColors } from '$lib/platform-icons';
 	import type { AttachmentInfo } from '$lib/tasks';
 
 	let { data, form } = $props();
@@ -145,6 +145,7 @@
 			{#if editingPlatform}
 				{#each platforms as p (p)}
 					{@const Icon = platformIcons[p]}
+					{@const pc = platformColors[p]}
 					<form
 						method="POST"
 						action="?/updatePlatform"
@@ -155,17 +156,21 @@
 							}}
 					>
 						<input type="hidden" name="platform" value={p} />
-						<button type="submit" class="badge preset-filled-primary-500 cursor-pointer"
-							><Icon class="size-3" /> {platformLabels[p]}</button
+						<button
+							type="submit"
+							class="badge cursor-pointer"
+							style="background-color: {pc.bg}; color: {pc.fg}"><Icon class="size-3" /> {platformLabels[p]}</button
 						>
 					</form>
 				{/each}
 				<button type="button" class="badge preset-tonal" onclick={() => (editingPlatform = false)}>Cancel</button>
 			{:else if canEdit}
 				{@const Icon = platformIcons[task.platform]}
+				{@const pc = platformColors[task.platform]}
 				<button
 					type="button"
-					class="badge preset-filled-primary-500 cursor-pointer"
+					class="badge cursor-pointer"
+					style="background-color: {pc.bg}; color: {pc.fg}"
 					title="Click to change"
 					onclick={() => (editingPlatform = true)}
 				>
@@ -174,7 +179,10 @@
 				</button>
 			{:else}
 				{@const Icon = platformIcons[task.platform]}
-				<span class="badge preset-filled-primary-500"><Icon class="size-3" /> {platformLabels[task.platform]}</span>
+				{@const pc = platformColors[task.platform]}
+				<span class="badge" style="background-color: {pc.bg}; color: {pc.fg}"
+					><Icon class="size-3" /> {platformLabels[task.platform]}</span
+				>
 			{/if}
 
 			<span class="badge preset-tonal">{statusLabels[task.status]}</span>

@@ -4,7 +4,7 @@
 	import { ArrowDownIcon, ArrowUpIcon, BugIcon, PaperclipIcon, SparklesIcon } from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
 	import { canReorder, platformLabels, statusLabels, statuses, transitions, type BoardTask, type Status } from '$lib/tasks';
-	import { platformIcons } from '$lib/platform-icons';
+	import { platformIcons, platformColors } from '$lib/platform-icons';
 
 	let { data, form } = $props();
 
@@ -218,7 +218,10 @@
 								><SparklesIcon class="size-3" /> feature</span
 							>
 						{/if}
-						<span class="badge preset-filled-primary-500"
+						<span
+							class="badge"
+							style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform]
+								.fg}"
 							><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
 						>
 					</div>
