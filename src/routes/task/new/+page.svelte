@@ -1,16 +1,24 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { formatSize } from '$lib/upload-limits';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, InfoIcon, XIcon } from '@lucide/svelte';
 	import { platforms, platformLabels } from '$lib/tasks';
-	import { platformIcons } from '$lib/platform-icons';
+	import { platformIcons, platformColors } from '$lib/platform-icons';
 
 	let { form, data } = $props();
 
 	const MAX_FILES = $derived(data.maxFiles);
 	const MAX_FILE_BYTES = $derived(data.maxFileBytes);
+
+	// Chip platform butuh warna per-pilihan (hex spesifik, bukan preset Tailwind statis kayak Type),
+	// jadi state kepilih dilacak di sini dan style-nya di-apply langsung, bukan lewat has-[:checked].
+	// Disinkron ulang dari form.values kalau validasi field lain gagal dan server nge-echo balik pilihan lama.
+	let selectedPlatform = $state(untrack(() => form?.values?.platform ?? ''));
+	$effect(() => {
+		if (form?.values?.platform) selectedPlatform = form.values.platform;
+	});
 
 	// `file` disimpan supaya isi <input type="file"> bisa dibangun ulang pas satu file dihapus.
 	type Preview = { id: number; file: File; name: string; size: number; url?: string; error?: string };
@@ -127,14 +135,24 @@
 
 	<fieldset class="flex flex-col gap-2">
 		<legend class="label-text mb-2 font-semibold">Type</legend>
-		<div class="flex gap-3">
-			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-error-500">
-				<input class="radio" type="radio" name="type" value="bug" required checked={form?.values?.type === 'bug'} />
-				<BugIcon class="size-4" /> bug
+		<div class="flex flex-wrap gap-2">
+			<label
+				class="chip preset-outlined-surface-300-700 cursor-pointer has-[:checked]:preset-filled-error-500 has-[:focus-visible]:ring-2"
+			>
+				<input class="sr-only" type="radio" name="type" value="bug" required checked={form?.values?.type === 'bug'} />
+				<BugIcon class="size-3.5" /> bug
 			</label>
-			<label class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-primary-500">
-				<input class="radio" type="radio" name="type" value="feature" checked={form?.values?.type === 'feature'} />
-				<SparklesIcon class="size-4" /> feature
+			<label
+				class="chip preset-outlined-surface-300-700 cursor-pointer has-[:checked]:preset-filled-primary-500 has-[:focus-visible]:ring-2"
+			>
+				<input
+					class="sr-only"
+					type="radio"
+					name="type"
+					value="feature"
+					checked={form?.values?.type === 'feature'}
+				/>
+				<SparklesIcon class="size-3.5" /> feature
 			</label>
 		</div>
 		{#if form?.errors?.type}<span class="text-error-500 text-sm">{form.errors.type}</span>{/if}
@@ -142,14 +160,24 @@
 
 	<fieldset class="flex flex-col gap-2">
 		<legend class="label-text mb-2 font-semibold">Platform</legend>
-		<div class="flex flex-wrap gap-3">
+		<div class="flex flex-wrap gap-2">
 			{#each platforms as p (p)}
 				{@const Icon = platformIcons[p]}
+				{@const pc = platformColors[p]}
 				<label
-					class="card preset-outlined-surface-300-700 flex cursor-pointer items-center gap-2 px-4 py-3 has-[:checked]:preset-filled-primary-500"
+					class="chip preset-outlined-surface-300-700 cursor-pointer has-[:focus-visible]:ring-2"
+					style={selectedPlatform === p ? `background-color:${pc.bg}; color:${pc.fg}; border-color:${pc.bg}` : ''}
 				>
-					<input class="radio" type="radio" name="platform" value={p} required checked={form?.values?.platform === p} />
-					<Icon class="size-4" />
+					<input
+						class="sr-only"
+						type="radio"
+						name="platform"
+						value={p}
+						required
+						checked={selectedPlatform === p}
+						onchange={() => (selectedPlatform = p)}
+					/>
+					<Icon class="size-3.5" />
 					{platformLabels[p]}
 				</label>
 			{/each}
