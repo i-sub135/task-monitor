@@ -6,11 +6,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-- [TM-12](running/TM-12.md) — Tambah field platform di Task (enum API/Mobile/AI Chat/Other) — Running (kode + migration + styling chip jadi, nunggu migration ke-jalanin lawan DB asli + cek visual Iyan)
+- [TM-13](running/TM-13.md) — Batasi kartu per kolom di /board (maks 5), "read more" ke /board/list/[status] — Running (kode jadi, nunggu cek visual)
 
 ## Backlog
 
-- [TM-13](backlog/TM-13.md) — Batasi kartu per kolom di /board (maks 5), "read more" ke /board/list/[status] — Ready
+_(kosong)_
 
 ## Done
 
@@ -25,3 +25,4 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 - [TM-9](done/TM-9.md) — Upload lampiran ke Wasabi/object storage (driver `s3` di samping `local`) — Done
 - [TM-10](done/TM-10.md) — Rich text editor untuk description di form Task baru — Done
 - [TM-11](done/TM-11.md) — Edit title/description/type di halaman detail task (Request/Queue saja) — Done
+- [TM-12](done/TM-12.md) — Field platform di Task (API/Mobile/AI Chat/Web/Other), editable, badge berwarna — Done

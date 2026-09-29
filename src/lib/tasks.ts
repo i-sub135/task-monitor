@@ -45,6 +45,9 @@ export function canReorder(role: Role, status: Status): boolean {
 
 export const hasOrdering = (status: Status): boolean => status === 'request' || status === 'queue';
 
+/** TM-13: kartu yang tampil per kolom di /board. Sisanya di /board/list/[status]. */
+export const BOARD_COLUMN_LIMIT = 5;
+
 /** TM-11: title/description cuma boleh diedit selama task masih Request atau Queue, role apa pun. */
 export const canEditTask = (status: Status): boolean => status === 'request' || status === 'queue';
 

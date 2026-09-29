@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
-	import { ArrowDownIcon, ArrowUpIcon, BugIcon, PaperclipIcon, SparklesIcon } from '@lucide/svelte';
+	import { ArrowDownIcon, ArrowUpIcon, ArrowRightIcon } from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
-	import { canReorder, platformLabels, statusLabels, statuses, transitions, type BoardTask, type Status } from '$lib/tasks';
-	import { platformIcons, platformColors } from '$lib/platform-icons';
+	import {
+		BOARD_COLUMN_LIMIT,
+		canReorder,
+		statusLabels,
+		statuses,
+		transitions,
+		type BoardTask,
+		type Status
+	} from '$lib/tasks';
+	import TaskCard from '$lib/components/TaskCard.svelte';
 
 	let { data, form } = $props();
 
@@ -118,8 +126,6 @@
 		dialog?.close();
 		pending = null;
 	}
-
-	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
 </script>
 
 <svelte:head>
@@ -196,53 +202,14 @@
 				<span class="badge preset-tonal">{items.length}</span>
 			</header>
 
-			{#each items as task, i (task.id)}
-				{@const PlatformIcon = platformIcons[task.platform]}
-				<article
+			{#each items.slice(0, BOARD_COLUMN_LIMIT) as task, i (task.id)}
+				<TaskCard
+					{task}
+					dimmed={dragging?.id === task.id}
 					draggable={isDraggable(task)}
 					ondragstart={(e) => onDragStart(e, task)}
 					ondragend={onDragEnd}
-					class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 relative flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dragging?.id ===
-					task.id
-						? 'opacity-40'
-						: ''}"
 				>
-					<div class="flex items-center gap-2 text-xs">
-						{#if task.position !== null}
-							<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
-						{/if}
-						{#if task.type === 'bug'}
-							<span class="badge preset-filled-error-500"><BugIcon class="size-3" /> bug</span>
-						{:else}
-							<span class="badge preset-filled-primary-500"
-								><SparklesIcon class="size-3" /> feature</span
-							>
-						{/if}
-						<span
-							class="badge"
-							style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform]
-								.fg}"
-							><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
-						>
-					</div>
-
-					<a
-						href="/task/{task.id}"
-						draggable="false"
-						class="focus-visible:outline-primary-500 font-medium after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2"
-					>
-						{task.title}
-					</a>
-
-					<footer class="flex items-center justify-between gap-2 text-xs opacity-70">
-						<span>oleh {task.createdBy} · {ageLabel(task.ageDays)}</span>
-						{#if task.attachments > 0}
-							<span class="flex items-center gap-1"
-								><PaperclipIcon class="size-3" />{task.attachments}</span
-							>
-						{/if}
-					</footer>
-
 					{#if canReorder(role, status)}
 						<div class="relative z-10 flex justify-end gap-1">
 							<button
@@ -265,10 +232,19 @@
 							</button>
 						</div>
 					{/if}
-				</article>
+				</TaskCard>
 			{:else}
 				<p class="py-4 text-center text-sm opacity-50">Empty</p>
 			{/each}
+
+			{#if items.length > BOARD_COLUMN_LIMIT}
+				<a
+					href="/board/list/{status}"
+					class="btn btn-sm btn-outline-neutral inline-flex items-center justify-center gap-1"
+				>
+					Read more ({items.length - BOARD_COLUMN_LIMIT} more) <ArrowRightIcon class="size-4" />
+				</a>
+			{/if}
 		</section>
 	{/each}
 </div>
