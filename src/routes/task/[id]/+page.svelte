@@ -36,6 +36,11 @@
 	const liveSince = $derived(
 		task.status === 'done-live' ? (task.history.findLast((h) => h.to === 'done-live')?.at ?? null) : null
 	);
+	// TM-15: Live → Done di history ditulis sebagai rollback deploy gagal, bukan "Live → Done".
+	const historyLabel = (from: Status | null, to: Status) =>
+		from === 'done-live' && to === 'done'
+			? 'Rollback: failed deploy'
+			: `${from ? `${statusLabels[from]} → ` : ''}${statusLabels[to]}`;
 	let editingTitle = $state(false);
 	let editingDescription = $state(false);
 	let editingType = $state(false);
@@ -390,7 +395,7 @@
 				{#each task.history as h (h.id)}
 					<li class="border-surface-300-700 border-l-2 pl-3">
 						<p class="font-medium">
-							{h.from ? `${statusLabels[h.from]} → ` : ''}{statusLabels[h.to]}
+							{historyLabel(h.from, h.to)}
 						</p>
 						<p class="text-xs opacity-70">{h.by} · {h.at}</p>
 						{#if h.note}
