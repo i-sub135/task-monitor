@@ -10,7 +10,8 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Backlog
 
-_(kosong)_
+- [TM-14](backlog/TM-14.md) — Role baru QA: cuma QA + admin yang boleh geser Ready to test → Done — Ready
+- [TM-15](backlog/TM-15.md) — Done dibagi dua (Done / Live), stempel "LIVE" biru — Ready
 
 ## Done
 
