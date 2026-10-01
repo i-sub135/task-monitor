@@ -24,13 +24,6 @@
 		? 'opacity-40'
 		: ''} {rest.class ?? ''}"
 >
-	{#if task.status === 'done-live'}
-		<!-- TM-15: stempel diagonal transparan nutup kartu; gak nangkep klik, jadi link & tombol tetap jalan. -->
-		<span aria-hidden="true" class="live-stamp-layer">
-			<span class="live-stamp live-stamp--diagonal">Live</span>
-		</span>
-		<span class="sr-only">Live</span>
-	{/if}
 	<div class="flex items-center gap-2 text-xs">
 		{#if task.position !== null}
 			<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
@@ -45,6 +38,10 @@
 			style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform].fg}"
 			><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
 		>
+		{#if task.status === 'done-live'}
+			<!-- TM-15: penanda live di kartu (stempel diagonal ketutupan warna kartu Done, diganti badge). -->
+			<span class="badge font-bold tracking-wider" style="background-color: #2d7495; color: #fcf9ea">LIVE</span>
+		{/if}
 	</div>
 
 	<a
