@@ -216,3 +216,33 @@
 	text-transform: uppercase;
 	opacity: 0.3;
 }
+
+/*
+ * Versi kartu: stempel diagonal penuh dari pojok kanan atas ke kiri bawah. Layer-nya nutup seluruh kartu
+ * dan jadi size container, jadi sudut (atan2 tinggi/lebar) dan panjang (hypot diagonal) ngikutin ukuran
+ * kartu masing-masing tanpa JS. Ujung yang lewat sudut kepotong rapi sama overflow + radius kartu.
+ */
+.live-stamp-layer {
+	position: absolute;
+	inset: 0;
+	container-type: size;
+	overflow: hidden;
+	border-radius: inherit;
+	pointer-events: none;
+	user-select: none;
+}
+.live-stamp--diagonal {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	translate: -50% -50%;
+	rotate: calc(-1 * atan2(100cqh, 100cqw));
+	width: calc(hypot(100cqw, 100cqh) * 0.9);
+	text-align: center;
+	white-space: nowrap;
+	font-size: calc(min(100cqh, 100cqw) * 0.32);
+	letter-spacing: 0.35em;
+	padding: 0 0 0 0.35em;
+	border-width: 6px;
+	opacity: 0.22;
+}

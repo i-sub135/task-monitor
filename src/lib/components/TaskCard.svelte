@@ -25,12 +25,10 @@
 		: ''} {rest.class ?? ''}"
 >
 	{#if task.status === 'done-live'}
-		<!-- TM-15: stempel di belakang isi kartu (dirender duluan, jadi teks kartu tetap di atasnya). -->
-		<span
-			aria-hidden="true"
-			class="live-stamp pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 -rotate-12 select-none"
-			>Live</span
-		>
+		<!-- TM-15: stempel diagonal transparan nutup kartu; gak nangkep klik, jadi link & tombol tetap jalan. -->
+		<span aria-hidden="true" class="live-stamp-layer">
+			<span class="live-stamp live-stamp--diagonal">Live</span>
+		</span>
 		<span class="sr-only">Live</span>
 	{/if}
 	<div class="flex items-center gap-2 text-xs">
