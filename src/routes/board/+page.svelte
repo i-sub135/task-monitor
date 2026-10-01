@@ -5,10 +5,11 @@
 	import { canAdvance } from '$lib/roles';
 	import {
 		BOARD_COLUMN_LIMIT,
+		allowedTargets,
+		canMakeTransition,
 		canReorder,
 		statusLabels,
 		statuses,
-		transitions,
 		type BoardTask,
 		type Status
 	} from '$lib/tasks';
@@ -50,9 +51,10 @@
 	let note = $state('');
 	let noteError = $state('');
 
+	// TM-14: target ikut hak role (mis. Ready to test → Done cuma QA + admin), bukan cuma urutan status.
 	const isValidTarget = (task: BoardTask | null, to: Status) =>
-		task !== null && transitions[task.status].includes(to);
-	const isDraggable = (task: BoardTask) => canDrag && transitions[task.status].length > 0;
+		task !== null && canMakeTransition(role, task.status, to);
+	const isDraggable = (task: BoardTask) => canDrag && allowedTargets(role, task.status).length > 0;
 
 	function onDragStart(e: DragEvent, task: BoardTask) {
 		if (!isDraggable(task)) {
@@ -138,7 +140,7 @@
 
 <p class="mb-6 text-sm opacity-70">
 	{#if canDrag}
-		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Use the ▲▼ arrows on a card to reorder.
+		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. Use the ▲▼ arrows on a card to reorder.
 	{:else}
 		The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.
 	{/if}

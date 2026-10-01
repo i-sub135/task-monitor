@@ -12,11 +12,11 @@
 	} from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
 	import {
+		allowedTargets,
 		canEditTask,
 		platformLabels,
 		platforms,
 		statusLabels,
-		transitions,
 		type Platform,
 		type Status
 	} from '$lib/tasks';
@@ -27,7 +27,8 @@
 
 	let { data, form } = $props();
 	const task = $derived(data.task);
-	const nextStatuses = $derived(transitions[task.status]);
+	// TM-14: cuma target yang boleh buat role ini (mis. developer gak dapet tombol ke Done).
+	const nextStatuses = $derived(data.user ? allowedTargets(data.user.role, task.status) : []);
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
 	// TM-11/TM-12: siapa pun yang login boleh edit title/description/type/platform, selama status Request/Queue.
 	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));

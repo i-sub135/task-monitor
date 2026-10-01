@@ -33,6 +33,7 @@ enum TaskStatus {
 enum UserRole {
   marketing
   developer
+  qa
   admin
 
   @@map("user_role")

@@ -53,6 +53,25 @@ export const canEditTask = (status: Status): boolean => status === 'request' || 
 
 export type RuleResult = { ok: true } | { ok: false; status: number; error: string };
 
+/**
+ * TM-14: transisi yang cuma boleh role tertentu. Transisi yang gak ada di sini boleh semua role yang
+ * `canAdvance`. Kuncinya `${from}>${to}`.
+ */
+const restrictedTransitions: Partial<Record<`${Status}>${Status}`, Role[]>> = {
+	'ready-to-test>done': ['qa', 'admin']
+};
+
+/** Boleh gak role ini mindahin dari `from` ke `to` (cek urutan transisi + hak role). Dipakai server dan UI. */
+export function canMakeTransition(role: Role, from: Status, to: Status): boolean {
+	if (!canAdvance(role) || !transitions[from].includes(to)) return false;
+	const only = restrictedTransitions[`${from}>${to}`];
+	return !only || only.includes(role);
+}
+
+/** Target yang boleh dituju role ini dari status `from`. */
+export const allowedTargets = (role: Role, from: Status): Status[] =>
+	transitions[from].filter((to) => canMakeTransition(role, from, to));
+
 /** Aturan transisi di satu tempat. Server yang jadi hakim, UI cuma ngikutin buat nampilin tombol. */
 export function checkTransition(input: { from: Status; to: Status; note: string; role: Role }): RuleResult {
 	if (!canAdvance(input.role)) {
@@ -63,6 +82,14 @@ export function checkTransition(input: { from: Status; to: Status; note: string;
 			ok: false,
 			status: 400,
 			error: `Cannot move from ${statusLabels[input.from]} to ${statusLabels[input.to]}`
+		};
+	}
+	if (!canMakeTransition(input.role, input.from, input.to)) {
+		const only = restrictedTransitions[`${input.from}>${input.to}`] ?? [];
+		return {
+			ok: false,
+			status: 403,
+			error: `Only ${only.map((r) => (r === 'qa' ? 'QA' : r)).join(' or ')} can move a task from ${statusLabels[input.from]} to ${statusLabels[input.to]}`
 		};
 	}
 	if (input.to === 'rejected' && !input.note.trim()) {
