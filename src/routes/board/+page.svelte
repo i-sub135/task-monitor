@@ -261,14 +261,16 @@
 					{/if}
 					{@const live = liveTarget(task)}
 					{#if live}
+						<!-- Bulet kecil: ijo tua = mark live, merah = unmark (warna eksplisit: success tema rosepine itu biru pucat, dan kartu Done udah ijo terang). Label di tooltip + aria-label. -->
 						<div class="relative z-10 flex justify-end">
 							<button
 								type="button"
-								class="btn btn-sm btn-outline-primary"
+								class="size-4 cursor-pointer rounded-full shadow ring-2 ring-white transition hover:scale-125"
+								style="background-color: {live === 'done-live' ? '#1f7a3a' : '#e73f1e'}"
+								aria-label={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
+								title={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
 								onclick={() => openLiveDialog(task, live)}
-							>
-								{live === 'done-live' ? 'Mark as live' : 'Unmark live'}
-							</button>
+							></button>
 						</div>
 					{/if}
 				</TaskCard>
