@@ -25,6 +25,7 @@ enum TaskStatus {
   in_progress   @map("in-progress")
   ready_to_test @map("ready-to-test")
   done
+  done_live     @map("done-live")
   rejected
 
   @@map("task_status")

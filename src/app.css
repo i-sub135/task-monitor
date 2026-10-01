@@ -198,3 +198,21 @@
 .rich-text p:not(:last-child) {
 	margin-bottom: 0.5rem;
 }
+
+/*
+ * TM-15: stempel "LIVE" buat task yang udah live. Satu sumber gaya buat kartu board/list dan detail task.
+ * Biru dari palet platform (#2D7495), border dobel kayak cap karet, transparan biar teks di depannya
+ * tetap kebaca.
+ */
+.live-stamp {
+	color: #2d7495;
+	border: 4px double #2d7495;
+	border-radius: 0.5rem;
+	padding: 0.1rem 0.6rem;
+	font-size: 1.5rem;
+	font-weight: 900;
+	letter-spacing: 0.2em;
+	line-height: 1.2;
+	text-transform: uppercase;
+	opacity: 0.3;
+}

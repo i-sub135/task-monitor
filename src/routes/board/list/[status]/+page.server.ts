@@ -1,15 +1,16 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { listBoard, reorderTask } from '$lib/server/tasks';
-import { statuses, type Status } from '$lib/tasks';
+import { boardColumns, columnOf, type Status } from '$lib/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/');
-	if (!statuses.includes(params.status as Status)) error(404, 'Unknown status');
+	// TM-15: slug = kolom board; done-live gak punya halaman sendiri, ikut /board/list/done.
+	if (!boardColumns.includes(params.status as Status)) error(404, 'Unknown status');
 	const status = params.status as Status;
 	const { tasks } = await listBoard(getDb());
-	return { status, tasks: tasks.filter((t) => t.status === status), user: locals.user };
+	return { status, tasks: tasks.filter((t) => columnOf(t.status) === status), user: locals.user };
 };
 
 // TM-13: halaman ini cuma satu status, jadi yang ada cuma reorder (gak ada pindah status).

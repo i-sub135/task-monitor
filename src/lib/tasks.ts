@@ -1,6 +1,6 @@
 import { canAdvance, type Role } from './roles.ts';
 
-export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'rejected';
+export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'done-live' | 'rejected';
 export type TaskType = 'bug' | 'feature';
 /** TM-12: platform yang kena task. Satu task = satu platform, wajib diisi, `other` = fallback. */
 export type Platform = 'api' | 'mobile' | 'ai-chat' | 'web' | 'other';
@@ -11,6 +11,7 @@ export const statusLabels: Record<Status, string> = {
 	'in-progress': 'In progress',
 	'ready-to-test': 'Ready to test',
 	done: 'Done',
+	'done-live': 'Live',
 	rejected: 'Rejected'
 };
 
@@ -23,16 +24,27 @@ export const platformLabels: Record<Platform, string> = {
 };
 
 export const statuses = Object.keys(statusLabels) as Status[];
+
+/**
+ * TM-15: kolom di board. `done-live` itu status sendiri di data (biar transisi + history-nya jalan
+ * lewat mekanisme yang sama), tapi tampil di kolom Done bareng `done`, bukan kolom ke-7.
+ */
+export const boardColumns: Status[] = ['request', 'queue', 'in-progress', 'ready-to-test', 'done', 'rejected'];
+export const columnOf = (status: Status): Status => (status === 'done-live' ? 'done' : status);
 export const taskTypes: TaskType[] = ['bug', 'feature'];
 export const platforms = Object.keys(platformLabels) as Platform[];
 
-/** Transisi maju doang (brainstorming.md bagian 3). done dan rejected terminal. */
+/**
+ * Transisi maju doang (brainstorming.md bagian 3), rejected terminal. TM-15: done ↔ done-live (mark live /
+ * unmark) satu-satunya jalan mundur, buat salah tandai atau rollback deploy.
+ */
 export const transitions: Record<Status, Status[]> = {
 	request: ['queue', 'rejected'],
 	queue: ['in-progress'],
 	'in-progress': ['ready-to-test'],
 	'ready-to-test': ['done'],
-	done: [],
+	done: ['done-live'],
+	'done-live': ['done'],
 	rejected: []
 };
 
@@ -58,7 +70,10 @@ export type RuleResult = { ok: true } | { ok: false; status: number; error: stri
  * `canAdvance`. Kuncinya `${from}>${to}`.
  */
 const restrictedTransitions: Partial<Record<`${Status}>${Status}`, Role[]>> = {
-	'ready-to-test>done': ['qa', 'admin']
+	'ready-to-test>done': ['qa', 'admin'],
+	// TM-15: mark live / unmark cuma developer + admin.
+	'done>done-live': ['developer', 'admin'],
+	'done-live>done': ['developer', 'admin']
 };
 
 /** Boleh gak role ini mindahin dari `from` ke `to` (cek urutan transisi + hak role). Dipakai server dan UI. */

@@ -24,6 +24,15 @@
 		? 'opacity-40'
 		: ''} {rest.class ?? ''}"
 >
+	{#if task.status === 'done-live'}
+		<!-- TM-15: stempel di belakang isi kartu (dirender duluan, jadi teks kartu tetap di atasnya). -->
+		<span
+			aria-hidden="true"
+			class="live-stamp pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 -rotate-12 select-none"
+			>Live</span
+		>
+		<span class="sr-only">Live</span>
+	{/if}
 	<div class="flex items-center gap-2 text-xs">
 		{#if task.position !== null}
 			<span class="badge preset-tonal" title="Position in column">#{task.position}</span>

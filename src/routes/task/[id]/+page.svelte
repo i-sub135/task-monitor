@@ -32,6 +32,10 @@
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
 	// TM-11/TM-12: siapa pun yang login boleh edit title/description/type/platform, selama status Request/Queue.
 	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));
+	// TM-15: kapan terakhir ditandai live (history terakhir yang masuk ke done-live).
+	const liveSince = $derived(
+		task.status === 'done-live' ? (task.history.findLast((h) => h.to === 'done-live')?.at ?? null) : null
+	);
 	let editingTitle = $state(false);
 	let editingDescription = $state(false);
 	let editingType = $state(false);
@@ -52,9 +56,23 @@
 	$effect(() => {
 		if (moveOpen && moveDialog && !moveDialog.open) moveDialog.showModal();
 	});
-	const tabLabel = (to: Status) => (to === 'rejected' ? 'Reject' : `Move to ${statusLabels[to]}`);
+	// TM-15: done ↔ done-live dapet label sendiri (Mark as live / Unmark live), bukan "Move to".
+	const tabLabel = (to: Status) =>
+		to === 'rejected'
+			? 'Reject'
+			: to === 'done-live'
+				? 'Mark as live'
+				: task.status === 'done-live' && to === 'done'
+					? 'Unmark live'
+					: `Move to ${statusLabels[to]}`;
 	const noteLabel = (to: Status) =>
-		to === 'rejected' ? 'Reason (required)' : to === 'done' ? 'Note / result link (optional)' : 'Note (optional)';
+		to === 'rejected'
+			? 'Reason (required)'
+			: to === 'done-live'
+				? 'Release note / version (optional)'
+				: to === 'done'
+					? 'Note / result link (optional)'
+					: 'Note (optional)';
 	function openMove() {
 		moveTarget = nextStatuses[0];
 		moveOpen = true;
@@ -188,6 +206,12 @@
 
 			<span class="badge preset-tonal">{statusLabels[task.status]}</span>
 		</div>
+		{#if task.status === 'done-live'}
+			<div class="flex items-center gap-4">
+				<span class="live-stamp inline-block -rotate-6" style="opacity: 0.85" aria-hidden="true">Live</span>
+				{#if liveSince}<span class="text-sm opacity-70">Live since {liveSince}</span>{/if}
+			</div>
+		{/if}
 		{#if form?.editError && (editingType || editingPlatform)}
 			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
 		{/if}
@@ -341,10 +365,10 @@
 				{#each nextStatuses as to (to)}
 					<form method="POST" action="?/transition" use:enhance class="form-comfy flex flex-col gap-3">
 						<input type="hidden" name="to" value={to} />
-						{#if to === 'rejected' || to === 'done'}
+						{#if to === 'rejected' || to === 'done' || to === 'done-live'}
 							<label class="label">
 								<span class="label-text font-semibold">
-									{to === 'rejected' ? 'Reason (required)' : 'Note / result link (optional)'}
+									{noteLabel(to)}
 								</span>
 								<textarea class="textarea" name="note" rows="2" required={to === 'rejected'}></textarea>
 							</label>
@@ -353,7 +377,7 @@
 							type="submit"
 							class="btn {to === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
 						>
-							Move to {statusLabels[to]}
+							{tabLabel(to)}
 						</button>
 					</form>
 				{/each}

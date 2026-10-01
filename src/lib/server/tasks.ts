@@ -7,6 +7,8 @@ import {
 	canEditTask,
 	hasOrdering,
 	statuses,
+	boardColumns,
+	columnOf,
 	taskTypes,
 	platforms,
 	type BoardTask,
@@ -27,6 +29,7 @@ const statusToApp: Record<TaskStatus, Status> = {
 	in_progress: 'in-progress',
 	ready_to_test: 'ready-to-test',
 	done: 'done',
+	done_live: 'done-live',
 	rejected: 'rejected'
 };
 const statusToDb: Record<Status, TaskStatus> = {
@@ -35,6 +38,7 @@ const statusToDb: Record<Status, TaskStatus> = {
 	'in-progress': 'in_progress',
 	'ready-to-test': 'ready_to_test',
 	done: 'done',
+	'done-live': 'done_live',
 	rejected: 'rejected'
 };
 
@@ -89,14 +93,19 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 		include: { createdBy: { select: { name: true } }, _count: { select: { attachments: true } } }
 	});
 
+	// TM-15: dikelompokin per kolom board (done-live ikut kolom Done). Di kolom Done yang belum live di atas.
+	const liveLast = (s: TaskStatus) => (s === 'done_live' ? 1 : 0);
 	const tasks: BoardTask[] = [];
-	for (const status of statuses) {
+	for (const column of boardColumns) {
 		const inColumn = rows
-			.filter((r) => statusToApp[r.status] === status)
+			.filter((r) => columnOf(statusToApp[r.status]) === column)
 			.sort(
-				hasOrdering(status)
+				hasOrdering(column)
 					? (a, b) => a.ordering - b.ordering || a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id)
-					: (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || a.id.localeCompare(b.id)
+					: (a, b) =>
+							liveLast(a.status) - liveLast(b.status) ||
+							b.updatedAt.getTime() - a.updatedAt.getTime() ||
+							a.id.localeCompare(b.id)
 			);
 		inColumn.forEach((r, i) =>
 			tasks.push({
@@ -104,11 +113,11 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 				title: r.title,
 				type: r.type,
 				platform: platformToApp[r.platform],
-				status,
+				status: statusToApp[r.status],
 				createdBy: r.createdBy.name,
 				createdAt: formatJakarta(r.createdAt),
 				ageDays: calendarDaysAgo(r.createdAt, now),
-				position: hasOrdering(status) ? i + 1 : null,
+				position: hasOrdering(column) ? i + 1 : null,
 				attachments: r._count.attachments
 			})
 		);

@@ -6,10 +6,11 @@
 	import {
 		BOARD_COLUMN_LIMIT,
 		allowedTargets,
+		boardColumns,
 		canMakeTransition,
 		canReorder,
+		columnOf,
 		statusLabels,
-		statuses,
 		type BoardTask,
 		type Status
 	} from '$lib/tasks';
@@ -21,7 +22,8 @@
 	const role = $derived(data.user.role);
 	const canDrag = $derived(canAdvance(role));
 
-	const byStatus = (status: Status) => tasks.filter((t) => t.status === status);
+	// TM-15: kolom board, bukan status mentah (done-live tampil di kolom Done).
+	const byStatus = (column: Status) => tasks.filter((t) => columnOf(t.status) === column);
 
 	// Label pendek buat tab di HP (satu baris, 6 segmen). Nama lengkap tetap di aria-label dan tooltip.
 	const tabLabels: Record<Status, string> = {
@@ -30,6 +32,7 @@
 		'in-progress': 'Progress',
 		'ready-to-test': 'Test',
 		done: 'Done',
+		'done-live': 'Live',
 		rejected: 'Reject'
 	};
 
@@ -52,9 +55,31 @@
 	let noteError = $state('');
 
 	// TM-14: target ikut hak role (mis. Ready to test → Done cuma QA + admin), bukan cuma urutan status.
+	// Drag cuma buat pindah kolom; done ↔ done-live (satu kolom) lewat tombol Mark live / Unmark di kartu.
 	const isValidTarget = (task: BoardTask | null, to: Status) =>
-		task !== null && canMakeTransition(role, task.status, to);
-	const isDraggable = (task: BoardTask) => canDrag && allowedTargets(role, task.status).length > 0;
+		task !== null && columnOf(task.status) !== to && canMakeTransition(role, task.status, to);
+	const isDraggable = (task: BoardTask) =>
+		canDrag && allowedTargets(role, task.status).some((to) => columnOf(to) !== columnOf(task.status));
+
+	// TM-15: target tombol live di kolom Done (null = gak ada tombol buat role/kartu ini).
+	const liveTarget = (task: BoardTask): Status | null => {
+		const to = task.status === 'done' ? 'done-live' : task.status === 'done-live' ? 'done' : null;
+		return to && canMakeTransition(role, task.status, to) ? to : null;
+	};
+	function openLiveDialog(task: BoardTask, to: Status) {
+		pending = { task, to };
+		note = '';
+		noteError = '';
+		dialog?.showModal();
+	}
+	const dialogTitle = (p: { task: BoardTask; to: Status }) =>
+		p.to === 'done-live' ? 'Mark as live' : p.task.status === 'done-live' ? 'Unmark live' : `Move to ${statusLabels[p.to]}`;
+	const dialogNoteLabel = (to: Status) =>
+		to === 'rejected'
+			? 'Reason (required)'
+			: to === 'done-live'
+				? 'Release note / version (optional)'
+				: 'Note / result link (optional)';
 
 	function onDragStart(e: DragEvent, task: BoardTask) {
 		if (!isDraggable(task)) {
@@ -162,7 +187,7 @@
 
 <!-- HP: 6 tab status jadi satu button group satu baris (segmen menyambung). Label dipendekin biar muat di 1/6 lebar. -->
 <div class="mb-4 flex xs:hidden" role="tablist" aria-label="Status columns">
-	{#each statuses as status (status)}
+	{#each boardColumns as status (status)}
 		<button
 			type="button"
 			role="tab"
@@ -182,7 +207,7 @@
 </div>
 
 <div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xl:grid-cols-6">
-	{#each statuses as status (status)}
+	{#each boardColumns as status (status)}
 		{@const items = byStatus(status)}
 		{@const valid = isValidTarget(dragging, status)}
 		<section
@@ -234,6 +259,18 @@
 							</button>
 						</div>
 					{/if}
+					{@const live = liveTarget(task)}
+					{#if live}
+						<div class="relative z-10 flex justify-end">
+							<button
+								type="button"
+								class="btn btn-sm btn-outline-primary"
+								onclick={() => openLiveDialog(task, live)}
+							>
+								{live === 'done-live' ? 'Mark as live' : 'Unmark live'}
+							</button>
+						</div>
+					{/if}
 				</TaskCard>
 			{:else}
 				<p class="py-4 text-center text-sm opacity-50">Empty</p>
@@ -258,11 +295,11 @@
 >
 	{#if pending}
 		<form onsubmit={confirmDialog} class="form-comfy flex flex-col gap-4">
-			<h2 class="h4">Move to {statusLabels[pending.to]}</h2>
+			<h2 class="h4">{dialogTitle(pending)}</h2>
 			<p class="text-sm opacity-70">{pending.task.title}</p>
 			<label class="label">
 				<span class="label-text font-semibold">
-					{pending.to === 'rejected' ? 'Reason (required)' : 'Note / result link (optional)'}
+					{dialogNoteLabel(pending.to)}
 				</span>
 				<textarea class="textarea" rows="3" bind:value={note}></textarea>
 				{#if noteError}<span class="text-error-500 text-sm">{noteError}</span>{/if}
