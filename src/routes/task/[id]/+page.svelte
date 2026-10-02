@@ -41,6 +41,25 @@
 		from === 'done-live' && to === 'done'
 			? 'Rollback: failed deploy'
 			: `${from ? `${statusLabels[from]} → ` : ''}${statusLabels[to]}`;
+	// Warna garis kiri entri history: status history per status tujuan (rollback oranye sendiri),
+	// edit history per field. Dua palet gak saling pakai warna yang sama.
+	const statusBorder: Record<Status, string> = {
+		request: '#94a3b8',
+		queue: '#578ef5',
+		'in-progress': '#14b8a6',
+		'ready-to-test': '#eab308',
+		done: '#16a34a',
+		'done-live': '#2d7495',
+		rejected: '#dc2626'
+	};
+	const historyBorder = (from: Status | null, to: Status) =>
+		from === 'done-live' && to === 'done' ? '#f97316' : statusBorder[to];
+	const editBorder: Record<'title' | 'description' | 'type' | 'platform', string> = {
+		title: '#7c3aed',
+		description: '#db2777',
+		type: '#a16207',
+		platform: '#78716c'
+	};
 	let editingTitle = $state(false);
 	let editingDescription = $state(false);
 	let editingType = $state(false);
@@ -393,7 +412,7 @@
 			<h2 class="mb-4 font-semibold">Status history</h2>
 			<ol class="flex flex-col gap-4 text-sm">
 				{#each task.history as h (h.id)}
-					<li class="border-surface-300-700 border-l-2 pl-3">
+					<li class="border-l-2 pl-3" style="border-color: {historyBorder(h.from, h.to)}">
 						<p class="font-medium">
 							{historyLabel(h.from, h.to)}
 						</p>
@@ -421,7 +440,7 @@
 				<h2 class="mb-4 font-semibold">Edit history</h2>
 				<ol class="flex flex-col gap-3 text-sm">
 					{#each task.edits as e (e.id)}
-						<li class="border-surface-300-700 border-l-2 pl-3">
+						<li class="border-l-2 pl-3" style="border-color: {editBorder[e.field]}">
 							<p class="font-medium">
 								{e.field === 'title'
 									? 'Title'
