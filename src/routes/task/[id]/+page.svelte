@@ -433,8 +433,18 @@
 							</p>
 							<p class="text-xs opacity-70">{e.by} · {e.at}</p>
 							{#if e.field === 'description'}
-								<div class="rich-text mt-1 text-xs opacity-60 line-through">{@html e.oldValue}</div>
-								<div class="rich-text mt-1 text-xs">{@html e.newValue}</div>
+								<!-- Description bisa multi-baris, jadi lama/baru dipisah jelas pakai label + garis. -->
+								<div class="mt-2 flex flex-col gap-2 text-xs">
+									<div>
+										<p class="mb-0.5 font-semibold tracking-wide uppercase opacity-50">Before</p>
+										<div class="rich-text opacity-60 line-through">{@html e.oldValue}</div>
+									</div>
+									<hr class="border-surface-300-700" />
+									<div>
+										<p class="mb-0.5 font-semibold tracking-wide uppercase opacity-50">After</p>
+										<div class="rich-text">{@html e.newValue}</div>
+									</div>
+								</div>
 							{:else if e.field === 'platform'}
 								<p class="mt-1 text-xs break-words">
 									<span class="opacity-60 line-through">{platformLabels[e.oldValue as Platform]}</span> to {platformLabels[
