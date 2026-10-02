@@ -116,7 +116,7 @@
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[2fr_1fr]">
 	<article class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-6 border p-6 shadow-xl">
 		<div class="flex flex-wrap items-center gap-2 text-xs">
 			{#if editingType}
