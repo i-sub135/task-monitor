@@ -12,7 +12,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Backlog
 
-_(kosong)_
+- [TM-16](backlog/TM-16.md) — Filter di /board (type, platform, pembuat, cari judul) — Backlog (nunggu keputusan)
 
 ## Done
 
