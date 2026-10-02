@@ -9,10 +9,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 - [TM-13](running/TM-13.md) — Batasi kartu per kolom di /board (maks 5), "read more" ke /board/list/[status] — Running (kode jadi, nunggu cek visual)
 - [TM-14](running/TM-14.md) — Role baru QA: cuma QA + admin yang boleh geser Ready to test → Done — Running (kode jadi, nunggu deploy + cek visual)
 - [TM-15](running/TM-15.md) — Status Live (done-live) nempel di kolom Done, stempel "LIVE" biru — Running (kode jadi, nunggu deploy + cek visual)
+- [TM-16](running/TM-16.md) — Filter di /board dan /board/list (type, platform, pembuat, cari judul) — Running (kode jadi, nunggu cek visual)
 
 ## Backlog
 
-- [TM-16](backlog/TM-16.md) — Filter di /board (type, platform, pembuat, cari judul) — Backlog (nunggu keputusan)
+_(kosong)_
 
 ## Done
 

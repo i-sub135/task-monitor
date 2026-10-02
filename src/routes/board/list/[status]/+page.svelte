@@ -1,15 +1,22 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { ArrowDownIcon, ArrowLeftIcon, ArrowUpIcon } from '@lucide/svelte';
 	import { canReorder, statusLabels, type BoardTask } from '$lib/tasks';
 	import TaskCard from '$lib/components/TaskCard.svelte';
+	import BoardFilterBar from '$lib/components/BoardFilterBar.svelte';
+	import { applyBoardFilter, creatorOptions, filterQuery, isFilterActive, parseBoardFilter } from '$lib/board-filter';
 
 	let { data, form } = $props();
 
-	const tasks = $derived(data.tasks);
 	const status = $derived(data.status);
-	const reorderable = $derived(canReorder(data.user.role, status));
+	// TM-16: filter sama kayak /board (dibawa lewat link Read more). Reorder dimatiin selama filter aktif.
+	const filter = $derived(parseBoardFilter(page.url.searchParams));
+	const filtering = $derived(isFilterActive(filter));
+	const creators = $derived(creatorOptions(data.tasks));
+	const tasks = $derived(applyBoardFilter(data.tasks, filter));
+	const reorderable = $derived(canReorder(data.user.role, status) && !filtering);
 
 	let reorderForm = $state<HTMLFormElement>();
 	let reorderFields = $state({ id: '', position: '' });
@@ -58,7 +65,7 @@
 	<title>{statusLabels[status]} · Board · Task Monitor</title>
 </svelte:head>
 
-<a href="/board" class="btn btn-sm btn-outline-neutral mb-6 inline-flex items-center gap-1">
+<a href="/board{filterQuery(filter)}" class="btn btn-sm btn-outline-neutral mb-6 inline-flex items-center gap-1">
 	<ArrowLeftIcon class="size-4" /> Board
 </a>
 
@@ -70,10 +77,14 @@
 <p class="mb-6 text-sm opacity-70">
 	{#if reorderable}
 		All tasks in this column. Drag a card onto another card, or use the ▲▼ arrows, to reorder.
+	{:else if filtering && canReorder(data.user.role, status)}
+		All tasks in this column that match the filter. Reordering is off while a filter is active.
 	{:else}
 		All tasks in this column.
 	{/if}
 </p>
+
+<BoardFilterBar {filter} {creators} />
 
 {#if form?.moveError}
 	<div class="card preset-filled-error-500 mb-6 p-4 text-sm" role="alert">{form.moveError}</div>

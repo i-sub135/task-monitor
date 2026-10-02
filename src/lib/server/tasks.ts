@@ -115,6 +115,7 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 				platform: platformToApp[r.platform],
 				status: statusToApp[r.status],
 				createdBy: r.createdBy.name,
+				createdById: r.createdById,
 				createdAt: formatJakarta(r.createdAt),
 				ageDays: calendarDaysAgo(r.createdAt, now),
 				position: hasOrdering(column) ? i + 1 : null,

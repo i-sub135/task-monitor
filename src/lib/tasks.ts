@@ -120,6 +120,8 @@ export type BoardTask = {
 	platform: Platform;
 	status: Status;
 	createdBy: string;
+	/** TM-16: buat filter "Created by" (nama bisa kembar, id enggak). */
+	createdById: string;
 	createdAt: string;
 	ageDays: number;
 	/** Nomor urut di kolom (1..n) buat request dan queue, null di kolom lain. */

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { ArrowDownIcon, ArrowUpIcon, ArrowRightIcon } from '@lucide/svelte';
 	import { canAdvance } from '$lib/roles';
 	import {
@@ -15,12 +16,20 @@
 		type Status
 	} from '$lib/tasks';
 	import TaskCard from '$lib/components/TaskCard.svelte';
+	import BoardFilterBar from '$lib/components/BoardFilterBar.svelte';
+	import { applyBoardFilter, creatorOptions, filterQuery, isFilterActive, parseBoardFilter } from '$lib/board-filter';
 
 	let { data, form } = $props();
 
-	const tasks = $derived(data.tasks);
 	const role = $derived(data.user.role);
 	const canDrag = $derived(canAdvance(role));
+
+	// TM-16: filter dari URL, disaring di sini (data board udah lengkap di halaman, gak perlu load ulang).
+	// Batas 5 kartu dan angka di header kolom ngitung dari hasil filter.
+	const filter = $derived(parseBoardFilter(page.url.searchParams));
+	const filtering = $derived(isFilterActive(filter));
+	const creators = $derived(creatorOptions(data.tasks));
+	const tasks = $derived(applyBoardFilter(data.tasks, filter));
 
 	// TM-15: kolom board, bukan status mentah (done-live tampil di kolom Done).
 	const byStatus = (column: Status) => tasks.filter((t) => columnOf(t.status) === column);
@@ -165,11 +174,17 @@
 
 <p class="mb-6 text-sm opacity-70">
 	{#if canDrag}
-		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. Use the ▲▼ arrows on a card to reorder.
+		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. {filtering
+			? 'Reordering is off while a filter is active.'
+			: 'Use the ▲▼ arrows on a card to reorder.'}
 	{:else}
-		The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.
+		The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.{filtering
+			? ' Reordering is off while a filter is active.'
+			: ''}
 	{/if}
 </p>
+
+<BoardFilterBar {filter} {creators} />
 
 {#if form?.moveError}
 	<div class="card preset-filled-error-500 mb-6 p-4 text-sm" role="alert">{form.moveError}</div>
@@ -237,7 +252,8 @@
 					ondragstart={(e) => onDragStart(e, task)}
 					ondragend={onDragEnd}
 				>
-					{#if canReorder(role, status)}
+					<!-- TM-16: posisi itu urutan kolom penuh; pas filter aktif ada kartu yang ketutup, jadi ▲▼ dimatiin. -->
+					{#if canReorder(role, status) && !filtering}
 						<div class="relative z-10 flex justify-end gap-1">
 							<button
 								type="button"
@@ -280,7 +296,7 @@
 
 			{#if items.length > BOARD_COLUMN_LIMIT}
 				<a
-					href="/board/list/{status}"
+					href="/board/list/{status}{filterQuery(filter)}"
 					class="btn btn-sm btn-outline-neutral inline-flex items-center justify-center gap-1"
 				>
 					Read more ({items.length - BOARD_COLUMN_LIMIT} more) <ArrowRightIcon class="size-4" />
