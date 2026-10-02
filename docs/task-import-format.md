@@ -2,7 +2,7 @@
 
 Dokumen ini buat siapa pun yang nyiapin data task untuk dimasukin langsung ke database task-monitor.
 Hasil akhirnya **satu file JSON** berisi array task. JSON ini nanti dibaca script import; script yang
-ngurus id, tanggal, urutan, history, dan bikin user yang belum ada.
+ngurus id, tanggal, status, urutan, history, dan bikin user yang belum ada.
 
 ## Bentuk file
 
@@ -15,31 +15,31 @@ Satu array JSON, satu object per task. Gak ada wrapper, gak ada komentar.
     "description": "<p>Tombol <strong>Bayar</strong> gak bisa diklik setelah pilih metode pembayaran.</p><ul><li>Device: Samsung A52</li><li>Versi app: 2.4.1</li></ul>",
     "type": "bug",
     "platform": "mobile",
-    "status": "request",
     "created_by": "budi.santoso@maal.id"
   },
   {
     "title": "Export laporan penjualan ke Excel",
     "description": "<p>Admin toko butuh export laporan harian ke .xlsx.</p>",
     "type": "feature",
-    "platform": "web"
+    "platform": "web",
+    "created_by": "siti.rahma@maal.id"
   }
 ]
 ```
 
 ## Field
 
-| Field | Wajib | Isi |
-| --- | --- | --- |
-| `title` | ya | Teks biasa, satu baris, gak kosong. |
-| `description` | ya | HTML terbatas (lihat bawah). Gak boleh kosong. |
-| `type` | ya | Salah satu nilai enum `type`. |
-| `platform` | ya | Salah satu nilai enum `platform`. |
-| `status` | tidak | Salah satu nilai enum `status`. Kalau gak diisi = `request`. |
-| `created_by` | tidak | Email pembuat task. Kalau gak diisi = akun admin yang jalanin import. |
-| `reject_reason` | kalau `status` = `rejected` | Alasan reject, teks biasa. Field ini cuma dipakai kalau status `rejected`. |
+Semua field wajib. Cuma 5 ini, gak ada yang lain.
 
-Selain field di atas, jangan tambah field lain. Field yang gak dikenal bikin import ditolak.
+| Field | Isi |
+| --- | --- |
+| `title` | Teks biasa, satu baris, gak kosong. |
+| `description` | HTML terbatas (lihat bawah). Gak boleh kosong. |
+| `type` | Salah satu nilai enum `type`. |
+| `platform` | Salah satu nilai enum `platform`. |
+| `created_by` | Email pembuat task (lihat bawah). |
+
+Jangan tambah field lain (termasuk `status`, `id`, tanggal). Field yang gak dikenal bikin import ditolak.
 
 ## Enum (harus persis, huruf kecil semua)
 
@@ -60,19 +60,7 @@ Selain field di atas, jangan tambah field lain. Field yang gak dikenal bikin imp
 | `web` | Web / dashboard |
 | `other` | Gak masuk kategori di atas |
 
-### `status`
-
-| Nilai | Label di board |
-| --- | --- |
-| `request` | Request |
-| `queue` | Queue |
-| `in-progress` | In progress (pakai **strip**) |
-| `ready-to-test` | Ready to test (pakai **strip**) |
-| `done` | Done |
-| `done-live` | Live (tampil di kolom Done, badge LIVE) |
-| `rejected` | Rejected (wajib ada `reject_reason`) |
-
-Nilai di luar tabel-tabel ini (mis. `Bug`, `API`, `in_progress`, `done_live`, `Web`) = salah.
+Nilai di luar tabel-tabel ini (mis. `Bug`, `Feature`, `API`, `Web`, `ai_chat`) = salah.
 
 ## `description`: HTML yang boleh
 
@@ -98,17 +86,14 @@ dibuang beserta tag-nya.
 ## Yang diisi script (jangan ditulis di JSON)
 
 - `id`, `created_at`, `updated_at`.
-- Urutan di kolom: ngikutin urutan di array, ditaruh di bawah task yang udah ada di kolom yang sama.
-- History status: dibikin per langkah dari `request` sampai status tujuan, sama kayak task digeser
-  manual di board. Contoh `done` → Request, Request → Queue, Queue → In progress,
-  In progress → Ready to test, Ready to test → Done. `rejected` → Request, Request → Rejected
-  (pakai `reject_reason` sebagai catatan).
+- Status: semua task masuk sebagai **Request**.
+- Urutan di kolom Request: ngikutin urutan di array, ditaruh di bawah task Request yang udah ada.
+- History status: satu baris "Request" atas nama `created_by`, sama kayak bikin task dari form.
 
 ## Checklist sebelum kirim
 
 - [ ] File valid JSON (bisa dicek pakai `jq . file.json`).
-- [ ] Tiap task punya `title`, `description`, `type`, `platform`.
-- [ ] Semua `type`, `platform`, `status` persis ada di tabel enum di atas.
-- [ ] Task `rejected` punya `reject_reason`.
+- [ ] Tiap task punya persis 5 field: `title`, `description`, `type`, `platform`, `created_by`.
+- [ ] Semua `type` dan `platform` persis ada di tabel enum di atas.
 - [ ] `description` cuma pakai tag yang diizinin.
 - [ ] Email `created_by` huruf kecil semua.
