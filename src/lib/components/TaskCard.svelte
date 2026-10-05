@@ -57,7 +57,8 @@
 	</a>
 
 	<footer class="flex items-center justify-between gap-2 text-xs opacity-70">
-		<span>oleh {task.createdBy} · {ageLabel(task.ageDays)}</span>
+		<!-- Waktu persis (WIB) di teks; umur relatif ("today", "3 days ago") di tooltip. -->
+		<span title={ageLabel(task.ageDays)}>Created by {task.createdBy} on {task.createdAt}</span>
 		{#if task.attachments > 0}
 			<span class="flex items-center gap-1"><PaperclipIcon class="size-3" />{task.attachments}</span>
 		{/if}
