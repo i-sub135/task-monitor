@@ -120,8 +120,8 @@
 :root {
 	--status-in-progress: rgb(204 251 250 / 0.75); /* #CCFBFA, 75% */
 	--status-ready-to-test: #fffad3; /* 100% */
-	--status-done: rgb(85 224 126 / 0.5); /* #55E07E, 50% */
-	--status-rejected: rgb(255 0 0 / 0.15); /* #FF0000, 15% */
+	--status-done: rgb(85 224 126 / 0.35); /* #55E07E, 35% */
+	--status-rejected: rgb(255 0 0 / 0.05); /* #FF0000, 5% */
 }
 
 /*
