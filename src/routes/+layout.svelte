@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { AppBar, Navigation } from '@skeletonlabs/skeleton-svelte';
 	import { KanbanIcon, LogOutIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
+	import { canUseApi } from '$lib/roles';
 
 	let { children, data } = $props();
 
@@ -67,11 +68,26 @@
 			</AppBar.Headline>
 			<AppBar.Trail class="col-start-2 row-start-1 items-center xs:col-start-3">
 				<div class="flex items-center gap-3 text-sm">
-					<span class="flex items-center gap-2">
-						<UserIcon class="size-5 shrink-0" />
-						<span class="hidden md:inline">{data.user.name}</span>
-						<span class="badge preset-tonal">{data.user.role}</span>
-					</span>
+					<!-- TM-17: developer ke atas klik user → halaman API token. Marketing: label biasa. -->
+					{#if canUseApi(data.user.role)}
+						<a
+							href="/account/tokens"
+							class="flex items-center gap-2 rounded-base px-1 hover:underline {page.url.pathname === '/account/tokens'
+								? 'underline'
+								: ''}"
+							title="API tokens"
+						>
+							<UserIcon class="size-5 shrink-0" />
+							<span class="hidden md:inline">{data.user.name}</span>
+							<span class="badge preset-tonal">{data.user.role}</span>
+						</a>
+					{:else}
+						<span class="flex items-center gap-2">
+							<UserIcon class="size-5 shrink-0" />
+							<span class="hidden md:inline">{data.user.name}</span>
+							<span class="badge preset-tonal">{data.user.role}</span>
+						</span>
+					{/if}
 					<form method="POST" action="/logout">
 						<button type="submit" class="btn btn-sm btn-outline-neutral" aria-label="Log out">
 							<LogOutIcon class="size-4" />

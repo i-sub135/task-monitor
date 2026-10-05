@@ -135,6 +135,8 @@ export type HistoryEntry = {
 	from: Status | null;
 	to: Status;
 	by: string;
+	/** TM-17: nama API token kalau lewat API, null kalau lewat UI. */
+	via: string | null;
 	at: string;
 	note: string | null;
 };
@@ -146,6 +148,8 @@ export type EditEntry = {
 	id: string;
 	field: 'title' | 'description' | 'type' | 'platform';
 	by: string;
+	/** TM-17: nama API token kalau lewat API, null kalau lewat UI. */
+	via: string | null;
 	at: string;
 	/** Buat title/type/platform: teks polos. Buat description: HTML yang udah disaring, aman dipakai lewat {@html}. */
 	oldValue: string;

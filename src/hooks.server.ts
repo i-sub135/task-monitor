@@ -1,4 +1,5 @@
-import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+import { json, redirect, type Handle, type ServerInit } from '@sveltejs/kit';
+import { authenticateApiToken } from '$lib/server/api-tokens';
 import { env } from '$env/dynamic/private';
 import { SESSION_COOKIE, endSession, readSession } from '$lib/server/auth';
 import { getLoginPassword } from '$lib/server/secret';
@@ -28,7 +29,45 @@ export const init: ServerInit = async () => {
 	}
 };
 
+/**
+ * TM-17: /api/* cuma pakai `Authorization: Bearer <token>`, gak pakai cookie sesi (jadi gak ada urusan CSRF
+ * dan gak ada redirect ke halaman login). Gagal = JSON error, bukan halaman.
+ */
+const handleApi: Handle = async ({ event, resolve }) => {
+	const start = performance.now();
+	const header = event.request.headers.get('authorization') ?? '';
+	const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+
+	const auth = await guardDb(getDb(), () => (token ? authenticateApiToken(getDb(), token) : Promise.resolve(null)));
+	let response: Response;
+	if (!auth.ok) {
+		logger.error('db.unavailable', { path: event.url.pathname, reason: auth.reason });
+		response = json({ error: 'Service unavailable, try again later' }, { status: 503 });
+	} else if (!auth.value) {
+		response = json({ error: 'Missing or invalid API token' }, { status: 401 });
+	} else {
+		event.locals.user = auth.value.user;
+		event.locals.via = auth.value.via;
+		response = await resolve(event);
+	}
+
+	logEvent('http.request', {
+		method: event.request.method,
+		path: event.url.pathname,
+		status: response.status,
+		userId: event.locals.user?.id ?? null,
+		via: event.locals.via,
+		durationMs: Math.round(performance.now() - start)
+	});
+	return response;
+};
+
 export const handle: Handle = async ({ event, resolve }) => {
+	event.locals.user = null;
+	event.locals.via = null;
+	event.locals.dbDown = false;
+	if (event.url.pathname.startsWith('/api/')) return handleApi({ event, resolve });
+
 	const start = performance.now();
 
 	// DB gak bisa dihubungi: anggap belum login (jadinya diarahin ke halaman masuk, yang nampilin modal

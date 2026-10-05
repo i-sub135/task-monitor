@@ -7,6 +7,8 @@ declare global {
 			user: import('$lib/roles').SessionUser | null;
 			/** true kalau DB gak bisa dihubungi pas request ini masuk (diisi di hooks). */
 			dbDown: boolean;
+			/** TM-17: nama API token kalau request ini lewat /api (Bearer token), selain itu null. */
+			via: string | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

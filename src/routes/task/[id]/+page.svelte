@@ -416,7 +416,7 @@
 						<p class="font-medium">
 							{historyLabel(h.from, h.to)}
 						</p>
-						<p class="text-xs opacity-70">{h.by} · {h.at}</p>
+						<p class="text-xs opacity-70">{h.by}{h.via ? ` via ${h.via}` : ''} · {h.at}</p>
 						{#if h.note}
 							<p class="mt-1 break-words whitespace-pre-wrap">
 								{#each linkify(h.note) as seg, i (i)}
@@ -450,7 +450,7 @@
 											? 'Type'
 											: 'Platform'} edited
 							</p>
-							<p class="text-xs opacity-70">{e.by} · {e.at}</p>
+							<p class="text-xs opacity-70">{e.by}{e.via ? ` via ${e.via}` : ''} · {e.at}</p>
 							{#if e.field === 'description'}
 								<!-- Description bisa multi-baris, jadi lama/baru dipisah jelas pakai label + garis. -->
 								<div class="mt-2 flex flex-col gap-2 text-xs">
