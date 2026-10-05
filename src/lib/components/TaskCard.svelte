@@ -39,11 +39,11 @@
 			><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
 		>
 		{#if task.status === 'done-live'}
-			<!-- TM-15: penanda live di kartu, mepet kanan. Latar = latar tema, tulisan + garis ijo ngejreng tebel
-			     biar langsung ketangkep mata di atas kartu Done yang udah ijo. -->
+			<!-- TM-15: penanda live di kartu, mepet kanan. Latar = latar tema, garis ijo ngejreng tebel biar
+			     ketangkep mata di atas kartu Done yang udah ijo, tulisan biru (#2D7495). -->
 			<span
 				class="badge bg-surface-50-950 ml-auto border-2 font-black tracking-wider"
-				style="color: #00c853; border-color: #00c853">LIVE</span
+				style="color: #2d7495; border-color: #00c853">LIVE</span
 			>
 		{/if}
 	</div>
