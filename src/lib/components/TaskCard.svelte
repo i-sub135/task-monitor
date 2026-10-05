@@ -41,16 +41,21 @@
 			style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform].fg}"
 			><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
 		>
-		{#if task.status === 'done-live'}
-			<!-- TM-15: penanda live di kartu, mepet kanan. Latar = latar tema, garis ijo ngejreng tebel biar
-			     ketangkep mata di atas kartu Done yang udah ijo, tulisan biru (#2D7495). -->
-			<span
-				class="badge bg-surface-50-950 ml-auto border-2 font-black tracking-wider"
-				style="color: #2d7495; border-color: #00c853">LIVE</span
-			>
-		{/if}
-		{#if actions}
-			<div class="relative z-10 ml-auto flex items-center gap-1">{@render actions()}</div>
+		<!-- Grup kanan: badge LIVE + ▲▼ dalam satu wadah ml-auto. Kalau masing-masing ml-auto, sisa ruang
+		     kebagi dua dan LIVE nyangkut di tengah (slot actions di board selalu dikirim walau isinya kosong).
+		     Wadahnya gak di-z-10 biar klik di LIVE tetep buka task; tombol di `actions` yang pasang z-10 sendiri. -->
+		{#if task.status === 'done-live' || actions}
+			<div class="ml-auto flex items-center gap-1">
+				{#if task.status === 'done-live'}
+					<!-- TM-15: latar = latar tema, garis ijo ngejreng tebel biar ketangkep mata di atas kartu Done
+					     yang udah ijo, tulisan biru (#2D7495). -->
+					<span
+						class="badge bg-surface-50-950 border-2 font-black tracking-wider"
+						style="color: #2d7495; border-color: #00c853">LIVE</span
+					>
+				{/if}
+				{@render actions?.()}
+			</div>
 		{/if}
 	</div>
 

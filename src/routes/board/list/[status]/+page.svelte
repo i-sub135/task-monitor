@@ -113,7 +113,7 @@
 					{@const position = task.position}
 					<button
 						type="button"
-						class="badge preset-tonal cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
+						class="badge preset-tonal relative z-10 cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
 						aria-label="Move up"
 						title="Move up"
 						disabled={i === 0}
@@ -123,7 +123,7 @@
 					</button>
 					<button
 						type="button"
-						class="badge preset-tonal cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
+						class="badge preset-tonal relative z-10 cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
 						aria-label="Move down"
 						title="Move down"
 						disabled={i === tasks.length - 1}
