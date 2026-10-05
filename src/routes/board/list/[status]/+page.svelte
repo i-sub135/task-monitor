@@ -108,29 +108,31 @@
 			ondrop={(e) => onDrop(e, task)}
 			class={overId === task.id ? 'ring-primary-500 ring-2' : ''}
 		>
-			{#if reorderable && task.position !== null}
-				{@const position = task.position}
-				<div class="relative z-10 flex justify-end gap-1">
+			{#snippet actions()}
+				{#if reorderable && task.position !== null}
+					{@const position = task.position}
 					<button
 						type="button"
-						class="btn-icon btn-icon-sm btn-outline-neutral"
+						class="badge preset-tonal cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
 						aria-label="Move up"
+						title="Move up"
 						disabled={i === 0}
 						onclick={() => sendReorder(task.id, position - 1)}
 					>
-						<ArrowUpIcon class="size-4" />
+						<ArrowUpIcon class="size-3" />
 					</button>
 					<button
 						type="button"
-						class="btn-icon btn-icon-sm btn-outline-neutral"
+						class="badge preset-tonal cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
 						aria-label="Move down"
+						title="Move down"
 						disabled={i === tasks.length - 1}
 						onclick={() => sendReorder(task.id, position + 1)}
 					>
-						<ArrowDownIcon class="size-4" />
+						<ArrowDownIcon class="size-3" />
 					</button>
-				</div>
-			{/if}
+				{/if}
+			{/snippet}
 		</TaskCard>
 	{:else}
 		<p class="py-4 text-sm opacity-50">Empty</p>

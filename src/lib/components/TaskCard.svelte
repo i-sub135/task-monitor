@@ -6,13 +6,16 @@
 	import { platformIcons, platformColors } from '$lib/platform-icons';
 
 	// Isi kartu task yang dipakai bareng /board dan /board/list/[status]. Handler drag dan class tambahan
-	// dioper lewat rest props ke <article>; tombol kontrol (▲▼) lewat children.
+	// dioper lewat rest props ke <article>; tombol ▲▼ lewat `actions` (sebaris badge, mepet kanan);
+	// kontrol lain (tombol live) lewat children di bawah.
 	let {
 		task,
 		dimmed = false,
+		actions,
 		children,
 		...rest
-	}: { task: BoardTask; dimmed?: boolean; children?: Snippet } & HTMLAttributes<HTMLElement> = $props();
+	}: { task: BoardTask; dimmed?: boolean; actions?: Snippet; children?: Snippet } & HTMLAttributes<HTMLElement> =
+		$props();
 
 	const PlatformIcon = $derived(platformIcons[task.platform]);
 	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
@@ -24,7 +27,7 @@
 		? 'opacity-40'
 		: ''} {rest.class ?? ''}"
 >
-	<div class="flex items-center gap-2 text-xs">
+	<div class="flex flex-wrap items-center gap-2 text-xs">
 		{#if task.position !== null}
 			<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
 		{/if}
@@ -45,6 +48,9 @@
 				class="badge bg-surface-50-950 ml-auto border-2 font-black tracking-wider"
 				style="color: #2d7495; border-color: #00c853">LIVE</span
 			>
+		{/if}
+		{#if actions}
+			<div class="relative z-10 ml-auto flex items-center gap-1">{@render actions()}</div>
 		{/if}
 	</div>
 

@@ -50,6 +50,8 @@
 
 	let dragging = $state<BoardTask | null>(null);
 	let overColumn = $state<Status | null>(null);
+	// Kartu yang lagi ditimpa pas seret buat ngurutin (lepas di atas kartu = ambil posisinya).
+	let overCard = $state<string | null>(null);
 
 	// Dua form tersembunyi yang beneran ngirim ke action ?/move dan ?/reorder.
 	let moveForm = $state<HTMLFormElement>();
@@ -67,8 +69,17 @@
 	// Drag cuma buat pindah kolom; done ↔ done-live (satu kolom) lewat tombol Mark live / Unmark di kartu.
 	const isValidTarget = (task: BoardTask | null, to: Status) =>
 		task !== null && columnOf(task.status) !== to && canMakeTransition(role, task.status, to);
+	// Seret buat ngurutin dalam kolom (desktop; HP pakai ▲▼): hak sama kayak ▲▼, mati pas filter aktif.
+	const canDragReorder = (task: BoardTask) => !filtering && canReorder(role, task.status);
 	const isDraggable = (task: BoardTask) =>
-		canDrag && allowedTargets(role, task.status).some((to) => columnOf(to) !== columnOf(task.status));
+		(canDrag && allowedTargets(role, task.status).some((to) => columnOf(to) !== columnOf(task.status))) ||
+		canDragReorder(task);
+	const isReorderTarget = (target: BoardTask) =>
+		dragging !== null &&
+		dragging.id !== target.id &&
+		dragging.status === target.status &&
+		target.position !== null &&
+		canDragReorder(dragging);
 
 	// TM-15: target tombol live di kolom Done (null = gak ada tombol buat role/kartu ini).
 	const liveTarget = (task: BoardTask): Status | null => {
@@ -103,6 +114,28 @@
 	function onDragEnd() {
 		dragging = null;
 		overColumn = null;
+		overCard = null;
+	}
+
+	function onCardDragOver(e: DragEvent, target: BoardTask) {
+		if (!isReorderTarget(target)) return;
+		e.preventDefault();
+		e.stopPropagation();
+		overCard = target.id;
+	}
+
+	function onCardDragLeave(e: DragEvent, target: BoardTask) {
+		if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) return;
+		if (overCard === target.id) overCard = null;
+	}
+
+	function onCardDrop(e: DragEvent, target: BoardTask) {
+		if (!isReorderTarget(target) || !dragging) return;
+		e.preventDefault();
+		e.stopPropagation();
+		const task = dragging;
+		onDragEnd();
+		void sendReorderTo(task, target.position as number);
 	}
 
 	function onDragOver(e: DragEvent, col: Status) {
@@ -140,7 +173,11 @@
 
 	async function sendReorder(task: BoardTask, delta: -1 | 1) {
 		if (task.position === null) return;
-		reorderFields = { id: task.id, position: String(task.position + delta) };
+		await sendReorderTo(task, task.position + delta);
+	}
+
+	async function sendReorderTo(task: BoardTask, position: number) {
+		reorderFields = { id: task.id, position: String(position) };
 		await tick();
 		reorderForm?.requestSubmit();
 	}
@@ -176,7 +213,7 @@
 	{#if canDrag}
 		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. {filtering
 			? 'Reordering is off while a filter is active.'
-			: 'Use the ▲▼ arrows on a card to reorder.'}
+			: 'To reorder, drag a card onto another card in the same column, or use the ▲▼ arrows.'}
 	{:else}
 		The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.{filtering
 			? ' Reordering is off while a filter is active.'
@@ -225,13 +262,14 @@
 	{#each boardColumns as status (status)}
 		{@const items = byStatus(status)}
 		{@const valid = isValidTarget(dragging, status)}
+		{@const reorderingHere = dragging !== null && columnOf(dragging.status) === status && canDragReorder(dragging)}
 		<section
 			role="group"
 			aria-label="Column {statusLabels[status]}"
 			data-status={status}
 			class="card preset-filled-surface-100-900 min-h-32 flex-col gap-4 p-4 transition {activeTab === status
 				? 'flex'
-				: 'hidden'} xs:flex {dragging ? (valid ? 'ring-primary-500 ring-2' : 'opacity-50') : ''} {overColumn ===
+				: 'hidden'} xs:flex {dragging ? (valid ? 'ring-primary-500 ring-2' : reorderingHere ? '' : 'opacity-50') : ''} {overColumn ===
 			status
 				? 'bg-primary-100-900'
 				: ''}"
@@ -251,30 +289,36 @@
 					draggable={isDraggable(task)}
 					ondragstart={(e) => onDragStart(e, task)}
 					ondragend={onDragEnd}
+					ondragover={(e) => onCardDragOver(e, task)}
+					ondragleave={(e) => onCardDragLeave(e, task)}
+					ondrop={(e) => onCardDrop(e, task)}
+					class={overCard === task.id ? 'ring-primary-500 ring-2' : ''}
 				>
 					<!-- TM-16: posisi itu urutan kolom penuh; pas filter aktif ada kartu yang ketutup, jadi ▲▼ dimatiin. -->
-					{#if canReorder(role, status) && !filtering}
-						<div class="relative z-10 flex justify-end gap-1">
+					{#snippet actions()}
+						{#if canReorder(role, status) && !filtering}
 							<button
 								type="button"
-								class="btn-icon btn-icon-sm btn-outline-neutral"
+								class="badge preset-tonal cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
 								aria-label="Move up"
+								title="Move up"
 								disabled={i === 0}
 								onclick={() => sendReorder(task, -1)}
 							>
-								<ArrowUpIcon class="size-4" />
+								<ArrowUpIcon class="size-3" />
 							</button>
 							<button
 								type="button"
-								class="btn-icon btn-icon-sm btn-outline-neutral"
+								class="badge preset-tonal cursor-pointer px-1.5 transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-30"
 								aria-label="Move down"
+								title="Move down"
 								disabled={i === items.length - 1}
 								onclick={() => sendReorder(task, 1)}
 							>
-								<ArrowDownIcon class="size-4" />
+								<ArrowDownIcon class="size-3" />
 							</button>
-						</div>
-					{/if}
+						{/if}
+					{/snippet}
 					{@const live = liveTarget(task)}
 					{#if live}
 						<!-- Bulet kecil: ijo tua = mark live, merah = unmark (warna eksplisit: success tema rosepine itu biru pucat, dan kartu Done udah ijo terang). Label di tooltip + aria-label. -->
