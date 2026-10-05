@@ -39,8 +39,11 @@
 			><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
 		>
 		{#if task.status === 'done-live'}
-			<!-- TM-15: penanda live di kartu (stempel diagonal ketutupan warna kartu Done, diganti badge). -->
-			<span class="badge font-bold tracking-wider" style="background-color: #2d7495; color: #fcf9ea">LIVE</span>
+			<!-- TM-15: penanda live di kartu, mepet kanan. Latar = latar tema, tulisan + garis biru (#2D7495). -->
+			<span
+				class="badge bg-surface-50-950 ml-auto border font-bold tracking-wider"
+				style="color: #2d7495; border-color: #2d7495">LIVE</span
+			>
 		{/if}
 	</div>
 
