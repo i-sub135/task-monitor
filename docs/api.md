@@ -29,6 +29,20 @@ Buat kuli (atau user sendiri) yang mau kirim task baru dan update task tanpa buk
 
 Base URL: `https://<host-task-monitor>/api/v1`
 
+### `GET /tasks` — daftar task
+
+Query (dua-duanya opsional, boleh digabung):
+
+- `status=<status>` — cuma status itu (`done` dan `done-live` beda).
+- `mine=true` — cuma task yang **dibikin pemilik token**. Gak ada parameter user: "punya siapa" selalu
+  diambil dari token, jadi gak bisa nanya / ngurus punya orang lain lewat filter ini.
+
+Parameter lain → `400`. Contoh: `GET /tasks?status=request&mine=true`.
+
+Balikan `{ "count": 2, "tasks": [ ... ] }`. Tiap task sama kayak GET satuan **tanpa** `description` dan
+`history`, plus `position` (nomor urut di kolom buat request/queue, `null` di status lain). Urutan per status
+sama kayak board. Pakai ini buat cek "udah pernah nyetor belum" sebelum `POST`.
+
 ### `POST /tasks` — kirim task baru
 
 ```json

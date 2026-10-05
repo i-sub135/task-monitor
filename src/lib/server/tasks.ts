@@ -473,3 +473,61 @@ export async function getTaskForApi(db: PrismaClient, id: string, user: SessionU
 		}))
 	};
 }
+
+export type ApiTaskSummary = Omit<ApiTask, 'description' | 'history'> & {
+	/** Nomor urut di kolom (1..n) buat request/queue, null di status lain. */
+	position: number | null;
+};
+
+/**
+ * TM-17: daftar task buat API. Filter opsional: `status` (persis, `done` ≠ `done-live`) dan `mine` (cuma
+ * task yang dibikin pemilik token — user diambil dari token, gak bisa nanya punya orang lain). Urutan per
+ * status sama kayak board: request/queue ikut ordering, sisanya yang terakhir berubah di atas.
+ */
+export async function listTasksForApi(
+	db: PrismaClient,
+	input: { user: SessionUser; status?: Status; mine?: boolean }
+): Promise<ApiTaskSummary[]> {
+	const rows = await db.task.findMany({
+		where: {
+			...(input.status ? { status: statusToDb[input.status] } : {}),
+			...(input.mine ? { createdById: input.user.id } : {})
+		},
+		include: { createdBy: { select: { name: true } } }
+	});
+	const out: ApiTaskSummary[] = [];
+	for (const status of statuses) {
+		const inStatus = rows
+			.filter((r) => statusToApp[r.status] === status)
+			.sort(
+				hasOrdering(status)
+					? (a, b) => a.ordering - b.ordering || a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id)
+					: (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || a.id.localeCompare(b.id)
+			);
+		// Posisi dihitung dari urutan kolom penuh, bukan hasil filter `mine` (biar sama kayak nomor di board).
+		const fullColumn = hasOrdering(status) && inStatus.length > 0
+			? await db.task.findMany({
+					where: { status: statusToDb[status] },
+					orderBy: [{ ordering: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+					select: { id: true }
+				})
+			: [];
+		for (const t of inStatus) {
+			const idx = fullColumn.findIndex((r) => r.id === t.id);
+			out.push({
+				id: t.id,
+				title: t.title,
+				type: t.type,
+				platform: platformToApp[t.platform],
+				status,
+				created_by: t.createdBy.name,
+				created_at: t.createdAt.toISOString(),
+				updated_at: t.updatedAt.toISOString(),
+				editable: canEditTask(status),
+				allowed_transitions: allowedTargets(input.user.role, status),
+				position: idx >= 0 ? idx + 1 : null
+			});
+		}
+	}
+	return out;
+}
