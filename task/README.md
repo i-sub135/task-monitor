@@ -6,10 +6,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-- [TM-13](running/TM-13.md) — Batasi kartu per kolom di /board (maks 5), "read more" ke /board/list/[status] — Running (kode jadi, nunggu cek visual)
-- [TM-14](running/TM-14.md) — Role baru QA: cuma QA + admin yang boleh geser Ready to test → Done — Running (kode jadi, nunggu deploy + cek visual)
-- [TM-15](running/TM-15.md) — Status Live (done-live) nempel di kolom Done, stempel "LIVE" biru — Running (kode jadi, nunggu deploy + cek visual)
-- [TM-16](running/TM-16.md) — Filter di /board dan /board/list (type, platform, pembuat, cari judul) — Running (kode jadi, nunggu cek visual)
+_(kosong)_
 
 ## Backlog
 
@@ -29,3 +26,7 @@ _(kosong)_
 - [TM-10](done/TM-10.md) — Rich text editor untuk description di form Task baru — Done
 - [TM-11](done/TM-11.md) — Edit title/description/type di halaman detail task (Request/Queue saja) — Done
 - [TM-12](done/TM-12.md) — Field platform di Task (API/Mobile/AI Chat/Web/Other), editable, badge berwarna — Done
+- [TM-13](done/TM-13.md) — Batasi kartu per kolom di /board (maks 5), "read more" ke /board/list/[status] — Done
+- [TM-14](done/TM-14.md) — Role baru QA: cuma QA + admin yang boleh geser Ready to test → Done — Done
+- [TM-15](done/TM-15.md) — Status Live (done-live) nempel di kolom Done, badge LIVE — Done
+- [TM-16](done/TM-16.md) — Filter di /board dan /board/list (type, platform, pembuat, cari judul) — Done
