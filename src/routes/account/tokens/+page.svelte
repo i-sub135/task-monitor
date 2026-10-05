@@ -1,11 +1,29 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { CheckIcon, CopyIcon, KeyRoundIcon, TrashIcon } from '@lucide/svelte';
+	import { statusLabels } from '$lib/tasks';
+	import type { TokenActivity } from '$lib/server/tasks';
 
 	// TM-17: token API milik user yang lagi login. Token asli cuma muncul sekali, persis setelah generate.
 	let { data, form } = $props();
 
 	const full = $derived(data.tokens.length >= data.max);
+
+	// TM-18: aktivitas token. Nama yang udah gak ada di daftar token = token yang udah di-revoke.
+	const activeNames = $derived(new Set(data.tokens.map((t) => t.name)));
+	const filterNames = $derived([...new Set([...data.tokens.map((t) => t.name), ...data.activityNames])].sort());
+	const fieldLabels = { title: 'title', description: 'description', type: 'type', platform: 'platform' };
+	const activityLabel = (a: TokenActivity) =>
+		a.kind === 'edit'
+			? `Edited ${fieldLabels[a.field]}`
+			: a.from === null
+				? 'Created task'
+				: a.from === 'done-live' && a.to === 'done'
+					? 'Rollback: failed deploy'
+					: `${statusLabels[a.from]} → ${statusLabels[a.to]}`;
+	const filterVia = (via: string) =>
+		goto(via ? `?via=${encodeURIComponent(via)}` : '?', { noScroll: true, keepFocus: true, replaceState: true });
 	let copied = $state(false);
 
 	async function copy(token: string) {
@@ -113,4 +131,43 @@
 			<button type="submit" class="btn btn-outline-primary" disabled={full}>Generate</button>
 		</div>
 	</form>
+
+	<section class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-4 border p-6 shadow-xl">
+		<div class="flex flex-wrap items-center justify-between gap-3">
+			<div>
+				<h2 class="font-semibold">Activity</h2>
+				<p class="text-xs opacity-60">
+					Last {data.activity.length} changes made through your tokens (create, edit, status). Reads are not logged.
+				</p>
+			</div>
+			<select
+				class="select w-48"
+				aria-label="Filter by token"
+				value={data.via}
+				onchange={(e) => filterVia(e.currentTarget.value)}
+			>
+				<option value="">All tokens</option>
+				{#each filterNames as name (name)}
+					<option value={name}>{name}{activeNames.has(name) ? '' : ' (revoked)'}</option>
+				{/each}
+			</select>
+		</div>
+
+		{#if data.activity.length === 0}
+			<p class="text-sm opacity-60">No activity yet.</p>
+		{:else}
+			<ul class="flex flex-col divide-y divide-surface-300-700 text-sm">
+				{#each data.activity as a (a.kind + a.id)}
+					<li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2">
+						<span class="badge preset-tonal shrink-0">
+							{a.via}{activeNames.has(a.via) ? '' : ' · revoked'}
+						</span>
+						<span class="font-medium">{activityLabel(a)}</span>
+						<a href="/task/{a.taskId}" class="anchor min-w-0 flex-1 truncate">{a.taskTitle}</a>
+						<span class="text-xs opacity-60">{a.at}</span>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</section>
 </div>

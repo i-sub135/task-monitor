@@ -7,10 +7,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 ## Running
 
 - [TM-17](running/TM-17.md) — API token per user (maks 5) + API kirim/update task — Running (kode jadi, nunggu deploy + cek visual)
+- [TM-18](running/TM-18.md) — Log aktivitas per token di /account/tokens — Running (kode jadi, nunggu cek visual)
 
 ## Backlog
 
-- [TM-18](backlog/TM-18.md) — Log aktivitas per token di /account/tokens — Backlog
+_(kosong)_
 
 ## Done
 

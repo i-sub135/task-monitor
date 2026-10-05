@@ -531,3 +531,80 @@ export async function listTasksForApi(
 	}
 	return out;
 }
+
+// ---------------------------------------------------------------- aktivitas token (TM-18)
+
+export type TokenActivity = {
+	id: string;
+	/** nama token yang dipakai (kolom `via`) */
+	via: string;
+	at: string;
+	taskId: string;
+	taskTitle: string;
+} & (
+	| { kind: 'status'; from: Status | null; to: Status }
+	| { kind: 'edit'; field: 'title' | 'description' | 'type' | 'platform' }
+);
+
+export const TOKEN_ACTIVITY_LIMIT = 50;
+
+/**
+ * TM-18: aksi terakhir yang dilakuin lewat token milik user ini (create, geser status, edit), terbaru di atas.
+ * Sumbernya `task_history` + `task_edit` yang `via`-nya keisi; aksi dari UI (via null) gak ikut. `via` opsional
+ * buat nyaring satu nama token. Baca (GET/list) gak pernah dicatat ke DB, jadi gak ada di sini.
+ */
+export async function listTokenActivity(
+	db: PrismaClient,
+	input: { userId: string; via?: string }
+): Promise<{ items: TokenActivity[]; names: string[] }> {
+	const via = input.via ? { equals: input.via } : { not: null };
+	const [history, edits, historyNames, editNames] = await Promise.all([
+		db.taskHistory.findMany({
+			where: { createdById: input.userId, via },
+			orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+			take: TOKEN_ACTIVITY_LIMIT,
+			include: { task: { select: { title: true } } }
+		}),
+		db.taskEdit.findMany({
+			where: { editedById: input.userId, via },
+			orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+			take: TOKEN_ACTIVITY_LIMIT,
+			include: { task: { select: { title: true } } }
+		}),
+		db.taskHistory.findMany({ where: { createdById: input.userId, via: { not: null } }, distinct: ['via'], select: { via: true } }),
+		db.taskEdit.findMany({ where: { editedById: input.userId, via: { not: null } }, distinct: ['via'], select: { via: true } })
+	]);
+
+	const rows = [
+		...history.map((h) => ({
+			ms: h.createdAt.getTime(),
+			item: {
+				id: h.id,
+				via: h.via as string,
+				at: formatJakarta(h.createdAt),
+				taskId: h.taskId,
+				taskTitle: h.task.title,
+				kind: 'status' as const,
+				from: h.statusBefore ? statusToApp[h.statusBefore] : null,
+				to: statusToApp[h.statusAfter]
+			}
+		})),
+		...edits.map((e) => ({
+			ms: e.createdAt.getTime(),
+			item: {
+				id: e.id,
+				via: e.via as string,
+				at: formatJakarta(e.createdAt),
+				taskId: e.taskId,
+				taskTitle: e.task.title,
+				kind: 'edit' as const,
+				field: e.field
+			}
+		}))
+	];
+	rows.sort((a, b) => b.ms - a.ms || b.item.id.localeCompare(a.item.id));
+	const names = [...new Set([...historyNames, ...editNames].map((r) => r.via as string))].sort((a, b) =>
+		a.localeCompare(b)
+	);
+	return { items: rows.slice(0, TOKEN_ACTIVITY_LIMIT).map((r) => r.item), names };
+}
