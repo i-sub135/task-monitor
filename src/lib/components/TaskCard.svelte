@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import { BugIcon, PaperclipIcon, SparklesIcon } from '@lucide/svelte';
+	import { BugIcon, CalendarIcon, PaperclipIcon, SparklesIcon, UserIcon } from '@lucide/svelte';
 	import { platformLabels, type BoardTask } from '$lib/tasks';
 	import { platformIcons, platformColors } from '$lib/platform-icons';
 
@@ -58,7 +58,11 @@
 
 	<footer class="flex items-center justify-between gap-2 text-xs opacity-70">
 		<!-- Singkat: "<user> at today / yesterday / 10 days". Waktu persis (WIB) di tooltip. -->
-		<span title="Created {task.createdAt}">{task.createdBy} at {ageLabel(task.ageDays)}</span>
+		<span class="flex min-w-0 flex-wrap items-center gap-x-1" title="Created {task.createdAt}">
+			<UserIcon class="size-3 shrink-0" /><span class="font-semibold">{task.createdBy}</span>
+			<span>at</span>
+			<CalendarIcon class="size-3 shrink-0" /><span class="font-semibold">{ageLabel(task.ageDays)}</span>
+		</span>
 		{#if task.attachments > 0}
 			<span class="flex items-center gap-1"><PaperclipIcon class="size-3" />{task.attachments}</span>
 		{/if}
