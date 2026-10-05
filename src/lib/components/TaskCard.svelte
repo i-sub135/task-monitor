@@ -15,7 +15,7 @@
 	}: { task: BoardTask; dimmed?: boolean; children?: Snippet } & HTMLAttributes<HTMLElement> = $props();
 
 	const PlatformIcon = $derived(platformIcons[task.platform]);
-	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
+	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days`);
 </script>
 
 <article
@@ -57,8 +57,8 @@
 	</a>
 
 	<footer class="flex items-center justify-between gap-2 text-xs opacity-70">
-		<!-- Waktu persis (WIB) di teks; umur relatif ("today", "3 days ago") di tooltip. -->
-		<span title={ageLabel(task.ageDays)}>Created by {task.createdBy} on {task.createdAt}</span>
+		<!-- Singkat: "<user> at today / yesterday / 10 days". Waktu persis (WIB) di tooltip. -->
+		<span title="Created {task.createdAt}">{task.createdBy} at {ageLabel(task.ageDays)}</span>
 		{#if task.attachments > 0}
 			<span class="flex items-center gap-1"><PaperclipIcon class="size-3" />{task.attachments}</span>
 		{/if}
