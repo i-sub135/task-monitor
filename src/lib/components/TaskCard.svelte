@@ -62,7 +62,10 @@
 	<a
 		href="/task/{task.id}"
 		draggable="false"
-		class="focus-visible:outline-primary-500 font-medium after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2"
+		class="focus-visible:outline-primary-500 font-medium after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2 {task.status ===
+		'rejected'
+			? 'text-gray-500 line-through'
+			: ''}"
 	>
 		{task.title}
 	</a>
