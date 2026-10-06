@@ -44,7 +44,7 @@
 
 <article
 	{...rest}
-	class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 relative flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dimmed
+	class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 relative mb-3 flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dimmed
 		? 'opacity-40'
 		: ''} {rest.class ?? ''}"
 >
@@ -91,10 +91,11 @@
 		{task.title}
 	</a>
 
-	<!-- Kotak siapa/kapan: latar tema + garis + bayangan (elevation), kayak kartu kecil ngambang di atas kartu.
-	     Tetep kebaca di atas warna kartu apa pun. Waktu persis di tooltip. -->
+	<!-- Kotak siapa/kapan: latar tema + garis + bayangan (elevation), nangkring di tepi bawah kartu: margin bawah
+	     negatif (= padding kartu + setengah tinggi kotak) bikin garis bawah kartu motong tengah kotak. Kartu dikasih
+	     mb-3 biar bagian yang nongol gak nabrak kartu di bawahnya. Waktu persis di tooltip. -->
 	<footer
-		class="bg-surface-50-950 border-surface-300-700 flex items-center justify-between gap-2 rounded-base border px-2 py-0.5 text-xs shadow-md"
+		class="bg-surface-50-950 border-surface-300-700 -mb-[1.7rem] flex items-center justify-between gap-2 rounded-base border px-2 py-0.5 text-xs shadow-md"
 		title="Created {task.createdAt}"
 	>
 		<span class="flex min-w-0 items-center gap-2">
