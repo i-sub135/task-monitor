@@ -85,14 +85,15 @@
 		{task.title}
 	</a>
 
-	<!-- Kotak siapa/kapan: latar tema + garis, jadi tetep kebaca di atas warna kartu apa pun. Waktu persis di tooltip. -->
+	<!-- Kotak siapa/kapan: latar tema + garis + bayangan (elevation), kayak kartu kecil ngambang di atas kartu.
+	     Tetep kebaca di atas warna kartu apa pun. Waktu persis di tooltip. -->
 	<footer
-		class="bg-surface-50-950 border-surface-300-700 flex items-center justify-between gap-2 rounded-base border px-2 py-1.5 text-xs"
+		class="bg-surface-50-950 border-surface-300-700 flex items-center justify-between gap-2 rounded-base border px-2 py-0.5 text-xs shadow-md"
 		title="Created {task.createdAt}"
 	>
 		<span class="flex min-w-0 items-center gap-2">
 			<span
-				class="flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+				class="flex size-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
 				style="background-color: {avatarColor(task.createdById)}"
 				aria-hidden="true">{initials(task.createdBy)}</span
 			>
