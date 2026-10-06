@@ -7,15 +7,21 @@
 
 	// Isi kartu task yang dipakai bareng /board dan /board/list/[status]. Handler drag dan class tambahan
 	// dioper lewat rest props ke <article>; tombol ▲▼ lewat `actions` (sebaris badge, mepet kanan);
-	// kontrol lain (tombol live) lewat children di bawah.
+	// tombol bulet mark/unmark live lewat `footerActions` (paling kanan di kotak footer).
 	let {
 		task,
 		dimmed = false,
 		actions,
+		footerActions,
 		children,
 		...rest
-	}: { task: BoardTask; dimmed?: boolean; actions?: Snippet; children?: Snippet } & HTMLAttributes<HTMLElement> =
-		$props();
+	}: {
+		task: BoardTask;
+		dimmed?: boolean;
+		actions?: Snippet;
+		footerActions?: Snippet;
+		children?: Snippet;
+	} & HTMLAttributes<HTMLElement> = $props();
 
 	const PlatformIcon = $derived(platformIcons[task.platform]);
 	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
@@ -108,6 +114,7 @@
 			<span class="flex items-center gap-1"
 				><CalendarIcon class="size-3 opacity-70" /><span class="font-semibold">{ageLabel(task.ageDays)}</span></span
 			>
+			{@render footerActions?.()}
 		</span>
 	</footer>
 

@@ -319,20 +319,20 @@
 							</button>
 						{/if}
 					{/snippet}
-					{@const live = liveTarget(task)}
-					{#if live}
-						<!-- Bulet kecil: ijo tua = mark live, merah = unmark (warna eksplisit: success tema rosepine itu biru pucat, dan kartu Done udah ijo terang). Label di tooltip + aria-label. -->
-						<div class="relative z-10 flex justify-end">
+					{#snippet footerActions()}
+						{@const live = liveTarget(task)}
+						{#if live}
+							<!-- Bulet kecil di kotak footer, seukuran avatar: ijo tua = mark live, merah = unmark. -->
 							<button
 								type="button"
-								class="size-4 cursor-pointer rounded-full shadow ring-2 ring-white transition hover:scale-125"
+								class="relative z-10 size-4 shrink-0 cursor-pointer rounded-full shadow ring-1 ring-white transition hover:scale-125"
 								style="background-color: {live === 'done-live' ? '#1f7a3a' : '#e73f1e'}"
 								aria-label={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
 								title={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
 								onclick={() => openLiveDialog(task, live)}
 							></button>
-						</div>
-					{/if}
+						{/if}
+					{/snippet}
 				</TaskCard>
 			{:else}
 				<p class="py-4 text-center text-sm opacity-50">Empty</p>
