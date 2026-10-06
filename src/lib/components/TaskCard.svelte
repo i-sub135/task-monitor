@@ -44,7 +44,7 @@
 
 <article
 	{...rest}
-	class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 relative mb-3 flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dimmed
+	class="card preset-filled-surface-50-950 border-surface-300-700 hover:border-primary-500 relative flex cursor-pointer flex-col gap-3 border p-4 shadow-xl transition duration-150 hover:-translate-y-1 hover:shadow-2xl {dimmed
 		? 'opacity-40'
 		: ''} {rest.class ?? ''}"
 >
@@ -91,29 +91,29 @@
 		{task.title}
 	</a>
 
-	<!-- Kotak siapa/kapan: latar tema + garis + bayangan (elevation), nangkring di tepi bawah kartu: margin bawah
-	     negatif (= padding kartu + setengah tinggi kotak) bikin garis bawah kartu motong tengah kotak. Kartu dikasih
-	     mb-3 biar bagian yang nongol gak nabrak kartu di bawahnya. Waktu persis di tooltip. -->
+	<!-- Kotak siapa/kapan: panel kecil di dalam kartu, latar tema + bayangan halus (elevation) biar keliatan
+	     ngambang di atas warna kartu. Nama gak dipotong: kalau kartu sempit, tanggal turun ke baris kedua.
+	     Waktu persis di tooltip. -->
 	<footer
-		class="bg-surface-50-950 border-surface-300-700 -mb-[1.7rem] flex items-center justify-between gap-2 rounded-base border px-2 py-0.5 text-xs shadow-md"
+		class="bg-surface-50-950 border-surface-300-700/60 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border px-2 py-1.5 text-xs shadow-sm"
 		title="Created {task.createdAt}"
 	>
-		<span class="flex min-w-0 items-center gap-2">
+		<span class="flex min-w-0 items-center gap-1.5">
 			<span
-				class="flex size-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
+				class="flex size-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
 				style="background-color: {avatarColor(task.createdById)}"
 				aria-hidden="true">{initials(task.createdBy)}</span
 			>
-			<span class="truncate font-semibold">{task.createdBy}</span>
+			<span class="font-semibold">{task.createdBy}</span>
 		</span>
-		<span class="flex shrink-0 items-center gap-3">
+		<span class="ml-auto flex shrink-0 items-center gap-2">
 			{#if task.attachments > 0}
 				<span class="flex items-center gap-1 opacity-70" title="Attachments"
 					><PaperclipIcon class="size-3" />{task.attachments}</span
 				>
 			{/if}
-			<span class="flex items-center gap-1"
-				><CalendarIcon class="size-3 opacity-70" /><span class="font-semibold">{ageLabel(task.ageDays)}</span></span
+			<span class="flex items-center gap-1 opacity-80"
+				><CalendarIcon class="size-3" /><span class="font-medium">{ageLabel(task.ageDays)}</span></span
 			>
 			{@render footerActions?.()}
 		</span>
