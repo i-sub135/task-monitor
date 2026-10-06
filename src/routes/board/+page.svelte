@@ -68,11 +68,11 @@
 	// TM-14: target ikut hak role (mis. Ready to test → Done cuma QA + admin), bukan cuma urutan status.
 	// Drag cuma buat pindah kolom; done ↔ done-live (satu kolom) lewat tombol Mark live / Unmark di kartu.
 	const isValidTarget = (task: BoardTask | null, to: Status) =>
-		task !== null && columnOf(task.status) !== to && canMakeTransition(role, task.status, to);
+		task !== null && columnOf(task.status) !== to && canMakeTransition(role, task.status, to, task.type);
 	// Seret buat ngurutin dalam kolom (desktop; HP pakai ▲▼): hak sama kayak ▲▼, mati pas filter aktif.
 	const canDragReorder = (task: BoardTask) => !filtering && canReorder(role, task.status);
 	const isDraggable = (task: BoardTask) =>
-		(canDrag && allowedTargets(role, task.status).some((to) => columnOf(to) !== columnOf(task.status))) ||
+		(canDrag && allowedTargets(role, task.status, task.type).some((to) => columnOf(to) !== columnOf(task.status))) ||
 		canDragReorder(task);
 	const isReorderTarget = (target: BoardTask) =>
 		dragging !== null &&
@@ -84,7 +84,7 @@
 	// TM-15: target tombol live di kolom Done (null = gak ada tombol buat role/kartu ini).
 	const liveTarget = (task: BoardTask): Status | null => {
 		const to = task.status === 'done' ? 'done-live' : task.status === 'done-live' ? 'done' : null;
-		return to && canMakeTransition(role, task.status, to) ? to : null;
+		return to && canMakeTransition(role, task.status, to, task.type) ? to : null;
 	};
 	function openLiveDialog(task: BoardTask, to: Status) {
 		pending = { task, to };
@@ -211,7 +211,7 @@
 
 <p class="mb-6 text-sm opacity-70">
 	{#if canDrag}
-		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. {filtering
+		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. Support tasks go straight from Request to Done. {filtering
 			? 'Reordering is off while a filter is active.'
 			: 'To reorder, drag a card onto another card in the same column, or use the ▲▼ arrows.'}
 	{:else}

@@ -40,7 +40,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!title) return apiError(400, 'Title is required');
 	if (title.length > 120) return apiError(400, 'Title must be at most 120 characters');
 	if (!descriptionText(description)) return apiError(400, 'Description is required');
-	if (!taskTypes.includes(body.type as TaskType)) return apiError(400, 'type must be one of: bug, feature');
+	if (!taskTypes.includes(body.type as TaskType)) return apiError(400, `type must be one of: ${taskTypes.join(', ')}`);
 	if (!platforms.includes(body.platform as Platform)) {
 		return apiError(400, `platform must be one of: ${platforms.join(', ')}`);
 	}

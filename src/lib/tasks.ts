@@ -1,7 +1,8 @@
 import { canAdvance, type Role } from './roles.ts';
 
 export type Status = 'request' | 'queue' | 'in-progress' | 'ready-to-test' | 'done' | 'done-live' | 'rejected';
-export type TaskType = 'bug' | 'feature';
+/** TM-19: support = kerjaan operasional (bikinin akun, reset, akses). Cuma 2 status: Request → Done. */
+export type TaskType = 'bug' | 'feature' | 'support';
 /** TM-12: platform yang kena task. Satu task = satu platform, wajib diisi, `other` = fallback. */
 export type Platform = 'api' | 'mobile' | 'ai-chat' | 'web' | 'other';
 
@@ -31,7 +32,7 @@ export const statuses = Object.keys(statusLabels) as Status[];
  */
 export const boardColumns: Status[] = ['request', 'queue', 'in-progress', 'ready-to-test', 'done', 'rejected'];
 export const columnOf = (status: Status): Status => (status === 'done-live' ? 'done' : status);
-export const taskTypes: TaskType[] = ['bug', 'feature'];
+export const taskTypes: TaskType[] = ['bug', 'feature', 'support'];
 export const platforms = Object.keys(platformLabels) as Platform[];
 
 /**
@@ -47,6 +48,24 @@ export const transitions: Record<Status, Status[]> = {
 	'done-live': ['done'],
 	rejected: []
 };
+
+/**
+ * TM-19: task support cuma punya 2 status, Request → Done (langsung, tanpa Queue/In progress/Ready to test,
+ * tanpa reject, tanpa Live). Developer ke atas yang boleh geser (marketing tetep gak bisa, lewat canAdvance).
+ */
+const supportTransitions: Record<Status, Status[]> = {
+	request: ['done'],
+	queue: [],
+	'in-progress': [],
+	'ready-to-test': [],
+	done: [],
+	'done-live': [],
+	rejected: []
+};
+
+/** Status tujuan yang ada dari `from` buat type ini (belum ngecek role). */
+export const transitionsFor = (type: TaskType, from: Status): Status[] =>
+	type === 'support' ? supportTransitions[from] : transitions[from];
 
 /** Kolom yang urutannya bisa digeser: request (semua role) dan queue (developer dan admin). */
 export function canReorder(role: Role, status: Status): boolean {
@@ -76,30 +95,43 @@ const restrictedTransitions: Partial<Record<`${Status}>${Status}`, Role[]>> = {
 	'done-live>done': ['developer', 'admin']
 };
 
-/** Boleh gak role ini mindahin dari `from` ke `to` (cek urutan transisi + hak role). Dipakai server dan UI. */
-export function canMakeTransition(role: Role, from: Status, to: Status): boolean {
-	if (!canAdvance(role) || !transitions[from].includes(to)) return false;
+/**
+ * Boleh gak role ini mindahin task type `type` dari `from` ke `to` (cek urutan transisi per type + hak role).
+ * Dipakai server dan UI. Aturan role khusus (restrictedTransitions) cuma berlaku buat jalur bug/feature.
+ */
+export function canMakeTransition(role: Role, from: Status, to: Status, type: TaskType): boolean {
+	if (!canAdvance(role) || !transitionsFor(type, from).includes(to)) return false;
+	if (type === 'support') return true;
 	const only = restrictedTransitions[`${from}>${to}`];
 	return !only || only.includes(role);
 }
 
-/** Target yang boleh dituju role ini dari status `from`. */
-export const allowedTargets = (role: Role, from: Status): Status[] =>
-	transitions[from].filter((to) => canMakeTransition(role, from, to));
+/** Target yang boleh dituju role ini dari status `from`, buat task type `type`. */
+export const allowedTargets = (role: Role, from: Status, type: TaskType): Status[] =>
+	transitionsFor(type, from).filter((to) => canMakeTransition(role, from, to, type));
 
 /** Aturan transisi di satu tempat. Server yang jadi hakim, UI cuma ngikutin buat nampilin tombol. */
-export function checkTransition(input: { from: Status; to: Status; note: string; role: Role }): RuleResult {
+export function checkTransition(input: {
+	from: Status;
+	to: Status;
+	note: string;
+	role: Role;
+	type: TaskType;
+}): RuleResult {
 	if (!canAdvance(input.role)) {
 		return { ok: false, status: 403, error: 'The marketing role cannot change status' };
 	}
-	if (!transitions[input.from].includes(input.to)) {
+	if (!transitionsFor(input.type, input.from).includes(input.to)) {
 		return {
 			ok: false,
 			status: 400,
-			error: `Cannot move from ${statusLabels[input.from]} to ${statusLabels[input.to]}`
+			error:
+				input.type === 'support'
+					? `Support tasks can only move from Request to Done`
+					: `Cannot move from ${statusLabels[input.from]} to ${statusLabels[input.to]}`
 		};
 	}
-	if (!canMakeTransition(input.role, input.from, input.to)) {
+	if (!canMakeTransition(input.role, input.from, input.to, input.type)) {
 		const only = restrictedTransitions[`${input.from}>${input.to}`] ?? [];
 		return {
 			ok: false,

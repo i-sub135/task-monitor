@@ -49,6 +49,7 @@ Jangan tambah field lain (termasuk `status`, `id`, tanggal). Field yang gak dike
 | --- | --- |
 | `bug` | Ada yang rusak / gak sesuai |
 | `feature` | Fitur baru atau perubahan |
+| `support` | Kerjaan operasional (bikinin akun, reset, akses) — cuma Request → Done |
 
 ### `platform`
 

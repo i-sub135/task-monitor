@@ -258,13 +258,16 @@ export async function transitionTask(
 
 	return db.$transaction(async (tx): Promise<ActionResult> => {
 		await lockOrdering(tx);
-		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, updatedAt: true } });
+		const row = await tx.task.findUnique({
+			where: { id: input.id },
+			select: { status: true, type: true, updatedAt: true }
+		});
 		if (!row) return { ok: false, status: 404, error: 'Task not found' };
 		const stale = staleCheck(row.updatedAt, input.expectedUpdatedAt);
 		if (stale) return stale;
 
 		const from = statusToApp[row.status];
-		const check = checkTransition({ from, to, note, role: input.user.role });
+		const check = checkTransition({ from, to, note, role: input.user.role, type: row.type });
 		if (!check.ok) return check;
 
 		let ordering: number | undefined;
@@ -320,7 +323,9 @@ export async function updateTaskFields(
 		next.description = changes.description;
 	}
 	if (changes.type !== undefined) {
-		if (!taskTypes.includes(changes.type as TaskType)) return { ok: false, status: 400, error: 'Choose bug or feature' };
+		if (!taskTypes.includes(changes.type as TaskType)) {
+			return { ok: false, status: 400, error: 'Choose bug, feature or support' };
+		}
 		next.type = changes.type;
 	}
 	if (changes.platform !== undefined) {
@@ -342,6 +347,10 @@ export async function updateTaskFields(
 		if (stale) return stale;
 		if (!canEditTask(statusToApp[row.status])) {
 			return { ok: false, status: 403, error: 'Task can only be edited while in Request or Queue' };
+		}
+		// TM-19: support cuma punya Request/Done; task di Queue gak boleh diubah jadi support (bakal nyangkut).
+		if (next.type === 'support' && row.type !== 'support' && row.status !== 'request') {
+			return { ok: false, status: 400, error: 'Only tasks in Request can be changed to support' };
 		}
 
 		// Nilai lama/baru disimpen dalam bentuk app-level ('ai-chat', bukan 'ai_chat' punya client), biar UI
@@ -462,7 +471,7 @@ export async function getTaskForApi(db: PrismaClient, id: string, user: SessionU
 		created_at: t.createdAt.toISOString(),
 		updated_at: t.updatedAt.toISOString(),
 		editable: canEditTask(status),
-		allowed_transitions: allowedTargets(user.role, status),
+		allowed_transitions: allowedTargets(user.role, status, t.type),
 		history: t.history.map((h) => ({
 			from: h.statusBefore ? statusToApp[h.statusBefore] : null,
 			to: statusToApp[h.statusAfter],
@@ -524,7 +533,7 @@ export async function listTasksForApi(
 				created_at: t.createdAt.toISOString(),
 				updated_at: t.updatedAt.toISOString(),
 				editable: canEditTask(status),
-				allowed_transitions: allowedTargets(input.user.role, status),
+				allowed_transitions: allowedTargets(input.user.role, status, t.type),
 				position: idx >= 0 ? idx + 1 : null
 			});
 		}

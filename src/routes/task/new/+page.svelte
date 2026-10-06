@@ -3,7 +3,7 @@
 	import { onDestroy, untrack } from 'svelte';
 	import { formatSize } from '$lib/upload-limits';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, InfoIcon, XIcon } from '@lucide/svelte';
+	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, InfoIcon, LifeBuoyIcon, XIcon } from '@lucide/svelte';
 	import { platforms, platformLabels } from '$lib/tasks';
 	import { platformIcons, platformColors } from '$lib/platform-icons';
 
@@ -95,8 +95,8 @@
 		<p class="text-sm opacity-70">A task goes into the Request column and is visible to everyone.</p>
 	</div>
 
-	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug dan feature">
-		<p class="flex items-center gap-2 font-semibold"><InfoIcon class="size-4" /> Ini bug atau feature?</p>
+	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug, feature dan support">
+		<p class="flex items-center gap-2 font-semibold"><InfoIcon class="size-4" /> Ini bug, feature, atau support?</p>
 		<ul class="flex flex-col gap-2">
 			<li class="flex gap-2">
 				<BugIcon class="mt-0.5 size-4 shrink-0" />
@@ -110,6 +110,13 @@
 				<span
 					><strong>Feature</strong>: sesuatu yang belum ada dan kamu mau ditambah atau diubah. Contoh:
 					filter baru di laporan, halaman baru, tombol export.</span
+				>
+			</li>
+			<li class="flex gap-2">
+				<LifeBuoyIcon class="mt-0.5 size-4 shrink-0" />
+				<span
+					><strong>Support</strong>: minta bantuan operasional, bukan ngubah aplikasi. Contoh: bikinin akun
+					admin, reset password, atur akses. Langsung dari Request ke Done.</span
 				>
 			</li>
 		</ul>
@@ -153,6 +160,18 @@
 					checked={form?.values?.type === 'feature'}
 				/>
 				<SparklesIcon class="size-3.5" /> feature
+			</label>
+			<label
+				class="chip preset-outlined-surface-300-700 cursor-pointer has-[:checked]:preset-filled-support has-[:focus-visible]:ring-2"
+			>
+				<input
+					class="sr-only"
+					type="radio"
+					name="type"
+					value="support"
+					checked={form?.values?.type === 'support'}
+				/>
+				<LifeBuoyIcon class="size-3.5" /> support
 			</label>
 		</div>
 		{#if form?.errors?.type}<span class="text-error-500 text-sm">{form.errors.type}</span>{/if}

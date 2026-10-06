@@ -8,7 +8,7 @@ import { getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { descriptionText, sanitizeDescription } from '$lib/server/richtext';
 import { MAX_FILES } from '$lib/upload-limits';
-import { platforms, type Platform, type TaskType } from '$lib/tasks';
+import { platforms, taskTypes, type Platform, type TaskType } from '$lib/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = () => ({
@@ -37,7 +37,7 @@ export const actions: Actions = {
 		if (!title) errors.title = 'Title is required';
 		else if (title.length > 120) errors.title = 'Title must be at most 120 characters';
 		if (!descriptionText(description)) errors.description = 'Description is required';
-		if (type !== 'bug' && type !== 'feature') errors.type = 'Choose bug or feature';
+		if (!taskTypes.includes(type as TaskType)) errors.type = 'Choose bug, feature or support';
 		if (!platforms.includes(platform as Platform)) errors.platform = 'Choose a platform';
 
 		const uploads = await checkUploads(files, getUploadLimitBytes());

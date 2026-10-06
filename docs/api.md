@@ -21,7 +21,7 @@ Buat kuli (atau user sendiri) yang mau kirim task baru dan update task tanpa buk
 
 ## Enum
 
-- `type`: `bug`, `feature`
+- `type`: `bug`, `feature`, `support` (support = kerjaan operasional, cuma Request → Done)
 - `platform`: `api`, `mobile`, `ai-chat`, `web`, `other`
 - `status`: `request`, `queue`, `in-progress`, `ready-to-test`, `done`, `done-live`, `rejected`
 

@@ -2,8 +2,6 @@
 	import { enhance } from '$app/forms';
 	import {
 		ArrowLeftIcon,
-		BugIcon,
-		SparklesIcon,
 		FileTextIcon,
 		ZoomInIcon,
 		ZoomOutIcon,
@@ -17,18 +15,21 @@
 		platformLabels,
 		platforms,
 		statusLabels,
+		taskTypes,
 		type Platform,
 		type Status
 	} from '$lib/tasks';
 	import { linkify } from '$lib/linkify';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { platformIcons, platformColors } from '$lib/platform-icons';
+	import { typeFilledClass, typeIcons } from '$lib/type-styles';
 	import type { AttachmentInfo } from '$lib/tasks';
 
 	let { data, form } = $props();
 	const task = $derived(data.task);
 	// TM-14: cuma target yang boleh buat role ini (mis. developer gak dapet tombol ke Done).
-	const nextStatuses = $derived(data.user ? allowedTargets(data.user.role, task.status) : []);
+	const nextStatuses = $derived(data.user ? allowedTargets(data.user.role, task.status, task.type) : []);
+	const TypeIcon = $derived(typeIcons[task.type]);
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
 	// TM-11/TM-12: siapa pun yang login boleh edit title/description/type/platform, selama status Request/Queue.
 	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));
@@ -139,50 +140,34 @@
 	<article class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-6 border p-6 shadow-xl">
 		<div class="flex flex-wrap items-center gap-2 text-xs">
 			{#if editingType}
-				<form
-					method="POST"
-					action="?/updateType"
-					use:enhance={() =>
-						async ({ result, update }) => {
-							await update();
-							if (result.type === 'success') editingType = false;
-						}}
-				>
-					<input type="hidden" name="type" value="bug" />
-					<button type="submit" class="badge preset-filled-error-500 cursor-pointer"
-						><BugIcon class="size-3" /> bug</button
+				<!-- TM-19: support cuma boleh dipilih kalau task masih di Request (server juga ngecek). -->
+				{#each taskTypes.filter((t) => t !== 'support' || task.status === 'request' || task.type === 'support') as t (t)}
+					{@const Icon = typeIcons[t]}
+					<form
+						method="POST"
+						action="?/updateType"
+						use:enhance={() =>
+							async ({ result, update }) => {
+								await update();
+								if (result.type === 'success') editingType = false;
+							}}
 					>
-				</form>
-				<form
-					method="POST"
-					action="?/updateType"
-					use:enhance={() =>
-						async ({ result, update }) => {
-							await update();
-							if (result.type === 'success') editingType = false;
-						}}
-				>
-					<input type="hidden" name="type" value="feature" />
-					<button type="submit" class="badge preset-filled-primary-500 cursor-pointer"
-						><SparklesIcon class="size-3" /> feature</button
-					>
-				</form>
+						<input type="hidden" name="type" value={t} />
+						<button type="submit" class="badge {typeFilledClass[t]} cursor-pointer"><Icon class="size-3" /> {t}</button>
+					</form>
+				{/each}
 				<button type="button" class="badge preset-tonal" onclick={() => (editingType = false)}>Cancel</button>
 			{:else if canEdit}
 				<button
 					type="button"
-					class="badge cursor-pointer {task.type === 'bug' ? 'preset-filled-error-500' : 'preset-filled-primary-500'}"
+					class="badge cursor-pointer {typeFilledClass[task.type]}"
 					title="Click to change"
 					onclick={() => (editingType = true)}
 				>
-					{#if task.type === 'bug'}<BugIcon class="size-3" /> bug{:else}<SparklesIcon class="size-3" /> feature{/if}
+					<TypeIcon class="size-3" /> {task.type}
 				</button>
-			{:else if task.type === 'bug'}
-				<span class="badge preset-filled-error-500"><BugIcon class="size-3" /> bug</span>
 			{:else}
-				<span class="badge preset-filled-primary-500"
-					><SparklesIcon class="size-3" /> feature</span
-				>
+				<span class="badge {typeFilledClass[task.type]}"><TypeIcon class="size-3" /> {task.type}</span>
 			{/if}
 
 			{#if editingPlatform}

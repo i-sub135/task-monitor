@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import { BugIcon, CalendarIcon, PaperclipIcon, SparklesIcon } from '@lucide/svelte';
+	import { CalendarIcon, PaperclipIcon } from '@lucide/svelte';
+	import { typeFilledClass, typeIcons, typeTextClass } from '$lib/type-styles';
 	import { platformLabels, type BoardTask } from '$lib/tasks';
 	import { platformIcons, platformColors } from '$lib/platform-icons';
 
@@ -24,6 +25,7 @@
 	} & HTMLAttributes<HTMLElement> = $props();
 
 	const PlatformIcon = $derived(platformIcons[task.platform]);
+	const TypeIcon = $derived(typeIcons[task.type]);
 	const ageLabel = (days: number) => (days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`);
 
 	// Footer: bulatan inisial pembuat, warnanya tetap per user (dari id, bukan nama) biar sekilas kebedain.
@@ -52,11 +54,7 @@
 		{#if task.position !== null}
 			<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
 		{/if}
-		{#if task.type === 'bug'}
-			<span class="badge preset-filled-error-500"><BugIcon class="size-3" /> bug</span>
-		{:else}
-			<span class="badge preset-filled-primary-500"><SparklesIcon class="size-3" /> feature</span>
-		{/if}
+		<span class="badge {typeFilledClass[task.type]}"><TypeIcon class="size-3" /> {task.type}</span>
 		<span
 			class="badge"
 			style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform].fg}"
@@ -86,9 +84,7 @@
 		class="focus-visible:outline-primary-500 font-medium after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2 {task.status ===
 		'rejected'
 			? 'text-gray-500 line-through'
-			: task.type === 'bug'
-				? 'text-error-500'
-				: 'text-primary-500'}"
+			: typeTextClass[task.type]}"
 	>
 		{task.title}
 	</a>

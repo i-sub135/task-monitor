@@ -8,7 +8,7 @@ import sanitizeHtml from 'sanitize-html';
 
 // Harus sama dengan src/lib/server/richtext.ts dan src/lib/tasks.ts.
 const ALLOWED_TAGS = ['p', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'br', 'blockquote'];
-const TYPES = ['bug', 'feature'];
+const TYPES = ['bug', 'feature', 'support'];
 const PLATFORMS = ['api', 'mobile', 'ai-chat', 'web', 'other'];
 const FIELDS = ['title', 'description', 'type', 'platform', 'created_by'];
 

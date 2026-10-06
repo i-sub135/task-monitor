@@ -141,6 +141,15 @@
 	background-color: var(--status-rejected);
 }
 
+/* TM-19: warna type support (biru dari palet Iyan), sejajar sama preset error/primary buat bug/feature. */
+@utility preset-filled-support {
+	background-color: #578ef5;
+	color: #fcf9ea;
+}
+@utility text-support {
+	color: #578ef5;
+}
+
 /*
  * Panel siapa/kapan di kartu task: latar tema setengah transparan, jadi warnanya ngikut warna kartu (status)
  * tapi lebih muda. Di kartu tanpa warna (Request/Queue, halaman list) hasilnya krem, dipisah garis + bayangan.
