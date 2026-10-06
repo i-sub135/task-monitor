@@ -86,7 +86,9 @@
 		class="focus-visible:outline-primary-500 font-medium after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2 {task.status ===
 		'rejected'
 			? 'text-gray-500 line-through'
-			: ''}"
+			: task.type === 'bug'
+				? 'text-error-500'
+				: 'text-primary-500'}"
 	>
 		{task.title}
 	</a>
@@ -95,7 +97,7 @@
 	     jadi warnanya ikut kartu tapi lebih muda, + bayangan halus (elevation) biar keliatan ngambang. Nama gak dipotong: kalau kartu sempit, tanggal turun ke baris kedua.
 	     Waktu persis di tooltip. -->
 	<footer
-		class="card-meta border-surface-300-700/60 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border px-2 py-1.5 text-xs shadow-sm"
+		class="card-meta border-surface-300-700/60 mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border px-2 py-1.5 text-xs shadow-sm"
 		title="Created {task.createdAt}"
 	>
 		<span class="flex min-w-0 items-center gap-1.5">
