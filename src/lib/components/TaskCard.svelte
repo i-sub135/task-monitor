@@ -91,11 +91,11 @@
 		{task.title}
 	</a>
 
-	<!-- Kotak siapa/kapan: panel kecil di dalam kartu, latar tema + bayangan halus (elevation) biar keliatan
-	     ngambang di atas warna kartu. Nama gak dipotong: kalau kartu sempit, tanggal turun ke baris kedua.
+	<!-- Kotak siapa/kapan: panel kecil di dalam kartu, latar tema setengah transparan (`.card-meta` di app.css)
+	     jadi warnanya ikut kartu tapi lebih muda, + bayangan halus (elevation) biar keliatan ngambang. Nama gak dipotong: kalau kartu sempit, tanggal turun ke baris kedua.
 	     Waktu persis di tooltip. -->
 	<footer
-		class="bg-surface-50-950 border-surface-300-700/60 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border px-2 py-1.5 text-xs shadow-sm"
+		class="card-meta border-surface-300-700/60 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border px-2 py-1.5 text-xs shadow-sm"
 		title="Created {task.createdAt}"
 	>
 		<span class="flex min-w-0 items-center gap-1.5">

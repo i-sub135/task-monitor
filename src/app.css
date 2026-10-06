@@ -142,6 +142,14 @@
 }
 
 /*
+ * Panel siapa/kapan di kartu task: latar tema setengah transparan, jadi warnanya ngikut warna kartu (status)
+ * tapi lebih muda. Di kartu tanpa warna (Request/Queue, halaman list) hasilnya krem, dipisah garis + bayangan.
+ */
+.card-meta {
+	background-color: color-mix(in oklab, var(--color-surface-50) 55%, transparent);
+}
+
+/*
  * Tab status di HP: yang belum dipilih pakai warna latar yang sama dengan kartu statusnya; yang lagi dipilih
  * tetap hijau bawaan (preset-filled-primary-500). Hover/fokus tetap pakai warna itu dengan teks gelap, bukan
  * isian gelap dan teks putih kayak tombol outline biasa, biar warna statusnya gak hilang.
