@@ -6,6 +6,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
+_(kosong)_
 
 ## Backlog
 

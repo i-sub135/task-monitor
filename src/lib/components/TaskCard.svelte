@@ -50,21 +50,24 @@
 		? 'opacity-40'
 		: ''} {rest.class ?? ''}"
 >
-	<div class="flex flex-wrap items-center gap-2 text-xs">
-		{#if task.position !== null}
-			<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
-		{/if}
-		<span class="badge {typeFilledClass[task.type]}"><TypeIcon class="size-3" /> {task.type}</span>
-		<span
-			class="badge"
-			style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform].fg}"
-			><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
-		>
-		<!-- Grup kanan: badge LIVE + ▲▼ dalam satu wadah ml-auto. Kalau masing-masing ml-auto, sisa ruang
-		     kebagi dua dan LIVE nyangkut di tengah (slot actions di board selalu dikirim walau isinya kosong).
-		     Wadahnya gak di-z-10 biar klik di LIVE tetep buka task; tombol di `actions` yang pasang z-10 sendiri. -->
+	<!-- Baris badge: kiri (posisi, type, platform) boleh turun baris kalau kartu sempit; kanan (LIVE, ▲▼)
+	     dikunci di pojok kanan atas, jadi gak pernah turun sendirian ke baris kedua. -->
+	<div class="flex items-start gap-2 text-xs">
+		<div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+			{#if task.position !== null}
+				<span class="badge preset-tonal" title="Position in column">#{task.position}</span>
+			{/if}
+			<span class="badge {typeFilledClass[task.type]}"><TypeIcon class="size-3" /> {task.type}</span>
+			<span
+				class="badge"
+				style="background-color: {platformColors[task.platform].bg}; color: {platformColors[task.platform].fg}"
+				><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
+			>
+		</div>
+		<!-- Grup kanan dalam satu wadah (kalau LIVE sama ▲▼ masing-masing ml-auto, sisa ruang kebagi dua). Wadahnya
+		     gak di-z-10 biar klik di LIVE tetep buka task; tombol di `actions` yang pasang z-10 sendiri. -->
 		{#if task.status === 'done-live' || actions}
-			<div class="ml-auto flex items-center gap-1">
+			<div class="flex shrink-0 items-center gap-1">
 				{#if task.status === 'done-live'}
 					<!-- TM-15: latar = latar tema, garis ijo ngejreng tebel biar ketangkep mata di atas kartu Done
 					     yang udah ijo, tulisan biru (#2D7495). -->
