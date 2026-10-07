@@ -5,17 +5,17 @@ export type SessionPayload = { uid: string; exp: number };
 const sign = (body: string, secret: string) => createHmac('sha256', secret).update(body).digest();
 
 /** Token = base64url(payload) + "." + base64url(HMAC-SHA256). Nol state di server, nol tabel session. */
-export function signSession(payload: SessionPayload, secret: string): string {
+export const signSession = (payload: SessionPayload, secret: string): string => {
 	const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
 	return `${body}.${sign(body, secret).toString('base64url')}`;
-}
+};
 
 /** Balikin payload kalau tanda tangan cocok dan belum kedaluwarsa, selain itu null. */
-export function verifySession(
+export const verifySession = (
 	token: string | undefined,
 	secret: string,
 	now: number = Date.now()
-): SessionPayload | null {
+): SessionPayload | null => {
 	if (!token) return null;
 	const parts = token.split('.');
 	if (parts.length !== 2) return null;
@@ -33,7 +33,7 @@ export function verifySession(
 	} catch {
 		return null;
 	}
-}
+};
 
 /**
  * Cookie sesi dikasih Secure cuma kalau app diakses lewat HTTPS. Bawaan SvelteKit ngasih Secure di semua URL

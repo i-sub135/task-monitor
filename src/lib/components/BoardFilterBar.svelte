@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SearchIcon, XIcon } from '@lucide/svelte';
-	import { filterQuery, isFilterActive, parseBoardFilter, type BoardFilter } from '$lib/board-filter';
-	import { platformLabels, platforms, taskTypes } from '$lib/tasks';
+	import { filterQuery, isFilterActive, parseBoardFilter, type BoardFilter } from '$lib/utils/board-filter';
+	import { platformLabels, platforms, taskTypes } from '$lib/utils/tasks';
 
 	// TM-16: baris filter /board dan /board/list/[status]. Gak ada tombol Apply: ganti dropdown langsung
 	// nyaring, ketik judul nyaring setelah jeda sebentar. Filter ditaruh di URL lewat goto (bukan submit GET
@@ -13,19 +13,19 @@
 	let form = $state<HTMLFormElement>();
 	let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
-	function apply() {
+	const apply = () => {
 		clearTimeout(searchTimer);
 		if (!form) return;
 		const params = new URLSearchParams();
 		for (const [key, value] of new FormData(form)) if (typeof value === 'string') params.set(key, value);
 		const next = parseBoardFilter(params);
 		void goto(`${page.url.pathname}${filterQuery(next)}`, { keepFocus: true, noScroll: true, replaceState: true });
-	}
+	};
 
-	function onSearchInput() {
+	const onSearchInput = () => {
 		clearTimeout(searchTimer);
 		searchTimer = setTimeout(apply, 300);
-	}
+	};
 </script>
 
 <form

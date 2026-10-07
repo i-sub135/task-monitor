@@ -8,7 +8,7 @@ const TRUE = new Set(['1', 'true', 'yes', 'on']);
  * Baca setelan storage dari env (dikasih dari luar biar gampang dites). Salah isi = lempar error yang
  * nyebut env mana yang bermasalah, supaya app gagal nyala dengan pesan jelas, bukan gagal pas upload pertama.
  */
-export function parseStorageConfig(env: Record<string, string | undefined>): StorageConfig {
+export const parseStorageConfig = (env: Record<string, string | undefined>): StorageConfig => {
 	const get = (name: string) => env[name]?.trim() ?? '';
 
 	const driver = (get('STORAGE_DRIVER') || 'local').toLowerCase();
@@ -45,4 +45,4 @@ export function parseStorageConfig(env: Record<string, string | undefined>): Sto
 			checksum
 		}
 	};
-}
+};

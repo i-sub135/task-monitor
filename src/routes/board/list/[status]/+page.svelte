@@ -3,10 +3,10 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { ArrowDownIcon, ArrowLeftIcon, ArrowUpIcon } from '@lucide/svelte';
-	import { canReorder, statusLabels, type BoardTask } from '$lib/tasks';
+	import { canReorder, statusLabels, type BoardTask } from '$lib/utils/tasks';
 	import TaskCard from '$lib/components/TaskCard.svelte';
 	import BoardFilterBar from '$lib/components/BoardFilterBar.svelte';
-	import { applyBoardFilter, creatorOptions, filterQuery, isFilterActive, parseBoardFilter } from '$lib/board-filter';
+	import { applyBoardFilter, creatorOptions, filterQuery, isFilterActive, parseBoardFilter } from '$lib/utils/board-filter';
 
 	let { data, form } = $props();
 
@@ -25,13 +25,13 @@
 	let dragging = $state<BoardTask | null>(null);
 	let overId = $state<string | null>(null);
 
-	async function sendReorder(id: string, position: number) {
+	const sendReorder = async (id: string, position: number) => {
 		reorderFields = { id, position: String(position) };
 		await tick();
 		reorderForm?.requestSubmit();
-	}
+	};
 
-	function onDragStart(e: DragEvent, task: BoardTask) {
+	const onDragStart = (e: DragEvent, task: BoardTask) => {
 		if (!reorderable) {
 			e.preventDefault();
 			return;
@@ -39,26 +39,26 @@
 		dragging = task;
 		e.dataTransfer?.setData('text/plain', task.id);
 		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-	}
+	};
 
-	function onDragEnd() {
+	const onDragEnd = () => {
 		dragging = null;
 		overId = null;
-	}
+	};
 
-	function onDragOver(e: DragEvent, target: BoardTask) {
+	const onDragOver = (e: DragEvent, target: BoardTask) => {
 		if (!dragging || dragging.id === target.id) return;
 		e.preventDefault();
 		overId = target.id;
-	}
+	};
 
-	function onDrop(e: DragEvent, target: BoardTask) {
+	const onDrop = (e: DragEvent, target: BoardTask) => {
 		e.preventDefault();
 		const task = dragging;
 		onDragEnd();
 		if (!task || task.id === target.id || target.position === null) return;
 		void sendReorder(task.id, target.position);
-	}
+	};
 </script>
 
 <svelte:head>

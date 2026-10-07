@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { onDestroy, untrack } from 'svelte';
-	import { formatSize } from '$lib/upload-limits';
+	import { formatSize } from '$lib/utils/upload-limits';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { ArrowLeftIcon, BugIcon, SparklesIcon, FileTextIcon, InfoIcon, LifeBuoyIcon, XIcon } from '@lucide/svelte';
-	import { platforms, platformLabels } from '$lib/tasks';
-	import { platformIcons, platformColors } from '$lib/platform-icons';
+	import { platforms, platformLabels } from '$lib/utils/tasks';
+	import { platformIcons, platformColors } from '$lib/utils/platform-icons';
 
 	let { form, data } = $props();
 
@@ -29,11 +29,11 @@
 	const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'application/pdf'];
 	const isAllowed = (f: File) => ALLOWED_TYPES.includes(f.type);
 
-	function revokeAll() {
+	const revokeAll = () => {
 		for (const p of previews) if (p.url) URL.revokeObjectURL(p.url);
-	}
+	};
 
-	function onPick(e: Event) {
+	const onPick = (e: Event) => {
 		revokeAll();
 		const files = Array.from((e.currentTarget as HTMLInputElement).files ?? []);
 		previews = files.map((f) => ({
@@ -48,11 +48,11 @@
 					? `Larger than ${formatSize(MAX_FILE_BYTES)}`
 					: undefined
 		}));
-	}
+	};
 
 	// Hapus satu lampiran. Input file gak bisa diubah per item, jadi dibangun ulang dari file yang tersisa
 	// lewat DataTransfer; yang dikirim ke server tetap isi input itu.
-	function removeFile(id: number) {
+	const removeFile = (id: number) => {
 		const gone = previews.find((p) => p.id === id);
 		if (gone?.url) URL.revokeObjectURL(gone.url);
 		previews = previews.filter((p) => p.id !== id);
@@ -61,13 +61,13 @@
 			for (const p of previews) keep.items.add(p.file);
 			fileInput.files = keep.files;
 		}
-	}
+	};
 
-	function clearFiles() {
+	const clearFiles = () => {
 		revokeAll();
 		previews = [];
 		if (fileInput) fileInput.value = '';
-	}
+	};
 
 	onDestroy(revokeAll);
 

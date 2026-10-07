@@ -1,5 +1,5 @@
-import { formatJakarta } from '../time.ts';
-import { roles, type Role } from '../roles.ts';
+import { formatJakarta } from '../utils/time.ts';
+import { roles, type Role } from '../utils/roles.ts';
 import { Prisma, type PrismaClient } from './generated/prisma/client.ts';
 import type { UserRole, UserStatus } from './generated/prisma/enums.ts';
 
@@ -42,31 +42,31 @@ const toApp = (u: UserRow): AppUser => ({
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function countUsers(db: PrismaClient): Promise<number> {
+export const countUsers = async (db: PrismaClient): Promise<number> => {
 	return db.user.count();
-}
+};
 
-export async function listUsers(db: PrismaClient): Promise<AppUser[]> {
+export const listUsers = async (db: PrismaClient): Promise<AppUser[]> => {
 	const rows = await db.user.findMany({ orderBy: { createdAt: 'asc' } });
 	return rows.map(toApp);
-}
+};
 
-export async function findUserById(db: PrismaClient, id: string): Promise<AppUser | null> {
+export const findUserById = async (db: PrismaClient, id: string): Promise<AppUser | null> => {
 	// Kolom uuid: string non-uuid bikin Postgres error, bukan "gak ketemu".
 	if (!UUID_PATTERN.test(id)) return null;
 	const row = await db.user.findUnique({ where: { id } });
 	return row ? toApp(row) : null;
-}
+};
 
-export async function findUserByEmail(db: PrismaClient, email: string): Promise<AppUser | null> {
+export const findUserByEmail = async (db: PrismaClient, email: string): Promise<AppUser | null> => {
 	const row = await db.user.findUnique({ where: { email: email.trim().toLowerCase() } });
 	return row ? toApp(row) : null;
-}
+};
 
 export type NewUserInput = { name: string; email: string; role: string };
 
 /** Validasi bentuk input. Keunikan email dicek DB (unique index), bukan di sini. */
-export function validateNewUser({ name, email, role }: NewUserInput): Record<string, string> {
+export const validateNewUser = ({ name, email, role }: NewUserInput): Record<string, string> => {
 	const errors: Record<string, string> = {};
 	if (!name) errors.name = 'Name is required';
 	else if (name.length > 100) errors.name = 'Name must be at most 100 characters';
@@ -76,11 +76,11 @@ export function validateNewUser({ name, email, role }: NewUserInput): Record<str
 
 	if (!roles.includes(role as Role)) errors.role = 'Choose a role';
 	return errors;
-}
+};
 
 export type CreateResult = { ok: true; user: AppUser } | { ok: false; errors: Record<string, string> };
 
-export async function createUser(db: PrismaClient, input: NewUserInput): Promise<CreateResult> {
+export const createUser = async (db: PrismaClient, input: NewUserInput): Promise<CreateResult> => {
 	const errors = validateNewUser(input);
 	if (Object.keys(errors).length > 0) return { ok: false, errors };
 
@@ -95,11 +95,11 @@ export async function createUser(db: PrismaClient, input: NewUserInput): Promise
 		}
 		throw e;
 	}
-}
+};
 
 export type UpdateResult = { ok: true; user: AppUser } | { ok: false; status: number; error: string };
 
-async function update(db: PrismaClient, id: string, data: { status?: UserStatus; role?: UserRole }): Promise<UpdateResult> {
+const update = async (db: PrismaClient, id: string, data: { status?: UserStatus; role?: UserRole }): Promise<UpdateResult> => {
 	if (!UUID_PATTERN.test(id)) return { ok: false, status: 404, error: 'User not found' };
 	try {
 		const row = await db.user.update({ where: { id }, data });
@@ -110,23 +110,23 @@ async function update(db: PrismaClient, id: string, data: { status?: UserStatus;
 		}
 		throw e;
 	}
-}
+};
 
-export function setUserStatus(
+export const setUserStatus = (
 	db: PrismaClient,
 	id: string,
 	status: string,
 	actorId: string
-): Promise<UpdateResult> | UpdateResult {
+): Promise<UpdateResult> | UpdateResult => {
 	if (status !== 'active' && status !== 'non-active') return { ok: false, status: 400, error: 'Invalid status' };
 	// Biar gak ada yang ngunci dirinya sendiri (dan semua admin) di luar aplikasi.
 	if (status === 'non-active' && id === actorId) {
 		return { ok: false, status: 400, error: 'You cannot deactivate your own account' };
 	}
 	return update(db, id, { status: statusToDb[status] });
-}
+};
 
-export function setUserRole(db: PrismaClient, id: string, role: string): Promise<UpdateResult> | UpdateResult {
+export const setUserRole = (db: PrismaClient, id: string, role: string): Promise<UpdateResult> | UpdateResult => {
 	if (!roles.includes(role as Role)) return { ok: false, status: 400, error: 'Invalid role' };
 	return update(db, id, { role: role as UserRole });
-}
+};

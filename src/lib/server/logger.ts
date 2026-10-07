@@ -16,6 +16,6 @@ export const logger = createLogger({
 });
 
 /** Event key + metadata, e.g. logEvent('http.request', { method: 'GET', path: '/' }). */
-export function logEvent(event: string, meta: Record<string, unknown> = {}): void {
+export const logEvent = (event: string, meta: Record<string, unknown> = {}): void => {
 	logger.info(event, meta);
-}
+};

@@ -14,14 +14,14 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
 };
 
 /** Saring HTML dari editor (atau apa pun) jadi cuma tag yang diizinin, nol atribut. */
-export function sanitizeDescription(html: string): string {
+export const sanitizeDescription = (html: string): string => {
 	return sanitizeHtml(html, SANITIZE_OPTIONS);
-}
+};
 
 /** Isi teks doang (tanpa tag), buat cek "kosong beneran" tanpa kepancing markup kosong kayak <p></p>. */
-export function descriptionText(html: string): string {
+export const descriptionText = (html: string): string => {
 	return sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).trim();
-}
+};
 
 const HTML_TAG_PATTERN = /<[a-z][\s\S]*>/i;
 
@@ -31,8 +31,8 @@ const HTML_TAG_PATTERN = /<[a-z][\s\S]*>/i;
  * gaknya tag HTML: kalau ada, anggap udah HTML (dari editor, sudah/akan disaring ulang di bawah).
  * Kalau nggak, escape dulu + newline jadi <br> biar tampilannya identik sama sebelum tiket ini.
  */
-export function renderDescriptionHtml(raw: string): string {
+export const renderDescriptionHtml = (raw: string): string => {
 	if (HTML_TAG_PATTERN.test(raw)) return sanitizeDescription(raw);
 	const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	return sanitizeDescription(escaped.replace(/\r\n|\r|\n/g, '<br>'));
-}
+};

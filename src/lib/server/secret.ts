@@ -7,14 +7,14 @@ const MIN_LENGTH = 32;
 let devSecret: string | undefined;
 
 /** Password login. Wajib ada: kalau kosong, gak ada yang bisa masuk, jadi lebih baik server gak nyala. */
-export function getLoginPassword(): string {
+export const getLoginPassword = (): string => {
 	const password = env.AUTH_ADMIN;
 	if (!password) throw new Error('AUTH_ADMIN is not set. Put the login password in .env');
 	return password;
-}
+};
 
 /** Kunci tanda tangan cookie. Wajib ada di production; di dev dibikin acak per proses kalau env kosong. */
-export function getSessionSecret(): string {
+export const getSessionSecret = (): string => {
 	const configured = env.COOKIE_SIGN_SECRET;
 	if (configured) {
 		if (configured.length < MIN_LENGTH) {
@@ -31,4 +31,4 @@ export function getSessionSecret(): string {
 		});
 	}
 	return devSecret;
-}
+};

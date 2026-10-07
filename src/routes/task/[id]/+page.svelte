@@ -8,7 +8,7 @@
 		DownloadIcon,
 		XIcon
 	} from '@lucide/svelte';
-	import { canAdvance } from '$lib/roles';
+	import { canAdvance } from '$lib/utils/roles';
 	import {
 		allowedTargets,
 		canEditTask,
@@ -18,12 +18,12 @@
 		taskTypes,
 		type Platform,
 		type Status
-	} from '$lib/tasks';
-	import { linkify } from '$lib/linkify';
+	} from '$lib/utils/tasks';
+	import { linkify } from '$lib/utils/linkify';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import { platformIcons, platformColors } from '$lib/platform-icons';
-	import { typeFilledClass, typeIcons } from '$lib/type-styles';
-	import type { AttachmentInfo } from '$lib/tasks';
+	import { platformIcons, platformColors } from '$lib/utils/platform-icons';
+	import { typeFilledClass, typeIcons } from '$lib/utils/type-styles';
+	import type { AttachmentInfo } from '$lib/utils/tasks';
 
 	let { data, form } = $props();
 	const task = $derived(data.task);
@@ -66,9 +66,9 @@
 	let editingType = $state(false);
 	let editingPlatform = $state(false);
 	/** Ganti `autofocus` (dilarang lint a11y): fokus pas element ini pertama kali dipasang ke DOM. */
-	function focusOnMount(node: HTMLElement) {
+	const focusOnMount = (node: HTMLElement) => {
 		node.focus();
-	}
+	};
 
 	// HP (di bawah 500px): pindah status lewat modal, dibuka dari tombol. Tab = target yang mungkin; catatan wajib
 	// cuma buat reject (aturan yang sama dengan server dan kartu di desktop).
@@ -98,10 +98,10 @@
 				: to === 'done'
 					? 'Note / result link (optional)'
 					: 'Note (optional)';
-	function openMove() {
+	const openMove = () => {
 		moveTarget = nextStatuses[0];
 		moveOpen = true;
-	}
+	};
 
 	// Viewer lampiran: modal dengan zoom dan unduh, bukan buka tab baru.
 	const ZOOM_STEPS = [1, 1.5, 2, 3, 4];
@@ -115,10 +115,10 @@
 		if (viewing && viewer && !viewer.open) viewer.showModal();
 	});
 
-	function openViewer(file: AttachmentInfo) {
+	const openViewer = (file: AttachmentInfo) => {
 		zoomIndex = 0;
 		viewing = file;
-	}
+	};
 	const zoomIn = () => (zoomIndex = Math.min(zoomIndex + 1, ZOOM_STEPS.length - 1));
 	const zoomOut = () => (zoomIndex = Math.max(zoomIndex - 1, 0));
 	// Klik dua kali di gambar: balik ke pas layar, atau zoom 2x.

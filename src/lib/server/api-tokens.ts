@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { formatJakarta } from '../time.ts';
-import { canUseApi, type SessionUser } from '../roles.ts';
+import { formatJakarta } from '../utils/time.ts';
+import { canUseApi, type SessionUser } from '../utils/roles.ts';
 import type { PrismaClient } from './generated/prisma/client.ts';
 
 /**
@@ -20,7 +20,7 @@ export type TokenResult = { ok: true; token: string } | { ok: false; status: num
 
 const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 
-export async function listApiTokens(db: PrismaClient, userId: string): Promise<ApiTokenInfo[]> {
+export const listApiTokens = async (db: PrismaClient, userId: string): Promise<ApiTokenInfo[]> => {
 	const rows = await db.apiToken.findMany({ where: { userId }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
 	return rows.map((t) => ({
 		id: t.id,
@@ -29,10 +29,10 @@ export async function listApiTokens(db: PrismaClient, userId: string): Promise<A
 		createdAt: formatJakarta(t.createdAt),
 		lastUsedAt: t.lastUsedAt ? formatJakarta(t.lastUsedAt) : null
 	}));
-}
+};
 
 /** Bikin token baru. Balikin token asli (satu-satunya kesempatan dia keliatan). */
-export async function createApiToken(db: PrismaClient, input: { user: SessionUser; name: string }): Promise<TokenResult> {
+export const createApiToken = async (db: PrismaClient, input: { user: SessionUser; name: string }): Promise<TokenResult> => {
 	const name = input.name.trim();
 	if (!canUseApi(input.user.role)) return { ok: false, status: 403, error: 'Your role cannot use API tokens' };
 	if (!name) return { ok: false, status: 400, error: 'Name is required' };
@@ -56,24 +56,24 @@ export async function createApiToken(db: PrismaClient, input: { user: SessionUse
 		});
 		return { ok: true, token };
 	});
-}
+};
 
 /** Revoke = hapus. Cuma token milik user itu sendiri yang bisa kena. */
-export async function revokeApiToken(db: PrismaClient, input: { userId: string; id: string }): Promise<boolean> {
+export const revokeApiToken = async (db: PrismaClient, input: { userId: string; id: string }): Promise<boolean> => {
 	if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.id)) return false;
 	const { count } = await db.apiToken.deleteMany({ where: { id: input.id, userId: input.userId } });
 	return count > 0;
-}
+};
 
 /**
  * Cek token dari header `Authorization: Bearer <token>`. Sah = token ada, user-nya active, dan role-nya
  * boleh pakai API (marketing gak). Balikin user (role terbaru dari DB) + nama token buat jejak `via`.
  */
-export async function authenticateApiToken(
+export const authenticateApiToken = async (
 	db: PrismaClient,
 	token: string,
 	now: Date = new Date()
-): Promise<{ user: SessionUser; via: string } | null> {
+): Promise<{ user: SessionUser; via: string } | null> => {
 	if (!TOKEN_PATTERN.test(token)) return null;
 	const row = await db.apiToken.findUnique({
 		where: { tokenHash: hashToken(token) },
@@ -85,4 +85,4 @@ export async function authenticateApiToken(
 		await db.apiToken.update({ where: { id: row.id }, data: { lastUsedAt: now } });
 	}
 	return { user: { id: row.user.id, name: row.user.name, role: row.user.role }, via: row.name };
-}
+};

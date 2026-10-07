@@ -2,9 +2,9 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { CalendarIcon, PaperclipIcon } from '@lucide/svelte';
-	import { typeFilledClass, typeIcons, typeTextClass } from '$lib/type-styles';
-	import { platformLabels, type BoardTask } from '$lib/tasks';
-	import { platformIcons, platformColors } from '$lib/platform-icons';
+	import { typeFilledClass, typeIcons, typeTextClass } from '$lib/utils/type-styles';
+	import { platformLabels, type BoardTask } from '$lib/utils/tasks';
+	import { platformIcons, platformColors } from '$lib/utils/platform-icons';
 
 	// Isi kartu task yang dipakai bareng /board dan /board/list/[status]. Handler drag dan class tambahan
 	// dioper lewat rest props ke <article>; tombol ▲▼ lewat `actions` (sebaris badge, mepet kanan);

@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { CheckIcon, CopyIcon, KeyRoundIcon, PlusIcon, TrashIcon } from '@lucide/svelte';
-	import { statusLabels } from '$lib/tasks';
+	import { statusLabels } from '$lib/utils/tasks';
 	import type { TokenActivity } from '$lib/server/tasks';
 
 	// TM-17: token API milik user yang lagi login. Token asli cuma muncul sekali, persis setelah generate.
@@ -34,11 +34,11 @@
 		if (addOpen && addDialog && !addDialog.open) addDialog.showModal();
 	});
 
-	async function copy(token: string) {
+	const copy = async (token: string) => {
 		await navigator.clipboard.writeText(token);
 		copied = true;
 		setTimeout(() => (copied = false), 2000);
-	}
+	};
 </script>
 
 <svelte:head>

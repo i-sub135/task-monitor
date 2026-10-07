@@ -12,11 +12,11 @@ export type SeedResult = 'seeded' | 'skipped' | 'invalid_env';
  * User pertama: kalau tabel users kosong, bikin 1 admin dari env. Idempotent: begitu ada user,
  * gak ngapa-ngapain. Env kosong atau salah dan tabel kosong dilaporin keras, gak diem.
  */
-export async function seedAdminIfEmpty(
+export const seedAdminIfEmpty = async (
 	db: PrismaClient,
 	config: { email?: string; name?: string },
 	log: SeedLog
-): Promise<SeedResult> {
+): Promise<SeedResult> => {
 	if ((await countUsers(db)) > 0) return 'skipped';
 
 	const email = config.email?.trim().toLowerCase() ?? '';
@@ -44,4 +44,4 @@ export async function seedAdminIfEmpty(
 
 	log.info('seed.admin.created', { userId: result.user.id });
 	return 'seeded';
-}
+};

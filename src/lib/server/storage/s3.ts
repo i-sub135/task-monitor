@@ -23,7 +23,7 @@ const isNotFound = (e: unknown): boolean => {
 };
 
 /** Simpan ke bucket S3-compatible (Wasabi, MinIO, AWS). Key objek = file_path di DB. */
-export function createS3Storage(config: S3Config, client?: S3Client): StorageDriver {
+export const createS3Storage = (config: S3Config, client?: S3Client): StorageDriver => {
 	const s3 =
 		client ??
 		new S3Client({
@@ -70,4 +70,4 @@ export function createS3Storage(config: S3Config, client?: S3Client): StorageDri
 			if (firstError) throw firstError;
 		}
 	};
-}
+};

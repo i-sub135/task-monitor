@@ -16,10 +16,10 @@
 	});
 
 	// Muat ulang penuh: nge-reset state form dan nge-ping DB lagi. DB udah balik = modalnya hilang.
-	function retry() {
+	const retry = () => {
 		retrying = true;
 		location.reload();
-	}
+	};
 
 	// Akun admin: setelah "Lanjut", server minta password. Buka dialognya (juga pas password salah).
 	$effect(() => {

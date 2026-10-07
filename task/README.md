@@ -33,3 +33,4 @@ _(kosong)_
 - [TM-17](done/TM-17.md) — API token per user (maks 5) + API kirim/update task — Done
 - [TM-18](done/TM-18.md) — Log aktivitas per token di /account/tokens — Done
 - [TM-19](done/TM-19.md) — Type baru "support" (Request → Done langsung) — Done
+- [TM-20](done/TM-20.md) — Rapihin kode: `src/lib/utils/` + standar arrow function — Done

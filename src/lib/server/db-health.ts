@@ -9,7 +9,7 @@ export const PING_TIMEOUT_MS = 2000;
  * `SELECT 1` dengan batas waktu. DB mati bisa berarti gagal cepat (host gak ketemu, koneksi ditolak) atau
  * menggantung, makanya ada timeout: halaman gak boleh ikut nunggu selamanya.
  */
-export async function pingDb(db: Pingable, timeoutMs: number = PING_TIMEOUT_MS): Promise<PingResult> {
+export const pingDb = async (db: Pingable, timeoutMs: number = PING_TIMEOUT_MS): Promise<PingResult> => {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	try {
 		const query = Promise.resolve(db.$queryRaw`SELECT 1`);
@@ -24,18 +24,18 @@ export async function pingDb(db: Pingable, timeoutMs: number = PING_TIMEOUT_MS):
 	} finally {
 		clearTimeout(timer);
 	}
-}
+};
 
 /**
  * Jalanin `fn` dengan batas waktu. Gagal karena timeout = DB dianggap mati (gak perlu ping lagi, DB yang
  * menggantung bakal nahan ping juga). Gagal karena error: ping DB. DB gak bisa dihubungi -> `{ ok: false }`
  * (ditampilin sebagai "layanan tidak tersedia"). DB sehat -> errornya bug beneran, dilempar lagi.
  */
-export async function guardDb<T>(
+export const guardDb = async <T>(
 	db: Pingable,
 	fn: () => Promise<T>,
 	timeoutMs: number = PING_TIMEOUT_MS
-): Promise<{ ok: true; value: T } | { ok: false; reason: string }> {
+): Promise<{ ok: true; value: T } | { ok: false; reason: string }> => {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const TIMED_OUT = Symbol('timeout');
 	try {
@@ -54,4 +54,4 @@ export async function guardDb<T>(
 	} finally {
 		clearTimeout(timer);
 	}
-}
+};

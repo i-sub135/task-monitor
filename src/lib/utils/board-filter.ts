@@ -1,4 +1,4 @@
-import { platforms, taskTypes, type BoardTask, type Platform, type TaskType } from '$lib/tasks';
+import { platforms, taskTypes, type BoardTask, type Platform, type TaskType } from '$lib/utils/tasks';
 
 /**
  * TM-16: filter /board dan /board/list/[status]. Satu nilai per filter (dropdown), disimpen di query URL
@@ -15,7 +15,7 @@ export type BoardFilter = {
 	q: string;
 };
 
-export function parseBoardFilter(params: URLSearchParams): BoardFilter {
+export const parseBoardFilter = (params: URLSearchParams): BoardFilter => {
 	const type = params.get('type');
 	const platform = params.get('platform');
 	return {
@@ -24,11 +24,11 @@ export function parseBoardFilter(params: URLSearchParams): BoardFilter {
 		by: params.get('by') || null,
 		q: params.get('q') ?? ''
 	};
-}
+};
 
 export const isFilterActive = (f: BoardFilter): boolean => Boolean(f.type || f.platform || f.by || f.q.trim());
 
-export function applyBoardFilter(tasks: BoardTask[], f: BoardFilter): BoardTask[] {
+export const applyBoardFilter = (tasks: BoardTask[], f: BoardFilter): BoardTask[] => {
 	if (!isFilterActive(f)) return tasks;
 	const q = f.q.trim().toLowerCase();
 	return tasks.filter(
@@ -38,10 +38,10 @@ export function applyBoardFilter(tasks: BoardTask[], f: BoardFilter): BoardTask[
 			(!f.by || t.createdById === f.by) &&
 			(!q || t.title.toLowerCase().includes(q))
 	);
-}
+};
 
 /** Query string filter (diawali `?`, atau kosong) buat dibawa ke link board ↔ list. */
-export function filterQuery(f: BoardFilter): string {
+export const filterQuery = (f: BoardFilter): string => {
 	const params = new URLSearchParams();
 	if (f.type) params.set('type', f.type);
 	if (f.platform) params.set('platform', f.platform);
@@ -49,11 +49,11 @@ export function filterQuery(f: BoardFilter): string {
 	if (f.q.trim()) params.set('q', f.q);
 	const s = params.toString();
 	return s ? `?${s}` : '';
-}
+};
 
 /** Pilihan dropdown "Created by": pembuat yang punya task di daftar ini, urut nama. */
-export function creatorOptions(tasks: BoardTask[]): { id: string; name: string }[] {
+export const creatorOptions = (tasks: BoardTask[]): { id: string; name: string }[] => {
 	const byId = new Map<string, string>();
 	for (const t of tasks) byId.set(t.createdById, t.createdBy);
 	return [...byId].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-}
+};

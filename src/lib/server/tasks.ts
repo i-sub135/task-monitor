@@ -1,6 +1,6 @@
-import { calendarDaysAgo, formatJakarta } from '../time.ts';
+import { calendarDaysAgo, formatJakarta } from '../utils/time.ts';
 import { renderDescriptionHtml, sanitizeDescription, descriptionText } from './richtext.ts';
-import type { SessionUser } from '../roles.ts';
+import type { SessionUser } from '../utils/roles.ts';
 import {
 	allowedTargets,
 	checkTransition,
@@ -18,7 +18,7 @@ import {
 	type Status,
 	type TaskDetail,
 	type TaskType
-} from '../tasks.ts';
+} from '../utils/tasks.ts';
 import type { Prisma, PrismaClient } from './generated/prisma/client.ts';
 import type { TaskStatus, TaskPlatform } from './generated/prisma/enums.ts';
 import type { StoredFile } from './attachments.ts';
@@ -68,13 +68,13 @@ const ORDERING_LOCK = 42_001;
 const lockOrdering = (tx: Tx) => tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(${ORDERING_LOCK})`);
 
 /** Ambil urutan kolom sekarang, lalu tulis ulang jadi 1..n tanpa lompat (cuma yang berubah). */
-async function applyOrder(tx: Tx, ids: { id: string; ordering: number }[]) {
+const applyOrder = async (tx: Tx, ids: { id: string; ordering: number }[]) => {
 	for (let i = 0; i < ids.length; i++) {
 		if (ids[i].ordering !== i + 1) {
 			await tx.task.update({ where: { id: ids[i].id }, data: { ordering: i + 1 } });
 		}
 	}
-}
+};
 
 const columnOrder = (tx: Tx, status: TaskStatus) =>
 	tx.task.findMany({
@@ -83,13 +83,13 @@ const columnOrder = (tx: Tx, status: TaskStatus) =>
 		select: { id: true, ordering: true }
 	});
 
-async function renumberColumn(tx: Tx, status: TaskStatus) {
+const renumberColumn = async (tx: Tx, status: TaskStatus) => {
 	await applyOrder(tx, await columnOrder(tx, status));
-}
+};
 
 // ---------------------------------------------------------------- baca
 
-export async function listBoard(db: PrismaClient, now: Date = new Date()): Promise<{ tasks: BoardTask[] }> {
+export const listBoard = async (db: PrismaClient, now: Date = new Date()): Promise<{ tasks: BoardTask[] }> => {
 	const rows = await db.task.findMany({
 		include: { createdBy: { select: { name: true } }, _count: { select: { attachments: true } } }
 	});
@@ -126,9 +126,9 @@ export async function listBoard(db: PrismaClient, now: Date = new Date()): Promi
 	}
 
 	return { tasks };
-}
+};
 
-export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskDetail | null> {
+export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskDetail | null> => {
 	if (!UUID_PATTERN.test(id)) return null;
 	const t = await db.task.findUnique({
 		where: { id },
@@ -172,12 +172,12 @@ export async function getTaskDetail(db: PrismaClient, id: string): Promise<TaskD
 			newValue: e.field === 'description' ? renderDescriptionHtml(e.newValue) : e.newValue
 		}))
 	};
-}
+};
 
-export async function findAttachment(db: PrismaClient, id: string) {
+export const findAttachment = async (db: PrismaClient, id: string) => {
 	if (!UUID_PATTERN.test(id)) return null;
 	return db.taskAttachment.findUnique({ where: { id }, select: { fileName: true, filePath: true, mimeType: true } });
-}
+};
 
 // ---------------------------------------------------------------- tulis
 
@@ -194,7 +194,7 @@ export type NewTask = {
 };
 
 /** Task + baris history pertama + lampiran dalam 1 transaksi. Masuk kolom request, paling belakang. */
-export async function createTask(db: PrismaClient, input: NewTask): Promise<void> {
+export const createTask = async (db: PrismaClient, input: NewTask): Promise<void> => {
 	const now = Date.now();
 	await db.$transaction(async (tx) => {
 		await lockOrdering(tx);
@@ -226,7 +226,7 @@ export async function createTask(db: PrismaClient, input: NewTask): Promise<void
 			}
 		});
 	});
-}
+};
 
 export type ActionResult = RuleResult;
 
@@ -234,20 +234,20 @@ export type ActionResult = RuleResult;
  * TM-17: API wajib baca dulu sebelum nulis. Pemanggil API ngirim `updated_at` hasil GET; kalau task udah
  * berubah sejak dibaca, tolak (409) biar dia GET ulang. UI gak ngirim (undefined) jadi gak dicek.
  */
-function staleCheck(updatedAt: Date, expectedUpdatedAt: string | undefined): ActionResult | null {
+const staleCheck = (updatedAt: Date, expectedUpdatedAt: string | undefined): ActionResult | null => {
 	if (expectedUpdatedAt === undefined) return null;
 	if (Date.parse(expectedUpdatedAt) === updatedAt.getTime()) return null;
 	return { ok: false, status: 409, error: 'Task has changed since you read it. GET it again, then retry.' };
-}
+};
 
 /**
  * Pindah status: aturan dicek di sini (bukan di UI), lalu status, ordering dan 1 baris history
  * ditulis dalam 1 transaksi. Kolom yang ditinggalkan dirapihin lagi jadi 1..n.
  */
-export async function transitionTask(
+export const transitionTask = async (
 	db: PrismaClient,
 	input: { id: string; to: string; note: string; user: SessionUser; via?: string | null; expectedUpdatedAt?: string }
-): Promise<ActionResult> {
+): Promise<ActionResult> => {
 	const note = input.note.trim();
 	if (input.user.role === 'marketing') {
 		return { ok: false, status: 403, error: 'The marketing role cannot change status' };
@@ -293,7 +293,7 @@ export async function transitionTask(
 		if (hasOrdering(from)) await renumberColumn(tx, statusToDb[from]);
 		return { ok: true };
 	});
-}
+};
 
 export type TaskChanges = { title?: string; description?: string; type?: string; platform?: string };
 type EditField = keyof TaskChanges;
@@ -305,10 +305,10 @@ type EditField = keyof TaskChanges;
  * `task_edit` (nilai lama + baru) buat audit; yang nilainya sama persis gak dicatat. `description` harus
  * udah disaring (`sanitizeDescription`) oleh pemanggil, sama kayak `createTask`.
  */
-export async function updateTaskFields(
+export const updateTaskFields = async (
 	db: PrismaClient,
 	input: { id: string; changes: TaskChanges; user: SessionUser; via?: string | null; expectedUpdatedAt?: string }
-): Promise<ActionResult> {
+): Promise<ActionResult> => {
 	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
 	const { changes } = input;
 	const next: Partial<Record<EditField, string>> = {};
@@ -385,7 +385,7 @@ export async function updateTaskFields(
 		});
 		return { ok: true };
 	});
-}
+};
 
 // UI (halaman detail task): satu field per aksi, lewat jalur yang sama.
 export const updateTaskTitle = (db: PrismaClient, input: { id: string; title: string; user: SessionUser }) =>
@@ -400,10 +400,10 @@ export const updateTaskPlatform = (db: PrismaClient, input: { id: string; platfo
 	updateTaskFields(db, { id: input.id, changes: { platform: input.platform }, user: input.user });
 
 /** Geser kartu ke posisi `position` (1-based) di kolomnya. Kolom dinomori ulang 1..n dalam 1 transaksi. */
-export async function reorderTask(
+export const reorderTask = async (
 	db: PrismaClient,
 	input: { id: string; position: number; user: SessionUser }
-): Promise<ActionResult> {
+): Promise<ActionResult> => {
 	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
 	if (!Number.isInteger(input.position)) return { ok: false, status: 400, error: 'Invalid position' };
 
@@ -426,7 +426,7 @@ export async function reorderTask(
 		await applyOrder(tx, ids);
 		return { ok: true };
 	});
-}
+};
 
 // ---------------------------------------------------------------- API (TM-17)
 
@@ -449,7 +449,7 @@ export type ApiTask = {
 	history: { from: Status | null; to: Status; by: string; via: string | null; note: string | null; at: string }[];
 };
 
-export async function getTaskForApi(db: PrismaClient, id: string, user: SessionUser): Promise<ApiTask | null> {
+export const getTaskForApi = async (db: PrismaClient, id: string, user: SessionUser): Promise<ApiTask | null> => {
 	if (!UUID_PATTERN.test(id)) return null;
 	const t = await db.task.findUnique({
 		where: { id },
@@ -481,7 +481,7 @@ export async function getTaskForApi(db: PrismaClient, id: string, user: SessionU
 			at: h.createdAt.toISOString()
 		}))
 	};
-}
+};
 
 export type ApiTaskSummary = Omit<ApiTask, 'description' | 'history'> & {
 	/** Nomor urut di kolom (1..n) buat request/queue, null di status lain. */
@@ -493,10 +493,10 @@ export type ApiTaskSummary = Omit<ApiTask, 'description' | 'history'> & {
  * task yang dibikin pemilik token — user diambil dari token, gak bisa nanya punya orang lain). Urutan per
  * status sama kayak board: request/queue ikut ordering, sisanya yang terakhir berubah di atas.
  */
-export async function listTasksForApi(
+export const listTasksForApi = async (
 	db: PrismaClient,
 	input: { user: SessionUser; status?: Status; mine?: boolean }
-): Promise<ApiTaskSummary[]> {
+): Promise<ApiTaskSummary[]> => {
 	const rows = await db.task.findMany({
 		where: {
 			...(input.status ? { status: statusToDb[input.status] } : {}),
@@ -539,7 +539,7 @@ export async function listTasksForApi(
 		}
 	}
 	return out;
-}
+};
 
 // ---------------------------------------------------------------- aktivitas token (TM-18)
 
@@ -562,10 +562,10 @@ export const TOKEN_ACTIVITY_LIMIT = 50;
  * Sumbernya `task_history` + `task_edit` yang `via`-nya keisi; aksi dari UI (via null) gak ikut. `via` opsional
  * buat nyaring satu nama token. Baca (GET/list) gak pernah dicatat ke DB, jadi gak ada di sini.
  */
-export async function listTokenActivity(
+export const listTokenActivity = async (
 	db: PrismaClient,
 	input: { userId: string; via?: string }
-): Promise<{ items: TokenActivity[]; names: string[] }> {
+): Promise<{ items: TokenActivity[]; names: string[] }> => {
 	const via = input.via ? { equals: input.via } : { not: null };
 	const [history, edits, historyNames, editNames] = await Promise.all([
 		db.taskHistory.findMany({
@@ -616,4 +616,4 @@ export async function listTokenActivity(
 		a.localeCompare(b)
 	);
 	return { items: rows.slice(0, TOKEN_ACTIVITY_LIMIT).map((r) => r.item), names };
-}
+};

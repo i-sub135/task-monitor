@@ -6,7 +6,7 @@ import type { StorageDriver } from './types.ts';
 const MISSING = new Set(['ENOENT', 'ENOTDIR', 'EISDIR']);
 
 /** Simpan ke disk, key relatif dari `root` (default: root project). Perilaku sama kayak sebelum ada driver. */
-export function createLocalStorage(root: string = process.cwd()): StorageDriver {
+export const createLocalStorage = (root: string = process.cwd()): StorageDriver => {
 	const base = path.resolve(root, ATTACHMENT_PREFIX);
 
 	// Dua lapis: cek bentuk key, lalu pastiin path hasil resolve masih di dalam folder lampiran.
@@ -47,4 +47,4 @@ export function createLocalStorage(root: string = process.cwd()): StorageDriver 
 			}
 		}
 	};
-}
+};

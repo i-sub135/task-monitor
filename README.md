@@ -48,6 +48,19 @@ Docker (1 container, Postgres tetap yang eksisting lewat `DATABASE_URL`): isi `.
 | `APP_VERSION` | tidak | versi yang tampil di header (kosong = versi di `package.json`) dan tag image Docker (kosong = `dev`) |
 | `APP_PORT` | tidak | port di host untuk Docker, default `3000` |
 
+## Konvensi kode
+
+- **Fungsi selalu arrow function**: `const namaFungsi = (a: A): B => { ... };` (export: `export const ...`,
+  async: `const x = async (...) => { ... };`). Jangan pakai `function namaFungsi() {}` — termasuk di `<script>`
+  Svelte. Pengecualian cuma kalau emang butuh `this`/`arguments`, generator, atau overload (sekarang gak ada).
+- **Struktur `src/lib`**:
+  - `utils/` — modul bareng client + server (tipe & aturan task/role, waktu, linkify, filter board, ikon/warna
+    platform & type, batas upload). Import: `$lib/utils/<nama>`; dari `src/lib/server/*` pakai relatif
+    `../utils/<nama>.ts` (biar script Node yang ngimpor service tetep jalan).
+  - `server/` — khusus server (DB, auth, storage, API). Gak boleh diimport dari komponen/halaman client.
+  - `components/` — komponen Svelte.
+  - `index.ts` — bawaan SvelteKit, biarin.
+
 ## Referensi
 
 - Setup SvelteKit + Skeleton: https://gist.github.com/i-sub135/c22b8c5052f74a5d63b6b7c1e0d3a0ee

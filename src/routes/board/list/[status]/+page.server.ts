@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { listBoard, reorderTask } from '$lib/server/tasks';
-import { boardColumns, columnOf, type Status } from '$lib/tasks';
+import { boardColumns, columnOf, type Status } from '$lib/utils/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {

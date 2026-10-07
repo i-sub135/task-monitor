@@ -4,7 +4,7 @@ import { getDb } from '$lib/server/db';
 import { apiError, descriptionFromApi, readBody } from '$lib/server/api';
 import { createTask, getTaskForApi, listTasksForApi } from '$lib/server/tasks';
 import { descriptionText } from '$lib/server/richtext';
-import { platforms, statuses, taskTypes, type Platform, type Status, type TaskType } from '$lib/tasks';
+import { platforms, statuses, taskTypes, type Platform, type Status, type TaskType } from '$lib/utils/tasks';
 import type { RequestHandler } from './$types';
 
 // TM-17: daftar task. `?status=<status>` dan/atau `?mine=true` (cuma task yang dibikin pemilik token).

@@ -4,8 +4,8 @@ export const GUEST_ONLY_ROUTES = ['/'];
 export const PUBLIC_ROUTES = ['/logout'];
 
 /** Balikin tujuan redirect, atau null kalau request boleh lanjut. */
-export function guardRedirect(pathname: string, loggedIn: boolean): string | null {
+export const guardRedirect = (pathname: string, loggedIn: boolean): string | null => {
 	const guestOnly = GUEST_ONLY_ROUTES.includes(pathname);
 	if (!loggedIn) return guestOnly || PUBLIC_ROUTES.includes(pathname) ? null : '/';
 	return guestOnly ? '/board' : null;
-}
+};

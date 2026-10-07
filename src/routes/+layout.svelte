@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { AppBar, Navigation } from '@skeletonlabs/skeleton-svelte';
 	import { KanbanIcon, LogOutIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
-	import { canUseApi } from '$lib/roles';
+	import { canUseApi } from '$lib/utils/roles';
 
 	let { children, data } = $props();
 

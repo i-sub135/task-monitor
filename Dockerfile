@@ -32,7 +32,7 @@ COPY --chown=node:node package.json prisma.config.ts ./
 COPY --chown=node:node prisma ./prisma
 # scripts/start.mjs import upload-limits.js buat nurunin BODY_SIZE_LIMIT dari UPLOAD_SIZE_LIMIT.
 COPY --chown=node:node scripts ./scripts
-COPY --chown=node:node src/lib/upload-limits.js ./src/lib/upload-limits.js
+COPY --chown=node:node src/lib/utils/upload-limits.js ./src/lib/utils/upload-limits.js
 COPY --chown=node:node docker-entrypoint.sh ./
 
 # Lampiran ditulis ke /app/storage/attachment (di-mount dari host lewat compose, atau volume

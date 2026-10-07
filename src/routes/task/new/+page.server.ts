@@ -7,8 +7,8 @@ import { createTask } from '$lib/server/tasks';
 import { getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { descriptionText, sanitizeDescription } from '$lib/server/richtext';
-import { MAX_FILES } from '$lib/upload-limits';
-import { platforms, taskTypes, type Platform, type TaskType } from '$lib/tasks';
+import { MAX_FILES } from '$lib/utils/upload-limits';
+import { platforms, taskTypes, type Platform, type TaskType } from '$lib/utils/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = () => ({

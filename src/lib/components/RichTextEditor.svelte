@@ -27,7 +27,7 @@
 	// Dipakai buat nyalain/matiin tombol toolbar sesuai posisi kursor (mis. Bold aktif pas di dalam teks tebal).
 	let active = $state({ bold: false, italic: false, underline: false, bulletList: false, orderedList: false, blockquote: false });
 
-	function syncActive() {
+	const syncActive = () => {
 		if (!editor) return;
 		active = {
 			bold: editor.isActive('bold'),
@@ -37,7 +37,7 @@
 			orderedList: editor.isActive('orderedList'),
 			blockquote: editor.isActive('blockquote')
 		};
-	}
+	};
 
 	$effect(() => {
 		if (!mount || editor) return;

@@ -3,7 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { ArrowDownIcon, ArrowUpIcon, ArrowRightIcon } from '@lucide/svelte';
-	import { canAdvance } from '$lib/roles';
+	import { canAdvance } from '$lib/utils/roles';
 	import {
 		BOARD_COLUMN_LIMIT,
 		allowedTargets,
@@ -14,10 +14,10 @@
 		statusLabels,
 		type BoardTask,
 		type Status
-	} from '$lib/tasks';
+	} from '$lib/utils/tasks';
 	import TaskCard from '$lib/components/TaskCard.svelte';
 	import BoardFilterBar from '$lib/components/BoardFilterBar.svelte';
-	import { applyBoardFilter, creatorOptions, filterQuery, isFilterActive, parseBoardFilter } from '$lib/board-filter';
+	import { applyBoardFilter, creatorOptions, filterQuery, isFilterActive, parseBoardFilter } from '$lib/utils/board-filter';
 
 	let { data, form } = $props();
 
@@ -86,12 +86,12 @@
 		const to = task.status === 'done' ? 'done-live' : task.status === 'done-live' ? 'done' : null;
 		return to && canMakeTransition(role, task.status, to, task.type) ? to : null;
 	};
-	function openLiveDialog(task: BoardTask, to: Status) {
+	const openLiveDialog = (task: BoardTask, to: Status) => {
 		pending = { task, to };
 		note = '';
 		noteError = '';
 		dialog?.showModal();
-	}
+	};
 	const dialogTitle = (p: { task: BoardTask; to: Status }) =>
 		p.to === 'done-live' ? 'Mark as live' : p.task.status === 'done-live' ? 'Unmark live' : `Move to ${statusLabels[p.to]}`;
 	const dialogNoteLabel = (to: Status) =>
@@ -101,7 +101,7 @@
 				? 'Release note / version (optional)'
 				: 'Note / result link (optional)';
 
-	function onDragStart(e: DragEvent, task: BoardTask) {
+	const onDragStart = (e: DragEvent, task: BoardTask) => {
 		if (!isDraggable(task)) {
 			e.preventDefault();
 			return;
@@ -109,47 +109,47 @@
 		dragging = task;
 		e.dataTransfer?.setData('text/plain', task.id);
 		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-	}
+	};
 
-	function onDragEnd() {
+	const onDragEnd = () => {
 		dragging = null;
 		overColumn = null;
 		overCard = null;
-	}
+	};
 
-	function onCardDragOver(e: DragEvent, target: BoardTask) {
+	const onCardDragOver = (e: DragEvent, target: BoardTask) => {
 		if (!isReorderTarget(target)) return;
 		e.preventDefault();
 		e.stopPropagation();
 		overCard = target.id;
-	}
+	};
 
-	function onCardDragLeave(e: DragEvent, target: BoardTask) {
+	const onCardDragLeave = (e: DragEvent, target: BoardTask) => {
 		if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) return;
 		if (overCard === target.id) overCard = null;
-	}
+	};
 
-	function onCardDrop(e: DragEvent, target: BoardTask) {
+	const onCardDrop = (e: DragEvent, target: BoardTask) => {
 		if (!isReorderTarget(target) || !dragging) return;
 		e.preventDefault();
 		e.stopPropagation();
 		const task = dragging;
 		onDragEnd();
 		void sendReorderTo(task, target.position as number);
-	}
+	};
 
-	function onDragOver(e: DragEvent, col: Status) {
+	const onDragOver = (e: DragEvent, col: Status) => {
 		if (!isValidTarget(dragging, col)) return;
 		e.preventDefault();
 		overColumn = col;
-	}
+	};
 
-	function onDragLeave(e: DragEvent, col: Status) {
+	const onDragLeave = (e: DragEvent, col: Status) => {
 		if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) return;
 		if (overColumn === col) overColumn = null;
-	}
+	};
 
-	function onDrop(e: DragEvent, col: Status) {
+	const onDrop = (e: DragEvent, col: Status) => {
 		e.preventDefault();
 		const task = dragging;
 		onDragEnd();
@@ -163,26 +163,26 @@
 		} else {
 			void sendMove(task.id, col, '');
 		}
-	}
+	};
 
-	async function sendMove(id: string, to: Status, noteText: string) {
+	const sendMove = async (id: string, to: Status, noteText: string) => {
 		moveFields = { id, to, note: noteText };
 		await tick();
 		moveForm?.requestSubmit();
-	}
+	};
 
-	async function sendReorder(task: BoardTask, delta: -1 | 1) {
+	const sendReorder = async (task: BoardTask, delta: -1 | 1) => {
 		if (task.position === null) return;
 		await sendReorderTo(task, task.position + delta);
-	}
+	};
 
-	async function sendReorderTo(task: BoardTask, position: number) {
+	const sendReorderTo = async (task: BoardTask, position: number) => {
 		reorderFields = { id: task.id, position: String(position) };
 		await tick();
 		reorderForm?.requestSubmit();
-	}
+	};
 
-	function confirmDialog(e: SubmitEvent) {
+	const confirmDialog = (e: SubmitEvent) => {
 		e.preventDefault();
 		if (!pending) return;
 		if (pending.to === 'rejected' && !note.trim()) {
@@ -193,12 +193,12 @@
 		dialog?.close();
 		pending = null;
 		void sendMove(task.id, to, note.trim());
-	}
+	};
 
-	function cancelDialog() {
+	const cancelDialog = () => {
 		dialog?.close();
 		pending = null;
-	}
+	};
 </script>
 
 <svelte:head>

@@ -68,11 +68,11 @@ export const transitionsFor = (type: TaskType, from: Status): Status[] =>
 	type === 'support' ? supportTransitions[from] : transitions[from];
 
 /** Kolom yang urutannya bisa digeser: request (semua role) dan queue (developer dan admin). */
-export function canReorder(role: Role, status: Status): boolean {
+export const canReorder = (role: Role, status: Status): boolean => {
 	if (status === 'request') return true;
 	if (status === 'queue') return canAdvance(role);
 	return false;
-}
+};
 
 export const hasOrdering = (status: Status): boolean => status === 'request' || status === 'queue';
 
@@ -99,25 +99,25 @@ const restrictedTransitions: Partial<Record<`${Status}>${Status}`, Role[]>> = {
  * Boleh gak role ini mindahin task type `type` dari `from` ke `to` (cek urutan transisi per type + hak role).
  * Dipakai server dan UI. Aturan role khusus (restrictedTransitions) cuma berlaku buat jalur bug/feature.
  */
-export function canMakeTransition(role: Role, from: Status, to: Status, type: TaskType): boolean {
+export const canMakeTransition = (role: Role, from: Status, to: Status, type: TaskType): boolean => {
 	if (!canAdvance(role) || !transitionsFor(type, from).includes(to)) return false;
 	if (type === 'support') return true;
 	const only = restrictedTransitions[`${from}>${to}`];
 	return !only || only.includes(role);
-}
+};
 
 /** Target yang boleh dituju role ini dari status `from`, buat task type `type`. */
 export const allowedTargets = (role: Role, from: Status, type: TaskType): Status[] =>
 	transitionsFor(type, from).filter((to) => canMakeTransition(role, from, to, type));
 
 /** Aturan transisi di satu tempat. Server yang jadi hakim, UI cuma ngikutin buat nampilin tombol. */
-export function checkTransition(input: {
+export const checkTransition = (input: {
 	from: Status;
 	to: Status;
 	note: string;
 	role: Role;
 	type: TaskType;
-}): RuleResult {
+}): RuleResult => {
 	if (!canAdvance(input.role)) {
 		return { ok: false, status: 403, error: 'The marketing role cannot change status' };
 	}
@@ -143,7 +143,7 @@ export function checkTransition(input: {
 		return { ok: false, status: 400, error: 'A reason is required to reject a task' };
 	}
 	return { ok: true };
-}
+};
 
 export type BoardTask = {
 	id: string;
