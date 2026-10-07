@@ -13,6 +13,7 @@
 		RotateCcwIcon,
 		Trash2Icon
 	} from '@lucide/svelte';
+	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 	import { copyText } from '$lib/utils/clipboard';
 	import { canAdvance } from '$lib/utils/roles';
 	import {
@@ -171,8 +172,8 @@
 		}
 		input.form?.requestSubmit();
 	};
-	const confirmRemove = (name: string) =>
-		confirm(`Remove "${name}" from this task? It stays viewable from the Edit history.`);
+	// Konfirmasi hapus lampiran: Dialog bawaan Skeleton, bukan confirm() browser.
+	let removing = $state<AttachmentInfo | null>(null);
 
 	const sizeLabel = (bytes: number) =>
 		bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -460,24 +461,15 @@
 								{/if}
 							</button>
 							{#if canEditFiles}
-								<form
-									method="POST"
-									action="?/removeAttachment"
-									class="absolute top-1.5 right-1.5"
-									use:enhance={({ cancel }) => {
-										if (!confirmRemove(file.name)) cancel();
-									}}
+								<button
+									type="button"
+									class="btn-icon btn-icon-sm preset-filled-error-500 absolute top-1.5 right-1.5 size-7 shadow-md"
+									aria-label="Remove {file.name}"
+									title="Remove"
+									onclick={() => (removing = file)}
 								>
-									<input type="hidden" name="attachment_id" value={file.id} />
-									<button
-										type="submit"
-										class="btn-icon btn-icon-sm preset-filled-error-500 size-7 shadow-md"
-										aria-label="Remove {file.name}"
-										title="Remove"
-									>
-										<Trash2Icon class="size-3.5" />
-									</button>
-								</form>
+									<Trash2Icon class="size-3.5" />
+								</button>
 							{/if}
 							<span class="truncate text-xs opacity-70" title={file.name}>{file.name} · {sizeLabel(file.size)}</span>
 						</li>
@@ -608,6 +600,46 @@
 		{/if}
 	</div>
 </div>
+
+<Dialog
+	open={removing !== null}
+	onOpenChange={(e) => {
+		if (!e.open) removing = null;
+	}}
+	role="alertdialog"
+>
+	<Portal>
+		<Dialog.Backdrop class="fixed inset-0 z-50 bg-black/60" />
+		<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<Dialog.Content
+				class="card preset-filled-surface-50-950 border-surface-300-700 w-full max-w-md space-y-4 border p-5 shadow-2xl"
+			>
+				<Dialog.Title class="h5">Remove attachment?</Dialog.Title>
+				<Dialog.Description class="text-sm">
+					<strong class="break-all">{removing?.name}</strong> will be removed from this task. It stays viewable
+					from the Edit history.
+				</Dialog.Description>
+				<form
+					method="POST"
+					action="?/removeAttachment"
+					class="flex justify-end gap-3"
+					use:enhance={() => {
+						removing = null;
+						return async ({ update }) => {
+							await update();
+						};
+					}}
+				>
+					<input type="hidden" name="attachment_id" value={removing?.id ?? ''} />
+					<Dialog.CloseTrigger class="btn btn-outline-neutral">Cancel</Dialog.CloseTrigger>
+					<button type="submit" class="btn btn-outline-error">
+						<Trash2Icon class="size-4" /> Remove
+					</button>
+				</form>
+			</Dialog.Content>
+		</Dialog.Positioner>
+	</Portal>
+</Dialog>
 
 {#if viewing}
 	<!-- Klik di luar kotak (backdrop) menutup; Esc ditangani dialog bawaan. -->
