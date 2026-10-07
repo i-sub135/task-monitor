@@ -95,10 +95,9 @@
 
 {#snippet toolbarButtons()}
 	{#each toolbar as tool (tool.key)}
-		<!-- compact: tombol kotak sudut tumpul (bukan bulet), biar nyatu sama baris bawah. -->
 		<button
 			type="button"
-			class="btn-icon btn-icon-sm {compact ? 'rounded-md!' : ''}"
+			class="btn-icon btn-icon-sm"
 			class:preset-filled-primary-500={active[tool.key]}
 			class:btn-outline-neutral={!active[tool.key]}
 			aria-label={tool.label}
@@ -111,7 +110,11 @@
 	{/each}
 {/snippet}
 
-<div class="rich-text-editor rounded-container border-surface-300-700 border" class:border-error-500={invalid}>
+<!-- compact (komentar): panelnya kotak sudut tumpul, bukan sudut bulet gede kayak card. -->
+<div
+	class="rich-text-editor border-surface-300-700 border {compact ? 'rounded-md' : 'rounded-container'}"
+	class:border-error-500={invalid}
+>
 	{#if !compact}
 		<div class="border-surface-300-700 flex justify-end gap-1 border-b p-1 pr-3">
 			{@render toolbarButtons()}
