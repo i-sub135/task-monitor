@@ -227,11 +227,11 @@
 
 			<button
 				type="button"
-				class="btn btn-sm btn-outline-neutral ml-auto"
+				class="badge preset-tonal ml-auto cursor-pointer transition hover:brightness-90"
 				title="Copy link to this task"
 				onclick={copyTaskLink}
 			>
-				{#if linkCopied}<CheckIcon class="size-4" /> Link copied{:else}<LinkIcon class="size-4" /> Copy link{/if}
+				{#if linkCopied}<CheckIcon class="size-3" /> Link copied{:else}<LinkIcon class="size-3" /> Copy link{/if}
 			</button>
 		</div>
 		{#if task.status === 'done-live'}
