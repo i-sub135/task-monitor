@@ -1,28 +1,18 @@
 /**
- * Salin teks ke clipboard. `navigator.clipboard` cuma ada di konteks aman (HTTPS / localhost); dev server lewat
- * http://192.168.x.x gak punya, jadi fallback ke textarea + execCommand. Balikin true kalau berhasil.
+ * Salin teks ke clipboard pakai Clipboard API. API ini cuma ada di konteks aman (HTTPS / localhost) — prod aman.
+ * Di luar itu (mis. dev server lewat http://192.168.x.x) atau kalau browser nolak, teksnya ditampilin di
+ * dialog `prompt` yang udah keblok, tinggal Ctrl/Cmd+C. (Sengaja gak pakai `document.execCommand('copy')`:
+ * udah deprecated.)
  */
-export const copyText = async (text: string): Promise<boolean> => {
+export const copyText = async (text: string): Promise<'copied' | 'shown'> => {
 	if (navigator.clipboard && window.isSecureContext) {
 		try {
 			await navigator.clipboard.writeText(text);
-			return true;
+			return 'copied';
 		} catch {
-			// lanjut ke fallback
+			// izin ditolak dll: lanjut ke prompt
 		}
 	}
-	const area = document.createElement('textarea');
-	area.value = text;
-	area.setAttribute('readonly', '');
-	area.style.position = 'fixed';
-	area.style.opacity = '0';
-	document.body.appendChild(area);
-	area.select();
-	try {
-		return document.execCommand('copy');
-	} catch {
-		return false;
-	} finally {
-		area.remove();
-	}
+	window.prompt('Copy this link:', text);
+	return 'shown';
 };

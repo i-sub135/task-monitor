@@ -45,10 +45,11 @@
 	};
 
 	// Tombol share: salin link detail task (URL lengkap) ke clipboard, ikon jadi centang sebentar.
-	let copied = $state<'ok' | 'fail' | null>(null);
+	let copied = $state(false);
 	const shareLink = async () => {
-		copied = (await copyText(`${location.origin}/task/${task.id}`)) ? 'ok' : 'fail';
-		setTimeout(() => (copied = null), 1500);
+		if ((await copyText(`${location.origin}/task/${task.id}`)) !== 'copied') return;
+		copied = true;
+		setTimeout(() => (copied = false), 1500);
 	};
 </script>
 
@@ -88,10 +89,10 @@
 				type="button"
 				class="badge preset-tonal relative z-10 cursor-pointer px-1.5 transition hover:brightness-90"
 				aria-label="Copy link to this task"
-				title={copied === 'ok' ? 'Link copied' : copied === 'fail' ? 'Could not copy link' : 'Copy link to this task'}
+				title={copied ? 'Link copied' : 'Copy link to this task'}
 				onclick={shareLink}
 			>
-				{#if copied === 'ok'}<CheckIcon class="size-3" />{:else}<LinkIcon class="size-3" />{/if}
+				{#if copied}<CheckIcon class="size-3" />{:else}<LinkIcon class="size-3" />{/if}
 			</button>
 		</div>
 	</div>
