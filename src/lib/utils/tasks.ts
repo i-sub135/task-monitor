@@ -89,6 +89,9 @@ export const canEditTask = (status: Status): boolean => status === 'request' || 
 export const canEditAttachments = (status: Status): boolean =>
 	status === 'request' || status === 'queue' || status === 'in-progress' || status === 'ready-to-test';
 
+/** TM-23: komentar boleh ditulis/diedit/dihapus di semua status kecuali Live dan Rejected, role apa pun. */
+export const canComment = (status: Status): boolean => status !== 'done-live' && status !== 'rejected';
+
 export type RuleResult = { ok: true } | { ok: false; status: number; error: string };
 
 /**
@@ -166,6 +169,8 @@ export type BoardTask = {
 	/** Nomor urut di kolom (1..n) buat request dan queue, null di kolom lain. */
 	position: number | null;
 	attachments: number;
+	/** TM-23: jumlah komentar. */
+	comments: number;
 };
 
 
@@ -181,6 +186,18 @@ export type HistoryEntry = {
 };
 
 export type AttachmentInfo = { id: string; name: string; mime: string; size: number };
+
+/** TM-23: satu edit komentar. Isi lama/baru = HTML yang udah disaring, aman dipakai lewat {@html}. */
+export type CommentEditEntry = { id: string; by: string; at: string; oldValue: string; newValue: string };
+
+/** TM-23: komentar di task. `bodyHtml` udah disaring. */
+export type CommentEntry = {
+	id: string;
+	by: string;
+	at: string;
+	bodyHtml: string;
+	edits: CommentEditEntry[];
+};
 
 export type EditField = 'title' | 'description' | 'type' | 'platform' | 'recreate' | 'attachment_add' | 'attachment_remove';
 
@@ -219,4 +236,5 @@ export type TaskDetail = {
 	attachments: AttachmentInfo[];
 	history: HistoryEntry[];
 	edits: EditEntry[];
+	comments: CommentEntry[];
 };

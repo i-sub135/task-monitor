@@ -7,6 +7,7 @@ import {
 	canReorder,
 	canEditTask,
 	canEditAttachments,
+	canComment,
 	hasOrdering,
 	statuses,
 	boardColumns,
@@ -96,7 +97,7 @@ export const listBoard = async (db: PrismaClient, now: Date = new Date()): Promi
 		include: {
 			createdBy: { select: { name: true } },
 			// TM-22: lampiran yang diumpetin gak dihitung.
-			_count: { select: { attachments: { where: { deletedAt: null } } } }
+			_count: { select: { attachments: { where: { deletedAt: null } }, comments: true } }
 		}
 	});
 
@@ -126,7 +127,8 @@ export const listBoard = async (db: PrismaClient, now: Date = new Date()): Promi
 				createdAt: formatJakarta(r.createdAt),
 				ageDays: calendarDaysAgo(r.createdAt, now),
 				position: hasOrdering(column) ? i + 1 : null,
-				attachments: r._count.attachments
+				attachments: r._count.attachments,
+				comments: r._count.comments
 			})
 		);
 	}
@@ -145,7 +147,14 @@ export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskD
 			// TM-22: yang diumpetin gak tampil di daftar (tetep bisa dibuka dari link di Edit history).
 			attachments: { where: { deletedAt: null }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
 			history: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { createdBy: { select: { name: true } } } },
-			edits: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { editedBy: { select: { name: true } } } }
+			edits: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { editedBy: { select: { name: true } } } },
+			comments: {
+				orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+				include: {
+					createdBy: { select: { name: true } },
+					edits: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { editedBy: { select: { name: true } } } }
+				}
+			}
 		}
 	});
 	if (!t) return null;
@@ -181,6 +190,20 @@ export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskD
 			// lewat fungsi yang sama kayak descriptionHtml, biar aman dipakai lewat {@html} di UI.
 			oldValue: e.field === 'description' ? renderDescriptionHtml(e.oldValue) : e.oldValue,
 			newValue: e.field === 'description' ? renderDescriptionHtml(e.newValue) : e.newValue
+		})),
+		// TM-23: isi komentar (dan jejak edit-nya) disaring ulang sebelum nyampe {@html}, sama kayak description.
+		comments: t.comments.map((c) => ({
+			id: c.id,
+			by: c.createdBy.name,
+			at: formatJakarta(c.createdAt),
+			bodyHtml: renderDescriptionHtml(c.body),
+			edits: c.edits.map((e) => ({
+				id: e.id,
+				by: e.editedBy.name,
+				at: formatJakarta(e.createdAt),
+				oldValue: renderDescriptionHtml(e.oldBody),
+				newValue: renderDescriptionHtml(e.newBody)
+			}))
 		}))
 	};
 };
@@ -571,6 +594,86 @@ export const removeAttachment = async (
 		});
 		await tx.task.update({ where: { id: input.id }, data: { updatedAt: new Date() } });
 		return { ok: true };
+	});
+};
+
+// ---------------------------------------------------------------- komentar (TM-23)
+
+/** Batas panjang HTML komentar (setelah disaring). Jauh di atas komentar wajar, cuma nahan isi raksasa. */
+export const COMMENT_MAX_LENGTH = 20_000;
+
+const checkCommentBody = (body: string): ActionResult | null => {
+	if (!descriptionText(body)) return { ok: false, status: 400, error: 'Comment is empty' };
+	if (body.length > COMMENT_MAX_LENGTH) return { ok: false, status: 400, error: 'Comment is too long' };
+	return null;
+};
+
+/**
+ * TM-23: baris task dikunci (sama kayak lampiran) biar nulis komentar gak nyelip persis pas task digeser ke
+ * Live/Rejected. null = boleh.
+ */
+const commentGuard = async (tx: Tx, taskId: string): Promise<ActionResult | null> => {
+	if (!UUID_PATTERN.test(taskId)) return { ok: false, status: 404, error: 'Task not found' };
+	await lockTaskRow(tx, taskId);
+	const row = await tx.task.findUnique({ where: { id: taskId }, select: { status: true } });
+	if (!row) return { ok: false, status: 404, error: 'Task not found' };
+	if (!canComment(statusToApp[row.status])) {
+		return { ok: false, status: 403, error: 'Comments are locked once the task is Live or Rejected' };
+	}
+	return null;
+};
+
+/** TM-23: komentar baru. `body` harus udah disaring (`sanitizeDescription`) sama pemanggil. */
+export const addComment = async (
+	db: PrismaClient,
+	input: { taskId: string; body: string; user: SessionUser }
+): Promise<ActionResult> => {
+	const invalid = checkCommentBody(input.body);
+	if (invalid) return invalid;
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const denied = await commentGuard(tx, input.taskId);
+		if (denied) return denied;
+		await tx.taskComment.create({ data: { taskId: input.taskId, body: input.body, createdById: input.user.id } });
+		return { ok: true };
+	});
+};
+
+/** TM-23: ganti isi komentar (siapa pun yang login). Isi lama + baru dicatat 1 baris; isi sama persis = no-op. */
+export const updateComment = async (
+	db: PrismaClient,
+	input: { taskId: string; commentId: string; body: string; user: SessionUser }
+): Promise<ActionResult> => {
+	const invalid = checkCommentBody(input.body);
+	if (invalid) return invalid;
+	if (!UUID_PATTERN.test(input.commentId)) return { ok: false, status: 404, error: 'Comment not found' };
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const denied = await commentGuard(tx, input.taskId);
+		if (denied) return denied;
+		const comment = await tx.taskComment.findFirst({
+			where: { id: input.commentId, taskId: input.taskId },
+			select: { id: true, body: true }
+		});
+		if (!comment) return { ok: false, status: 404, error: 'Comment not found' };
+		if (comment.body === input.body) return { ok: true };
+		await tx.taskComment.update({ where: { id: comment.id }, data: { body: input.body } });
+		await tx.taskCommentEdit.create({
+			data: { commentId: comment.id, oldBody: comment.body, newBody: input.body, editedById: input.user.id }
+		});
+		return { ok: true };
+	});
+};
+
+/** TM-23: hapus komentar beneran (hard delete); jejak edit-nya ikut kebuang lewat ON DELETE CASCADE. */
+export const deleteComment = async (
+	db: PrismaClient,
+	input: { taskId: string; commentId: string }
+): Promise<ActionResult> => {
+	if (!UUID_PATTERN.test(input.commentId)) return { ok: false, status: 404, error: 'Comment not found' };
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		const denied = await commentGuard(tx, input.taskId);
+		if (denied) return denied;
+		const { count } = await tx.taskComment.deleteMany({ where: { id: input.commentId, taskId: input.taskId } });
+		return count > 0 ? { ok: true } : { ok: false, status: 404, error: 'Comment not found' };
 	});
 };
 

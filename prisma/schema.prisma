@@ -86,11 +86,14 @@ model User {
 
   tasks              Task[]
   taskHistory        TaskHistory[]
-  taskAttachments    TaskAttachment[] @relation("AttachmentCreatedBy")
+  taskAttachments    TaskAttachment[]  @relation("AttachmentCreatedBy")
   /// TM-22: lampiran yang diumpetin user ini.
-  deletedAttachments TaskAttachment[] @relation("AttachmentDeletedBy")
+  deletedAttachments TaskAttachment[]  @relation("AttachmentDeletedBy")
   taskEdits          TaskEdit[]
   apiTokens          ApiToken[]
+  /// TM-23: komentar yang ditulis / diedit user ini.
+  comments           TaskComment[]
+  commentEdits       TaskCommentEdit[]
 
   @@map("users")
 }
@@ -116,6 +119,7 @@ model Task {
   history       TaskHistory[]
   attachments   TaskAttachment[]
   edits         TaskEdit[]
+  comments      TaskComment[]
 
   @@index([status, ordering])
   @@map("task")
@@ -184,6 +188,40 @@ model TaskAttachment {
 
   @@index([taskId])
   @@map("task_attachment")
+}
+
+/// TM-23: komentar di task. Isi = HTML rich text yang udah disaring (aturan sama kayak description).
+/// Hapus = hard delete; jejak edit-nya ikut kebuang (cascade).
+model TaskComment {
+  id          String   @id @default(uuid()) @db.Uuid
+  taskId      String   @map("task_id") @db.Uuid
+  body        String
+  createdById String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  task      Task              @relation(fields: [taskId], references: [id])
+  createdBy User              @relation(fields: [createdById], references: [id])
+  edits     TaskCommentEdit[]
+
+  @@index([taskId])
+  @@map("task_comment")
+}
+
+/// TM-23: satu baris per edit komentar (isi lama + baru), ditampilin di komentarnya ("edited").
+model TaskCommentEdit {
+  id         String   @id @default(uuid()) @db.Uuid
+  commentId  String   @map("comment_id") @db.Uuid
+  oldBody    String   @map("old_body")
+  newBody    String   @map("new_body")
+  editedById String   @map("edited_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  comment  TaskComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  editedBy User        @relation(fields: [editedById], references: [id])
+
+  @@index([commentId])
+  @@map("task_comment_edit")
 }
 
 /// TM-17: token API per user (maks 5). Token = user pemiliknya, hak sama persis kayak di UI. Yang disimpan

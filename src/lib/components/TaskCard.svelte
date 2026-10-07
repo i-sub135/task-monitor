@@ -6,6 +6,7 @@
 		CheckIcon,
 		HeartXIcon,
 		LinkIcon,
+		MessageSquareIcon,
 		PaperclipIcon,
 		PowerIcon,
 		PowerOffIcon,
@@ -143,6 +144,11 @@
 				{#if task.attachments > 0}
 					<span class="flex items-center gap-1 opacity-70" title="Attachments"
 						><PaperclipIcon class="size-3" />{task.attachments}</span
+					>
+				{/if}
+				{#if task.comments > 0}
+					<span class="flex items-center gap-1 opacity-70" title="Comments"
+						><MessageSquareIcon class="size-3" />{task.comments}</span
 					>
 				{/if}
 				<span class="flex items-center gap-1 opacity-80"

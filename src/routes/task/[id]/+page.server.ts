@@ -8,9 +8,12 @@ import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { MAX_FILES } from '$lib/utils/upload-limits';
 import {
 	addAttachments,
+	addComment,
 	checkAttachmentsEditable,
+	deleteComment,
 	getTaskDetail,
 	removeAttachment,
+	updateComment,
 	transitionTask,
 	updateTaskDescription,
 	updateTaskPlatform,
@@ -133,5 +136,33 @@ export const actions: Actions = {
 		});
 		if (!result.ok) return fail(result.status, { attachmentError: result.error });
 		return { attachmentRemoved: true };
+	},
+
+	// TM-23: komentar. Isi rich text disaring di sini (sama kayak description) sebelum disentuh lagi.
+	addComment: async ({ request, params, locals }) => {
+		if (!locals.user) return fail(401, { commentError: 'Session expired, please log in again' });
+		const form = await request.formData();
+		const body = sanitizeDescription(String(form.get('body') ?? ''));
+		const result = await addComment(getDb(), { taskId: params.id, body, user: locals.user });
+		if (!result.ok) return fail(result.status, { commentError: result.error });
+		return { commentAdded: true };
+	},
+
+	updateComment: async ({ request, params, locals }) => {
+		const form = await request.formData();
+		const commentId = String(form.get('comment_id') ?? '');
+		if (!locals.user) return fail(401, { commentError: 'Session expired, please log in again', commentId });
+		const body = sanitizeDescription(String(form.get('body') ?? ''));
+		const result = await updateComment(getDb(), { taskId: params.id, commentId, body, user: locals.user });
+		if (!result.ok) return fail(result.status, { commentError: result.error, commentId });
+		return { commentUpdated: true };
+	},
+
+	deleteComment: async ({ request, params, locals }) => {
+		if (!locals.user) return fail(401, { commentError: 'Session expired, please log in again' });
+		const form = await request.formData();
+		const result = await deleteComment(getDb(), { taskId: params.id, commentId: String(form.get('comment_id') ?? '') });
+		if (!result.ok) return fail(result.status, { commentError: result.error });
+		return { commentDeleted: true };
 	}
 };

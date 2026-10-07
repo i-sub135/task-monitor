@@ -9,8 +9,10 @@
 		XIcon,
 		CheckIcon,
 		LinkIcon,
+		PencilIcon,
 		PlusIcon,
 		RotateCcwIcon,
+		SendIcon,
 		Trash2Icon
 	} from '@lucide/svelte';
 	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
@@ -18,6 +20,7 @@
 	import { canAdvance } from '$lib/utils/roles';
 	import {
 		allowedTargets,
+		canComment,
 		canEditAttachments,
 		canEditTask,
 		platformLabels,
@@ -172,8 +175,38 @@
 		}
 		input.form?.requestSubmit();
 	};
-	// Konfirmasi hapus lampiran: Dialog bawaan Skeleton, bukan confirm() browser.
-	let removing = $state<AttachmentInfo | null>(null);
+	// Konfirmasi hapus (lampiran TM-22, komentar TM-23): satu Dialog bawaan Skeleton, bukan confirm() browser.
+	type PendingDelete = { action: string; field: string; id: string; title: string; name: string; message: string };
+	let pendingDelete = $state<PendingDelete | null>(null);
+	const askRemoveAttachment = (file: AttachmentInfo) =>
+		(pendingDelete = {
+			action: '?/removeAttachment',
+			field: 'attachment_id',
+			id: file.id,
+			title: 'Remove attachment?',
+			name: file.name,
+			message: 'will be removed from this task. It stays viewable from the Edit history.'
+		});
+	const askDeleteComment = (id: string) =>
+		(pendingDelete = {
+			action: '?/deleteComment',
+			field: 'comment_id',
+			id,
+			title: 'Delete comment?',
+			name: '',
+			message: 'This comment and its edit history will be permanently deleted.'
+		});
+
+	// TM-23: komentar. Siapa pun yang login boleh nulis/edit/hapus, kecuali task udah Live atau Rejected.
+	const canWriteComments = $derived(Boolean(data.user) && canComment(task.status));
+	// Ganti key = editor komentar baru dipasang ulang (kosong lagi) habis komentar kekirim.
+	let commentFormKey = $state(0);
+	let editingComment = $state<string | null>(null);
+	let openCommentEdits = $state<string[]>([]);
+	const toggleCommentEdits = (id: string) =>
+		(openCommentEdits = openCommentEdits.includes(id)
+			? openCommentEdits.filter((x) => x !== id)
+			: [...openCommentEdits, id]);
 
 	const sizeLabel = (bytes: number) =>
 		bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -466,7 +499,7 @@
 									class="btn-icon btn-icon-sm preset-filled-error-500 absolute top-1.5 right-1.5 size-7 shadow-md"
 									aria-label="Remove {file.name}"
 									title="Remove"
-									onclick={() => (removing = file)}
+									onclick={() => askRemoveAttachment(file)}
 								>
 									<Trash2Icon class="size-3.5" />
 								</button>
@@ -477,6 +510,119 @@
 				</ul>
 			{:else}
 				<p class="text-sm opacity-50">No attachments</p>
+			{/if}
+		</section>
+
+		<!-- TM-23: komentar. Isi udah disaring server (renderDescriptionHtml), sama kayak description. -->
+		<section>
+			<h2 class="mb-3 font-semibold">Comments ({task.comments.length})</h2>
+			{#if task.comments.length > 0}
+				<ol class="mb-4 flex flex-col gap-3">
+					{#each task.comments as c (c.id)}
+						<li class="border-surface-300-700 rounded-container border p-3 text-sm">
+							<div class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+								<span class="font-semibold">{c.by}</span>
+								<span class="opacity-60">{c.at}</span>
+								{#if c.edits.length > 0}
+									<button
+										type="button"
+										class="cursor-pointer underline decoration-dotted underline-offset-2 opacity-70 hover:opacity-100"
+										aria-expanded={openCommentEdits.includes(c.id)}
+										onclick={() => toggleCommentEdits(c.id)}>edited</button
+									>
+								{/if}
+								{#if canWriteComments && editingComment !== c.id}
+									<span class="ml-auto flex gap-1">
+										<button
+											type="button"
+											class="btn-icon btn-icon-sm hover:preset-tonal size-7"
+											aria-label="Edit comment"
+											title="Edit"
+											onclick={() => (editingComment = c.id)}
+										>
+											<PencilIcon class="size-3.5" />
+										</button>
+										<button
+											type="button"
+											class="btn-icon btn-icon-sm hover:preset-tonal text-error-500 size-7"
+											aria-label="Delete comment"
+											title="Delete"
+											onclick={() => askDeleteComment(c.id)}
+										>
+											<Trash2Icon class="size-3.5" />
+										</button>
+									</span>
+								{/if}
+							</div>
+							{#if editingComment === c.id}
+								<form
+									method="POST"
+									action="?/updateComment"
+									use:enhance={() =>
+										async ({ result, update }) => {
+											await update({ reset: false });
+											if (result.type === 'success') editingComment = null;
+										}}
+									class="flex flex-col gap-2"
+								>
+									<input type="hidden" name="comment_id" value={c.id} />
+									<RichTextEditor name="body" value={c.bodyHtml} required />
+									{#if form?.commentError && form?.commentId === c.id}
+										<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
+									{/if}
+									<div class="flex justify-end gap-2">
+										<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingComment = null)}
+											>Cancel</button
+										>
+										<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+									</div>
+								</form>
+							{:else}
+								<div class="rich-text">{@html c.bodyHtml}</div>
+							{/if}
+							{#if openCommentEdits.includes(c.id)}
+								<!-- Jejak edit komentar: tampilannya sama kayak Edit history description. -->
+								<ol class="border-surface-300-700 mt-3 flex flex-col gap-3 border-t pt-3 text-xs">
+									{#each c.edits as e (e.id)}
+										<li class="border-l-2 pl-3" style="border-color: {editBorder.description}">
+											<p class="mb-1 opacity-70">{e.by} · {e.at}</p>
+											<p class="mb-0.5 font-semibold tracking-wide uppercase opacity-50">Before</p>
+											<div class="rich-text opacity-60 line-through">{@html e.oldValue}</div>
+											<p class="mt-2 mb-0.5 font-semibold tracking-wide uppercase opacity-50">After</p>
+											<div class="rich-text">{@html e.newValue}</div>
+										</li>
+									{/each}
+								</ol>
+							{/if}
+						</li>
+					{/each}
+				</ol>
+			{/if}
+			{#if canWriteComments}
+				{#key commentFormKey}
+					<form
+						method="POST"
+						action="?/addComment"
+						use:enhance={() =>
+							async ({ result, update }) => {
+								await update({ reset: false });
+								if (result.type === 'success') commentFormKey++;
+							}}
+						class="flex flex-col gap-2"
+					>
+						<RichTextEditor name="body" required placeholder="Write a comment" />
+						{#if form?.commentError && !form?.commentId}
+							<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
+						{/if}
+						<div class="flex justify-end">
+							<button type="submit" class="btn btn-sm btn-outline-primary"><SendIcon class="size-4" /> Comment</button>
+						</div>
+					</form>
+				{/key}
+			{:else}
+				<p class="text-sm opacity-50">
+					{task.comments.length === 0 ? 'No comments. ' : ''}Comments are locked once the task is Live or Rejected.
+				</p>
 			{/if}
 		</section>
 	</article>
@@ -602,9 +748,9 @@
 </div>
 
 <Dialog
-	open={removing !== null}
+	open={pendingDelete !== null}
 	onOpenChange={(e) => {
-		if (!e.open) removing = null;
+		if (!e.open) pendingDelete = null;
 	}}
 	role="alertdialog"
 >
@@ -614,26 +760,27 @@
 			<Dialog.Content
 				class="card preset-filled-surface-50-950 border-surface-300-700 w-full max-w-md space-y-4 border p-5 shadow-2xl"
 			>
-				<Dialog.Title class="h5">Remove attachment?</Dialog.Title>
+				<Dialog.Title class="h5">{pendingDelete?.title}</Dialog.Title>
 				<Dialog.Description class="text-sm">
-					<strong class="break-all">{removing?.name}</strong> will be removed from this task. It stays viewable
-					from the Edit history.
+					{#if pendingDelete?.name}<strong class="break-all">{pendingDelete.name}</strong>{/if}
+					{pendingDelete?.message}
 				</Dialog.Description>
 				<form
 					method="POST"
-					action="?/removeAttachment"
+					action={pendingDelete?.action}
 					class="flex justify-end gap-3"
 					use:enhance={() => {
-						removing = null;
+						pendingDelete = null;
 						return async ({ update }) => {
 							await update();
 						};
 					}}
 				>
-					<input type="hidden" name="attachment_id" value={removing?.id ?? ''} />
+					<input type="hidden" name={pendingDelete?.field} value={pendingDelete?.id ?? ''} />
 					<Dialog.CloseTrigger class="btn btn-outline-neutral">Cancel</Dialog.CloseTrigger>
 					<button type="submit" class="btn btn-outline-error">
-						<Trash2Icon class="size-4" /> Remove
+						<Trash2Icon class="size-4" />
+						{pendingDelete?.action === '?/deleteComment' ? 'Delete' : 'Remove'}
 					</button>
 				</form>
 			</Dialog.Content>
