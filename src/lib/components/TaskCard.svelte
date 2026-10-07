@@ -153,14 +153,14 @@
 
 		{#if task.type === 'support' && task.status === 'done'}
 			<span
-				class="preset-filled-support absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full shadow-md ring-2 ring-white"
+				class="preset-filled-support absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white shadow-md"
 				title="Done"
 			>
 				<CheckIcon class="size-4" strokeWidth={3} />
 			</span>
 		{:else if task.status === 'rejected'}
 			<span
-				class="absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-gray-200 shadow-md ring-2 ring-white"
+				class="absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-gray-200 border-2 border-white shadow-md"
 				title="Rejected"
 			>
 				<HeartXIcon class="text-error-500 size-4" strokeWidth={2.5} />
@@ -171,7 +171,7 @@
 			{#if liveAction}
 				<button
 					type="button"
-					class="absolute top-1/2 -right-1 z-10 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-white shadow-md ring-2 ring-white transition hover:scale-110"
+					class="absolute top-1/2 -right-1 z-10 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-white border-2 border-white shadow-md transition hover:scale-110"
 					style="background-color: {isLive ? '#00c853' : '#e73f1e'}"
 					aria-label={liveAction.label}
 					title={liveAction.label}
@@ -181,7 +181,7 @@
 				</button>
 			{:else}
 				<span
-					class="absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md ring-2 ring-white"
+					class="absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-white border-2 border-white shadow-md"
 					style="background-color: {isLive ? '#00c853' : '#e73f1e'}"
 					title={isLive ? 'Live' : 'Not live yet'}
 				>
