@@ -3,7 +3,7 @@
 // adapter-node punya batas ukuran request sendiri (BODY_SIZE_LIMIT, default 512K) yang nolak upload
 // sebelum sampai ke kode app. Namanya gak jelas dan bukan setelan app, jadi gak dipakai di .env.
 // Cukup isi UPLOAD_SIZE_LIMIT (ukuran maksimal PER FILE); batas request diturunin dari situ.
-import { DEFAULT_UPLOAD_SIZE_LIMIT, bodyLimitBytes, parseSize } from '../src/lib/utils/upload-limits.js';
+import { DEFAULT_UPLOAD_SIZE_LIMIT, bodyLimitBytes, parseSize } from '../src/lib/utils/upload-limits.ts';
 
 const raw = process.env.UPLOAD_SIZE_LIMIT || DEFAULT_UPLOAD_SIZE_LIMIT;
 const perFile = parseSize(raw);

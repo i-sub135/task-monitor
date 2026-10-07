@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { DEFAULT_UPLOAD_SIZE_LIMIT, MAX_FILES, formatSize, parseSize } from '../utils/upload-limits.js';
+import { DEFAULT_UPLOAD_SIZE_LIMIT, MAX_FILES, formatSize, parseSize } from '../utils/upload-limits.ts';
 import { ATTACHMENT_PREFIX, isAttachmentKey } from './storage/keys.ts';
 import type { StorageDriver } from './storage/types.ts';
 

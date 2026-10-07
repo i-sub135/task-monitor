@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { DEFAULT_UPLOAD_SIZE_LIMIT, parseSize } from '../utils/upload-limits.js';
+import { DEFAULT_UPLOAD_SIZE_LIMIT, parseSize } from '../utils/upload-limits.ts';
 
 /** Ukuran maksimal per file lampiran, dalam byte. Dari UPLOAD_SIZE_LIMIT ("5M", "512K", ...). */
 export const getUploadLimitBytes = (): number => {
