@@ -10,7 +10,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Backlog
 
-- [TM-22](backlog/TM-22.md) — Edit lampiran task sampai sebelum Done — Backlog (nunggu keputusan Iyan)
+- [TM-22](backlog/TM-22.md) — Edit lampiran task sampai sebelum Done — Backlog (keputusan lengkap, nunggu "gas")
 
 ## Done
 
