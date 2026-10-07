@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import { CalendarIcon, CheckIcon, LinkIcon, PaperclipIcon } from '@lucide/svelte';
+	import { CalendarIcon, CheckIcon, LinkIcon, PaperclipIcon, PowerIcon, PowerOffIcon, RocketIcon } from '@lucide/svelte';
 	import { copyText } from '$lib/utils/clipboard';
 	import { typeFilledClass, typeIcons, typeTextClass } from '$lib/utils/type-styles';
 	import { platformLabels, type BoardTask } from '$lib/utils/tasks';
@@ -9,19 +9,19 @@
 
 	// Isi kartu task yang dipakai bareng /board dan /board/list/[status]. Handler drag dan class tambahan
 	// dioper lewat rest props ke <article>; tombol ▲▼ lewat `actions` (sebaris badge, mepet kanan);
-	// tombol bulet mark/unmark live lewat `footerActions` (paling kanan di kotak footer).
+	// `liveAction` = tombol mark/unmark live (kartu Done, kalau role-nya boleh): bulatan besar di ujung pil footer.
 	let {
 		task,
 		dimmed = false,
 		actions,
-		footerActions,
+		liveAction,
 		children,
 		...rest
 	}: {
 		task: BoardTask;
 		dimmed?: boolean;
 		actions?: Snippet;
-		footerActions?: Snippet;
+		liveAction?: { label: string; onclick: () => void };
 		children?: Snippet;
 	} & HTMLAttributes<HTMLElement> = $props();
 
@@ -108,11 +108,13 @@
 		{task.title}
 	</a>
 
-	<!-- Kotak siapa/kapan: panel kecil di dalam kartu, latar tema setengah transparan (`.card-meta` di app.css)
-	     jadi warnanya ikut kartu tapi lebih muda, + bayangan halus (elevation) biar keliatan ngambang. Nama gak dipotong: kalau kartu sempit, tanggal turun ke baris kedua.
-	     Waktu persis di tooltip. -->
+	<!-- Pil siapa/kapan: latar tema setengah transparan (`.card-meta` di app.css) jadi warnanya ikut kartu tapi lebih
+	     muda, + bayangan halus. Di ujung kanan ada bulatan besar yang nongol ke atas-bawah pil:
+	     - Done: merah + power off (belum live); Live: ijo + power on. Jadi tombol mark/unmark kalau role-nya boleh.
+	     - Status lain: hiasan roket, warnanya sama kayak latar kartu (`.card-meta-dot`).
+	     Nama gak dipotong: kalau kartu sempit, tanggal turun ke baris kedua. Waktu persis di tooltip. -->
 	<footer
-		class="card-meta border-surface-300-700/60 mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border px-2 py-1.5 text-xs shadow-sm"
+		class="card-meta border-surface-300-700/60 relative mt-3 mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-full border py-1.5 pr-12 pl-1.5 text-xs shadow-sm"
 		title="Created {task.createdAt}"
 	>
 		<span class="flex min-w-0 items-center gap-1.5">
@@ -132,8 +134,39 @@
 			<span class="flex items-center gap-1 opacity-80"
 				><CalendarIcon class="size-3" /><span class="font-medium">{ageLabel(task.ageDays)}</span></span
 			>
-			{@render footerActions?.()}
 		</span>
+
+		{#if task.status === 'done' || task.status === 'done-live'}
+			{@const isLive = task.status === 'done-live'}
+			{@const LiveIcon = isLive ? PowerIcon : PowerOffIcon}
+			{#if liveAction}
+				<button
+					type="button"
+					class="absolute top-1/2 -right-1.5 z-10 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-white shadow-md ring-2 ring-white transition hover:scale-110"
+					style="background-color: {isLive ? '#00c853' : '#e73f1e'}"
+					aria-label={liveAction.label}
+					title={liveAction.label}
+					onclick={liveAction.onclick}
+				>
+					<LiveIcon class="size-5" />
+				</button>
+			{:else}
+				<span
+					class="absolute top-1/2 -right-1.5 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md ring-2 ring-white"
+					style="background-color: {isLive ? '#00c853' : '#e73f1e'}"
+					title={isLive ? 'Live' : 'Not live yet'}
+				>
+					<LiveIcon class="size-5" />
+				</span>
+			{/if}
+		{:else}
+			<span
+				class="card-meta-dot border-surface-300-700/60 absolute top-1/2 -right-1.5 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-md"
+				aria-hidden="true"
+			>
+				<RocketIcon class="size-5 opacity-70" />
+			</span>
+		{/if}
 	</footer>
 
 	{@render children?.()}

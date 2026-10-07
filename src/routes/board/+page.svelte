@@ -283,6 +283,7 @@
 			</header>
 
 			{#each items.slice(0, BOARD_COLUMN_LIMIT) as task, i (task.id)}
+				{@const live = liveTarget(task)}
 				<TaskCard
 					{task}
 					dimmed={dragging?.id === task.id}
@@ -293,6 +294,9 @@
 					ondragleave={(e) => onCardDragLeave(e, task)}
 					ondrop={(e) => onCardDrop(e, task)}
 					class={overCard === task.id ? 'ring-primary-500 ring-2' : ''}
+					liveAction={live
+						? { label: live === 'done-live' ? 'Mark as live' : 'Unmark live', onclick: () => openLiveDialog(task, live) }
+						: undefined}
 				>
 					<!-- TM-16: posisi itu urutan kolom penuh; pas filter aktif ada kartu yang ketutup, jadi ▲▼ dimatiin. -->
 					{#snippet actions()}
@@ -317,21 +321,6 @@
 							>
 								<ArrowDownIcon class="size-3" />
 							</button>
-						{/if}
-					{/snippet}
-					{#snippet footerActions()}
-						{@const live = liveTarget(task)}
-						{#if live}
-							<!-- Bulet kecil di kotak footer = status live kartu ini (ijo ngejreng kayak garis badge LIVE = udah live,
-							     merah = belum). Diklik buat mark / unmark; aksinya di tooltip + aria-label. -->
-							<button
-								type="button"
-								class="relative z-10 size-4 shrink-0 cursor-pointer rounded-full shadow ring-1 ring-white transition hover:scale-125"
-								style="background-color: {live === 'done' ? '#00c853' : '#e73f1e'}"
-								aria-label={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
-								title={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
-								onclick={() => openLiveDialog(task, live)}
-							></button>
 						{/if}
 					{/snippet}
 				</TaskCard>

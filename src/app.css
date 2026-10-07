@@ -158,6 +158,20 @@
 	background-color: color-mix(in oklab, var(--color-surface-50) 55%, transparent);
 }
 
+/* Bulatan hiasan (roket) di ujung pil: warnanya sama persis kayak latar kartunya (status) di atas latar tema. */
+.card-meta-dot {
+	background-color: var(--color-surface-50);
+}
+[data-status='in-progress'] .card-meta-dot {
+	background: linear-gradient(var(--status-in-progress), var(--status-in-progress)), var(--color-surface-50);
+}
+[data-status='ready-to-test'] .card-meta-dot {
+	background: linear-gradient(var(--status-ready-to-test), var(--status-ready-to-test)), var(--color-surface-50);
+}
+[data-status='rejected'] .card-meta-dot {
+	background: linear-gradient(var(--status-rejected), var(--status-rejected)), var(--color-surface-50);
+}
+
 /*
  * Tab status di HP: yang belum dipilih pakai warna latar yang sama dengan kartu statusnya; yang lagi dipilih
  * tetap hijau bawaan (preset-filled-primary-500). Hover/fokus tetap pakai warna itu dengan teks gelap, bukan
