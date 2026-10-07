@@ -9,17 +9,21 @@
 		XIcon,
 		CheckIcon,
 		LinkIcon,
-		RotateCcwIcon
+		PlusIcon,
+		RotateCcwIcon,
+		Trash2Icon
 	} from '@lucide/svelte';
 	import { copyText } from '$lib/utils/clipboard';
 	import { canAdvance } from '$lib/utils/roles';
 	import {
 		allowedTargets,
+		canEditAttachments,
 		canEditTask,
 		platformLabels,
 		platforms,
 		statusLabels,
 		taskTypes,
+		type EditField,
 		type Platform,
 		type Status
 	} from '$lib/utils/tasks';
@@ -37,6 +41,8 @@
 	const canMove = $derived(data.user ? canAdvance(data.user.role) : false);
 	// TM-11/TM-12: siapa pun yang login boleh edit title/description/type/platform, selama status Request/Queue.
 	const canEdit = $derived(Boolean(data.user) && canEditTask(task.status));
+	// TM-22: lampiran boleh ditambah/dihapus siapa pun yang login, sampai sebelum Done.
+	const canEditFiles = $derived(Boolean(data.user) && canEditAttachments(task.status));
 	// TM-15: kapan terakhir ditandai live (history terakhir yang masuk ke done-live).
 	const liveSince = $derived(
 		task.status === 'done-live' ? (task.history.findLast((h) => h.to === 'done-live')?.at ?? null) : null
@@ -59,12 +65,23 @@
 	};
 	const historyBorder = (from: Status | null, to: Status) =>
 		from === 'done-live' && to === 'done' ? '#f97316' : statusBorder[to];
-	const editBorder: Record<'title' | 'description' | 'type' | 'platform' | 'recreate', string> = {
+	const editBorder: Record<EditField, string> = {
 		title: '#7c3aed',
 		description: '#db2777',
 		type: '#a16207',
 		platform: '#78716c',
-		recreate: '#0e7490'
+		recreate: '#0e7490',
+		attachment_add: '#65a30d',
+		attachment_remove: '#e11d48'
+	};
+	const editLabels: Record<EditField, string> = {
+		title: 'Title edited',
+		description: 'Description edited',
+		type: 'Type edited',
+		platform: 'Platform edited',
+		recreate: 'Recreated from a rejected task',
+		attachment_add: 'Attachment added',
+		attachment_remove: 'Attachment removed'
 	};
 	// Salin link task ini (URL lengkap), sama kayak tombol rantai di kartu board.
 	let linkCopied = $state(false);
@@ -135,6 +152,27 @@
 	const zoomOut = () => (zoomIndex = Math.max(zoomIndex - 1, 0));
 	// Klik dua kali di gambar: balik ke pas layar, atau zoom 2x.
 	const toggleZoom = () => (zoomIndex = zoomIndex === 0 ? 2 : 0);
+
+	// TM-22: tambah lampiran. Pilih file = langsung upload. Jumlah/ukuran dicek dulu di browser biar gak nunggu
+	// upload cuma buat ditolak; server tetep ngecek ulang semuanya.
+	let uploading = $state(false);
+	let fileError = $state('');
+	const onPickFiles = (e: Event) => {
+		const input = e.currentTarget as HTMLInputElement;
+		const files = [...(input.files ?? [])];
+		fileError = '';
+		if (files.length === 0) return;
+		const tooBig = files.find((f) => f.size > data.maxFileBytes);
+		if (files.length > data.maxFiles) fileError = `Upload at most ${data.maxFiles} files at a time`;
+		else if (tooBig) fileError = `"${tooBig.name}" is larger than ${sizeLabel(data.maxFileBytes)}`;
+		if (fileError) {
+			input.value = '';
+			return;
+		}
+		input.form?.requestSubmit();
+	};
+	const confirmRemove = (name: string) =>
+		confirm(`Remove "${name}" from this task? It stays viewable from the Edit history.`);
 
 	const sizeLabel = (bytes: number) =>
 		bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -363,11 +401,45 @@
 		</section>
 
 		<section>
-			<h2 class="mb-3 font-semibold">Attachments ({task.attachments.length})</h2>
+			<div class="mb-3 flex flex-wrap items-center gap-2">
+				<h2 class="font-semibold">Attachments ({task.attachments.length})</h2>
+				{#if canEditFiles}
+					<form
+						method="POST"
+						action="?/addAttachments"
+						enctype="multipart/form-data"
+						class="ml-auto"
+						use:enhance={() => {
+							uploading = true;
+							return async ({ update }) => {
+								await update();
+								uploading = false;
+							};
+						}}
+					>
+						<label class="btn btn-sm btn-outline-primary cursor-pointer {uploading ? 'pointer-events-none opacity-60' : ''}">
+							<PlusIcon class="size-4" />
+							{uploading ? 'Uploading…' : 'Add files'}
+							<input
+								type="file"
+								name="attachments"
+								multiple
+								accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
+								class="sr-only"
+								disabled={uploading}
+								onchange={onPickFiles}
+							/>
+						</label>
+					</form>
+				{/if}
+			</div>
+			{#if fileError || form?.attachmentError}
+				<div class="card preset-filled-error-500 mb-3 p-3 text-sm" role="alert">{fileError || form?.attachmentError}</div>
+			{/if}
 			{#if task.attachments.length > 0}
 				<ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 					{#each task.attachments as file (file.id)}
-						<li class="flex flex-col gap-1">
+						<li class="relative flex flex-col gap-1">
 							<button
 								type="button"
 								onclick={() => openViewer(file)}
@@ -387,6 +459,26 @@
 									</div>
 								{/if}
 							</button>
+							{#if canEditFiles}
+								<form
+									method="POST"
+									action="?/removeAttachment"
+									class="absolute top-1.5 right-1.5"
+									use:enhance={({ cancel }) => {
+										if (!confirmRemove(file.name)) cancel();
+									}}
+								>
+									<input type="hidden" name="attachment_id" value={file.id} />
+									<button
+										type="submit"
+										class="btn-icon btn-icon-sm preset-filled-error-500 size-7 shadow-md"
+										aria-label="Remove {file.name}"
+										title="Remove"
+									>
+										<Trash2Icon class="size-3.5" />
+									</button>
+								</form>
+							{/if}
 							<span class="truncate text-xs opacity-70" title={file.name}>{file.name} · {sizeLabel(file.size)}</span>
 						</li>
 					{/each}
@@ -474,21 +566,16 @@
 				<ol class="flex flex-col gap-3 text-sm">
 					{#each task.edits as e (e.id)}
 						<li class="border-l-2 pl-3" style="border-color: {editBorder[e.field]}">
-							<p class="font-medium">
-								{e.field === 'recreate'
-									? 'Recreated from a rejected task'
-									: `${e.field === 'title'
-											? 'Title'
-											: e.field === 'description'
-												? 'Description'
-												: e.field === 'type'
-													? 'Type'
-													: 'Platform'} edited`}
-							</p>
+							<p class="font-medium">{editLabels[e.field]}</p>
 							<p class="text-xs opacity-70">{e.by}{e.via ? ` via ${e.via}` : ''} · {e.at}</p>
 							{#if e.field === 'recreate'}
 								<p class="mt-1 text-xs break-words">
 									<a href="/task/{e.oldValue}" class="anchor">{e.newValue}</a>
+								</p>
+							{:else if e.field === 'attachment_add' || e.field === 'attachment_remove'}
+								<!-- TM-22: link ke file-nya (yang udah dihapus pun tetep kebuka), di tab baru. -->
+								<p class="mt-1 text-xs break-words">
+									<a href="/attachment/{e.oldValue}" target="_blank" rel="noopener" class="anchor">{e.newValue}</a>
 								</p>
 							{:else if e.field === 'description'}
 								<!-- Description bisa multi-baris, jadi lama/baru dipisah jelas pakai label + garis. -->

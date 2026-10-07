@@ -82,6 +82,13 @@ export const BOARD_COLUMN_LIMIT = 5;
 /** TM-11: title/description cuma boleh diedit selama task masih Request atau Queue, role apa pun. */
 export const canEditTask = (status: Status): boolean => status === 'request' || status === 'queue';
 
+/**
+ * TM-22: lampiran boleh ditambah/diumpetin sampai sebelum Done (Request, Queue, In progress, Ready to test),
+ * role apa pun. Done, Live, Rejected: read-only.
+ */
+export const canEditAttachments = (status: Status): boolean =>
+	status === 'request' || status === 'queue' || status === 'in-progress' || status === 'ready-to-test';
+
 export type RuleResult = { ok: true } | { ok: false; status: number; error: string };
 
 /**
@@ -175,11 +182,16 @@ export type HistoryEntry = {
 
 export type AttachmentInfo = { id: string; name: string; mime: string; size: number };
 
+export type EditField = 'title' | 'description' | 'type' | 'platform' | 'recreate' | 'attachment_add' | 'attachment_remove';
+
 /** TM-11/TM-12: satu baris per edit title/description/type/platform yang sukses. */
 export type EditEntry = {
 	id: string;
-	/** TM-21: `recreate` = task ini hasil recreate (old = id task asal, new = judul task asal). */
-	field: 'title' | 'description' | 'type' | 'platform' | 'recreate';
+	/**
+	 * TM-21: `recreate` = task ini hasil recreate (old = id task asal, new = judul task asal).
+	 * TM-22: `attachment_add` / `attachment_remove` = lampiran ditambah / diumpetin (old = id lampiran, new = nama file).
+	 */
+	field: EditField;
 	by: string;
 	/** TM-17: nama API token kalau lewat API, null kalau lewat UI. */
 	via: string | null;

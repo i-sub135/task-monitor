@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { CheckIcon, CopyIcon, KeyRoundIcon, PlusIcon, TrashIcon } from '@lucide/svelte';
-	import { statusLabels } from '$lib/utils/tasks';
+	import { statusLabels, type EditField } from '$lib/utils/tasks';
 	import type { TokenActivity } from '$lib/server/tasks';
 
 	// TM-17: token API milik user yang lagi login. Token asli cuma muncul sekali, persis setelah generate.
@@ -13,12 +13,18 @@
 	// TM-18: aktivitas token. Nama yang udah gak ada di daftar token = token yang udah di-revoke.
 	const activeNames = $derived(new Set(data.tokens.map((t) => t.name)));
 	const filterNames = $derived([...new Set([...data.tokens.map((t) => t.name), ...data.activityNames])].sort());
-	const fieldLabels = { title: 'title', description: 'description', type: 'type', platform: 'platform', recreate: 'recreate' };
+	const editLabels: Record<EditField, string> = {
+		title: 'Edited title',
+		description: 'Edited description',
+		type: 'Edited type',
+		platform: 'Edited platform',
+		recreate: 'Recreated task',
+		attachment_add: 'Added attachment',
+		attachment_remove: 'Removed attachment'
+	};
 	const activityLabel = (a: TokenActivity) =>
 		a.kind === 'edit'
-			? a.field === 'recreate'
-				? 'Recreated task'
-				: `Edited ${fieldLabels[a.field]}`
+			? editLabels[a.field]
 			: a.from === null
 				? 'Created task'
 				: a.from === 'done-live' && a.to === 'done'

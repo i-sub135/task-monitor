@@ -6,6 +6,7 @@ import {
 	checkTransition,
 	canReorder,
 	canEditTask,
+	canEditAttachments,
 	hasOrdering,
 	statuses,
 	boardColumns,
@@ -13,6 +14,7 @@ import {
 	taskTypes,
 	platforms,
 	type BoardTask,
+	type EditField as EditEntryField,
 	type Platform,
 	type RuleResult,
 	type Status,
@@ -91,7 +93,11 @@ const renumberColumn = async (tx: Tx, status: TaskStatus) => {
 
 export const listBoard = async (db: PrismaClient, now: Date = new Date()): Promise<{ tasks: BoardTask[] }> => {
 	const rows = await db.task.findMany({
-		include: { createdBy: { select: { name: true } }, _count: { select: { attachments: true } } }
+		include: {
+			createdBy: { select: { name: true } },
+			// TM-22: lampiran yang diumpetin gak dihitung.
+			_count: { select: { attachments: { where: { deletedAt: null } } } }
+		}
 	});
 
 	// TM-15: dikelompokin per kolom board (done-live ikut kolom Done). Di kolom Done yang belum live di atas.
@@ -136,7 +142,8 @@ export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskD
 			createdBy: { select: { name: true } },
 			recreatedFrom: { select: { id: true, title: true } },
 			recreatedAs: { select: { id: true, title: true } },
-			attachments: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
+			// TM-22: yang diumpetin gak tampil di daftar (tetep bisa dibuka dari link di Edit history).
+			attachments: { where: { deletedAt: null }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
 			history: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { createdBy: { select: { name: true } } } },
 			edits: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { editedBy: { select: { name: true } } } }
 		}
@@ -178,6 +185,7 @@ export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskD
 	};
 };
 
+/** Buat `/attachment/<id>`. Sengaja gak nyaring `deleted_at`: lampiran yang diumpetin tetep bisa dibuka dari history. */
 export const findAttachment = async (db: PrismaClient, id: string) => {
 	if (!UUID_PATTERN.test(id)) return null;
 	return db.taskAttachment.findUnique({ where: { id }, select: { fileName: true, filePath: true, mimeType: true } });
@@ -441,6 +449,131 @@ export const updateTaskType = (db: PrismaClient, input: { id: string; type: stri
 export const updateTaskPlatform = (db: PrismaClient, input: { id: string; platform: string; user: SessionUser }) =>
 	updateTaskFields(db, { id: input.id, changes: { platform: input.platform }, user: input.user });
 
+// ---------------------------------------------------------------- lampiran (TM-22)
+
+/**
+ * TM-22: kunci baris task sampai transaksi selesai. Pindah status juga ngubah baris ini, jadi tambah/umpetin
+ * lampiran dan pindah status gak bisa nyelip barengan (mis. lampiran masuk persis pas task digeser ke Done).
+ */
+const lockTaskRow = (tx: Tx, id: string) => tx.$executeRaw`SELECT 1 FROM task WHERE id = ${id}::uuid FOR UPDATE`;
+
+/** Cek task boleh diubah lampirannya. null = boleh. */
+const attachmentGuard = (
+	row: { status: TaskStatus; updatedAt: Date } | null,
+	expectedUpdatedAt: string | undefined
+): ActionResult | null => {
+	if (!row) return { ok: false, status: 404, error: 'Task not found' };
+	const stale = staleCheck(row.updatedAt, expectedUpdatedAt);
+	if (stale) return stale;
+	if (!canEditAttachments(statusToApp[row.status])) {
+		return { ok: false, status: 403, error: 'Attachments can only be changed before the task is Done' };
+	}
+	return null;
+};
+
+/**
+ * TM-22: cek awal sebelum file ditulis ke storage (id sah, task ada, belum Done), biar upload yang pasti ditolak
+ * gak sempet nulis file. Dicek ulang di dalam transaksi `addAttachments`.
+ */
+export const checkAttachmentsEditable = async (
+	db: PrismaClient,
+	id: string,
+	expectedUpdatedAt?: string
+): Promise<ActionResult> => {
+	if (!UUID_PATTERN.test(id)) return { ok: false, status: 404, error: 'Task not found' };
+	const row = await db.task.findUnique({ where: { id }, select: { status: true, updatedAt: true } });
+	return attachmentGuard(row, expectedUpdatedAt) ?? { ok: true };
+};
+
+/**
+ * TM-22: tambah lampiran ke task yang belum Done. File udah ditulis ke storage sama pemanggil (sama kayak
+ * `createTask`); kalau hasilnya gak ok, pemanggil yang hapus file-nya lagi. Tiap file = 1 baris `task_edit`
+ * `attachment_add` (old = id lampiran, new = nama file). `updated_at` task ikut maju, jadi pemanggil API yang
+ * masih pegang nilai lama kena 409.
+ */
+export const addAttachments = async (
+	db: PrismaClient,
+	input: { id: string; files: StoredFile[]; user: SessionUser; via?: string | null; expectedUpdatedAt?: string }
+): Promise<ActionResult> => {
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (input.files.length === 0) return { ok: false, status: 400, error: 'Choose at least one file' };
+	const now = Date.now();
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		await lockTaskRow(tx, input.id);
+		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, updatedAt: true } });
+		const denied = attachmentGuard(row, input.expectedUpdatedAt);
+		if (denied) return denied;
+
+		for (const [i, f] of input.files.entries()) {
+			const att = await tx.taskAttachment.create({
+				data: {
+					taskId: input.id,
+					fileName: f.name,
+					filePath: f.filePath,
+					mimeType: f.mime,
+					size: f.size,
+					createdById: input.user.id,
+					// selisih 1 ms per file, biar urutan tampil = urutan upload (sama kayak createTask).
+					createdAt: new Date(now + i)
+				}
+			});
+			await tx.taskEdit.create({
+				data: {
+					taskId: input.id,
+					field: 'attachment_add',
+					oldValue: att.id,
+					newValue: f.name,
+					editedById: input.user.id,
+					via: input.via ?? null
+				}
+			});
+		}
+		await tx.task.update({ where: { id: input.id }, data: { updatedAt: new Date() } });
+		return { ok: true };
+	});
+};
+
+/**
+ * TM-22: umpetin satu lampiran (bukan hapus): baris + file tetep ada, cuma gak tampil di task lagi. Link di
+ * Edit history (`attachment_remove`, old = id lampiran, new = nama file) tetep bisa dibuka.
+ */
+export const removeAttachment = async (
+	db: PrismaClient,
+	input: { id: string; attachmentId: string; user: SessionUser; via?: string | null; expectedUpdatedAt?: string }
+): Promise<ActionResult> => {
+	if (!UUID_PATTERN.test(input.id)) return { ok: false, status: 404, error: 'Task not found' };
+	if (!UUID_PATTERN.test(input.attachmentId)) return { ok: false, status: 404, error: 'Attachment not found' };
+	return db.$transaction(async (tx): Promise<ActionResult> => {
+		await lockTaskRow(tx, input.id);
+		const row = await tx.task.findUnique({ where: { id: input.id }, select: { status: true, updatedAt: true } });
+		const denied = attachmentGuard(row, input.expectedUpdatedAt);
+		if (denied) return denied;
+
+		const att = await tx.taskAttachment.findFirst({
+			where: { id: input.attachmentId, taskId: input.id, deletedAt: null },
+			select: { id: true, fileName: true }
+		});
+		if (!att) return { ok: false, status: 404, error: 'Attachment not found' };
+
+		await tx.taskAttachment.update({
+			where: { id: att.id },
+			data: { deletedAt: new Date(), deletedById: input.user.id }
+		});
+		await tx.taskEdit.create({
+			data: {
+				taskId: input.id,
+				field: 'attachment_remove',
+				oldValue: att.id,
+				newValue: att.fileName,
+				editedById: input.user.id,
+				via: input.via ?? null
+			}
+		});
+		await tx.task.update({ where: { id: input.id }, data: { updatedAt: new Date() } });
+		return { ok: true };
+	});
+};
+
 /** Geser kartu ke posisi `position` (1-based) di kolomnya. Kolom dinomori ulang 1..n dalam 1 transaksi. */
 export const reorderTask = async (
 	db: PrismaClient,
@@ -486,8 +619,12 @@ export type ApiTask = {
 	updated_at: string;
 	/** true selama Request/Queue: title/description/type/platform boleh diedit. */
 	editable: boolean;
+	/** TM-22: true sampai sebelum Done: lampiran boleh ditambah/dihapus. */
+	attachments_editable: boolean;
 	/** Status tujuan yang boleh buat pemilik token ini dari status sekarang. */
 	allowed_transitions: Status[];
+	/** TM-22: lampiran yang masih tampil (yang udah dihapus gak ikut). */
+	attachments: { id: string; name: string; mime: string; size: number; created_by: string; created_at: string }[];
 	history: { from: Status | null; to: Status; by: string; via: string | null; note: string | null; at: string }[];
 };
 
@@ -497,6 +634,11 @@ export const getTaskForApi = async (db: PrismaClient, id: string, user: SessionU
 		where: { id },
 		include: {
 			createdBy: { select: { name: true } },
+			attachments: {
+				where: { deletedAt: null },
+				orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+				include: { createdBy: { select: { name: true } } }
+			},
 			history: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { createdBy: { select: { name: true } } } }
 		}
 	});
@@ -513,7 +655,16 @@ export const getTaskForApi = async (db: PrismaClient, id: string, user: SessionU
 		created_at: t.createdAt.toISOString(),
 		updated_at: t.updatedAt.toISOString(),
 		editable: canEditTask(status),
+		attachments_editable: canEditAttachments(status),
 		allowed_transitions: allowedTargets(user.role, status, t.type),
+		attachments: t.attachments.map((a) => ({
+			id: a.id,
+			name: a.fileName,
+			mime: a.mimeType,
+			size: a.size,
+			created_by: a.createdBy.name,
+			created_at: a.createdAt.toISOString()
+		})),
 		history: t.history.map((h) => ({
 			from: h.statusBefore ? statusToApp[h.statusBefore] : null,
 			to: statusToApp[h.statusAfter],
@@ -525,7 +676,7 @@ export const getTaskForApi = async (db: PrismaClient, id: string, user: SessionU
 	};
 };
 
-export type ApiTaskSummary = Omit<ApiTask, 'description' | 'history'> & {
+export type ApiTaskSummary = Omit<ApiTask, 'description' | 'history' | 'attachments'> & {
 	/** Nomor urut di kolom (1..n) buat request/queue, null di status lain. */
 	position: number | null;
 };
@@ -575,6 +726,7 @@ export const listTasksForApi = async (
 				created_at: t.createdAt.toISOString(),
 				updated_at: t.updatedAt.toISOString(),
 				editable: canEditTask(status),
+				attachments_editable: canEditAttachments(status),
 				allowed_transitions: allowedTargets(input.user.role, status, t.type),
 				position: idx >= 0 ? idx + 1 : null
 			});
@@ -594,7 +746,7 @@ export type TokenActivity = {
 	taskTitle: string;
 } & (
 	| { kind: 'status'; from: Status | null; to: Status }
-	| { kind: 'edit'; field: 'title' | 'description' | 'type' | 'platform' | 'recreate' }
+	| { kind: 'edit'; field: EditEntryField }
 );
 
 export const TOKEN_ACTIVITY_LIMIT = 50;

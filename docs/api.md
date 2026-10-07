@@ -14,7 +14,7 @@ Buat kuli (atau user sendiri) yang mau kirim task baru dan update task tanpa buk
 
 ## Aturan main
 
-1. **Baca dulu sebelum nulis.** PATCH dan transition wajib bawa `expected_updated_at` = nilai `updated_at`
+1. **Baca dulu sebelum nulis.** PATCH, transition, tambah/hapus lampiran wajib bawa `expected_updated_at` = nilai `updated_at`
    dari GET terakhir. Gak bawa → `428`. Task udah berubah sejak dibaca → `409`: GET ulang, cek isinya, baru coba lagi.
 2. Body selalu JSON object, semua nilai string. Field yang gak dikenal → `400` (biar typo ketahuan).
 3. Error selalu `{ "error": "pesan" }` dengan status HTTP yang sesuai.
@@ -39,8 +39,8 @@ Query (dua-duanya opsional, boleh digabung):
 
 Parameter lain → `400`. Contoh: `GET /tasks?status=request&mine=true`.
 
-Balikan `{ "count": 2, "tasks": [ ... ] }`. Tiap task sama kayak GET satuan **tanpa** `description` dan
-`history`, plus `position` (nomor urut di kolom buat request/queue, `null` di status lain). Urutan per status
+Balikan `{ "count": 2, "tasks": [ ... ] }`. Tiap task sama kayak GET satuan **tanpa** `description`,
+`attachments`, dan `history`, plus `position` (nomor urut di kolom buat request/queue, `null` di status lain). Urutan per status
 sama kayak board. Pakai ini buat cek "udah pernah nyetor belum" sebelum `POST`.
 
 ### `POST /tasks` — kirim task baru
@@ -53,6 +53,7 @@ sama kayak board. Pakai ini buat cek "udah pernah nyetor belum" sebelum `POST`.
 - `description`: HTML (tag yang lolos cuma `p strong em u ul ol li br blockquote`, sisanya dibuang) atau
   teks biasa (otomatis jadi paragraf, enter jadi baris baru).
 - Task masuk kolom **Request** paling bawah. Balikan `201` + task (lihat bentuk di bawah).
+- Lampiran gak bisa ikut di sini. Abis task jadi, tambahin lewat `POST /tasks/:id/attachments`.
 
 ### `GET /tasks/:id` — baca task
 
@@ -65,12 +66,16 @@ Balikan:
   "created_at": "2026-10-05T03:00:00.000Z",
   "updated_at": "2026-10-05T03:00:00.000Z",
   "editable": true,
+  "attachments_editable": true,
   "allowed_transitions": ["queue", "rejected"],
+  "attachments": [{ "id": "…", "name": "screenshot.png", "mime": "image/png", "size": 48213, "created_by": "Iyan Subdiana", "created_at": "…" }],
   "history": [{ "from": null, "to": "request", "by": "Iyan Subdiana", "via": "Kuli Coding", "note": null, "at": "…" }]
 }
 ```
 
 - `editable`: boleh edit title/description/type/platform (cuma pas Request/Queue).
+- `attachments_editable`: boleh tambah/hapus lampiran (Request, Queue, In progress, Ready to test).
+- `attachments`: lampiran yang masih tampil. File-nya cuma bisa dibuka di UI (login), bukan pakai token.
 - `allowed_transitions`: status tujuan yang boleh buat pemilik token dari status sekarang.
 
 ### `PATCH /tasks/:id` — edit isi task
@@ -92,6 +97,28 @@ Balikan:
 - Aturannya sama kayak drag di board. Ke `rejected` wajib `note` (alasan).
 - Balikan `200` + task terbaru.
 
+### `POST /tasks/:id/attachments` — tambah lampiran
+
+```json
+{ "expected_updated_at": "2026-10-05T03:00:00.000Z", "file_name": "screenshot.png", "content_base64": "iVBORw0KGgo…" }
+```
+
+- Satu file per request. Isinya base64 (awalan `data:image/png;base64,` boleh ikut). Bukan multipart.
+- Cuma gambar (PNG, JPG, GIF, WEBP) atau PDF, dicek dari isi file. Batas ukuran per file sama kayak form di UI.
+- Jumlah lampiran per task gak dibatasi (batas 5 cuma pas bikin task di UI).
+- Cuma bisa sampai sebelum Done (`403` kalau udah Done/Live/Rejected). Kecatet di Edit history.
+- Balikan `201` + task terbaru.
+
+### `DELETE /tasks/:id/attachments/:attachment_id` — hapus lampiran
+
+```json
+{ "expected_updated_at": "2026-10-05T03:00:00.000Z" }
+```
+
+- Lampiran diumpetin dari task, file-nya tetep disimpen dan masih bisa dibuka dari Edit history di UI.
+- Aturan status sama kayak tambah. `404` kalau lampiran gak ada / udah dihapus / bukan punya task ini.
+- Balikan `200` + task terbaru.
+
 ## Contoh (curl)
 
 ```sh
@@ -105,6 +132,12 @@ curl -s -H "Authorization: Bearer $TOKEN" $BASE/tasks/<id>
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"expected_updated_at":"<updated_at>","to":"ready-to-test","note":"PR #12"}' \
   $BASE/tasks/<id>/transition
+
+# tambah lampiran: body lewat pipe (file gede gak muat jadi argumen shell). base64 -w0 = GNU coreutils
+{ printf '{"expected_updated_at":"<updated_at>","file_name":"shot.png","content_base64":"'
+  base64 -w0 shot.png; printf '"}'; } |
+  curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    --data-binary @- $BASE/tasks/<id>/attachments
 ```
 
 ## Status error
@@ -113,8 +146,8 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 | --- | --- |
 | 400 | Body/field salah (JSON rusak, field gak dikenal, enum salah, kosong) |
 | 401 | Token gak ada / salah / udah di-revoke / user nonaktif / role marketing |
-| 403 | Gak boleh menurut aturan (role, atau edit di luar Request/Queue) |
-| 404 | Task gak ketemu |
+| 403 | Gak boleh menurut aturan (role, edit di luar Request/Queue, atau lampiran setelah Done) |
+| 404 | Task / lampiran gak ketemu |
 | 409 | Task udah berubah sejak GET terakhir — GET ulang |
 | 428 | `expected_updated_at` gak dikirim — GET dulu |
 | 503 | Database lagi gak bisa dihubungi |

@@ -56,6 +56,9 @@ enum TaskEditField {
   platform
   /// TM-21: task ini hasil recreate. old_value = id task asal, new_value = judul task asal.
   recreate
+  /// TM-22: lampiran ditambah / diumpetin dari detail. old_value = id lampiran, new_value = nama file.
+  attachment_add
+  attachment_remove
 
   @@map("task_edit_field")
 }
@@ -81,11 +84,13 @@ model User {
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
-  tasks           Task[]
-  taskHistory     TaskHistory[]
-  taskAttachments TaskAttachment[]
-  taskEdits       TaskEdit[]
-  apiTokens       ApiToken[]
+  tasks              Task[]
+  taskHistory        TaskHistory[]
+  taskAttachments    TaskAttachment[] @relation("AttachmentCreatedBy")
+  /// TM-22: lampiran yang diumpetin user ini.
+  deletedAttachments TaskAttachment[] @relation("AttachmentDeletedBy")
+  taskEdits          TaskEdit[]
+  apiTokens          ApiToken[]
 
   @@map("users")
 }
@@ -157,21 +162,25 @@ model TaskEdit {
 }
 
 model TaskAttachment {
-  id          String   @id @default(uuid()) @db.Uuid
-  taskId      String   @map("task_id") @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
+  taskId      String    @map("task_id") @db.Uuid
   /// Nama asli dari pengunggah
-  fileName    String   @map("file_name")
+  fileName    String    @map("file_name")
   /// Path relatif di storage/attachment/<task_id>/<uuid>.<ext>
-  filePath    String   @map("file_path")
+  filePath    String    @map("file_path")
   /// Label jenis file dari browser, mis. image/png. Dipakai nyaring upload dan nampilin
-  mimeType    String   @map("mime_type")
+  mimeType    String    @map("mime_type")
   /// Byte
   size        Int
-  createdById String   @map("created_by") @db.Uuid
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  /// TM-22: diisi = lampiran diumpetin dari task (file-nya tetep di storage, link di Edit history tetep jalan).
+  deletedAt   DateTime? @map("deleted_at")
+  deletedById String?   @map("deleted_by") @db.Uuid
 
-  task      Task @relation(fields: [taskId], references: [id])
-  createdBy User @relation(fields: [createdById], references: [id])
+  task      Task  @relation(fields: [taskId], references: [id])
+  createdBy User  @relation("AttachmentCreatedBy", fields: [createdById], references: [id])
+  deletedBy User? @relation("AttachmentDeletedBy", fields: [deletedById], references: [id])
 
   @@index([taskId])
   @@map("task_attachment")
