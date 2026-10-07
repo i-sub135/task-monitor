@@ -571,10 +571,10 @@
 										<input type="hidden" name="comment_id" value={c.id} />
 										<RichTextEditor name="body" value={c.bodyHtml} required compact>
 											{#snippet actions()}
-												<button type="button" class="btn btn-xs btn-outline-neutral" onclick={() => (editingComment = null)}
+												<button type="button" class="btn btn-xs btn-outline-neutral h-5 px-2 text-[11px]" onclick={() => (editingComment = null)}
 													>Cancel</button
 												>
-												<button type="submit" class="btn btn-xs btn-outline-primary">Save</button>
+												<button type="submit" class="btn btn-xs btn-outline-primary h-5 px-2 text-[11px]">Save</button>
 											{/snippet}
 										</RichTextEditor>
 										{#if form?.commentError && form?.commentId === c.id}
@@ -627,7 +627,7 @@
 					>
 						<RichTextEditor name="body" required placeholder="Write a comment" compact>
 							{#snippet actions()}
-								<button type="submit" class="btn btn-xs btn-outline-primary"><SendIcon class="size-3" /> Comment</button>
+								<button type="submit" class="btn btn-xs btn-outline-primary h-5 gap-1 px-2 text-[11px]"><SendIcon class="size-2.5" /> Comment</button>
 							{/snippet}
 						</RichTextEditor>
 					</form>

@@ -97,7 +97,7 @@
 	{#each toolbar as tool (tool.key)}
 		<button
 			type="button"
-			class="btn-icon btn-icon-sm"
+			class="btn-icon {compact ? 'size-5 p-0' : 'btn-icon-sm'}"
 			class:preset-filled-primary-500={active[tool.key]}
 			class:btn-outline-neutral={!active[tool.key]}
 			aria-label={tool.label}
@@ -105,7 +105,7 @@
 			title={tool.label}
 			onclick={tool.run}
 		>
-			<tool.Icon class="size-4" />
+			<tool.Icon class={compact ? 'size-3' : 'size-4'} />
 		</button>
 	{/each}
 {/snippet}
@@ -123,7 +123,8 @@
 	<div bind:this={mount}></div>
 	{#if compact}
 		<!-- TM-23: toolbar kiri bawah, tombol aksi (kirim/simpan) kanan bawah, satu baris. -->
-		<div class="border-surface-300-700 flex flex-wrap items-center gap-1 border-t p-1.5">
+		<!-- Tombol di sini sengaja kecil (20px) biar baris bawah gak lebih tinggi dari kotak isinya. -->
+		<div class="border-surface-300-700 flex flex-wrap items-center gap-1 border-t px-1.5 py-1">
 			{@render toolbarButtons()}
 			{#if actions}<div class="ml-auto flex items-center gap-2">{@render actions()}</div>{/if}
 		</div>
