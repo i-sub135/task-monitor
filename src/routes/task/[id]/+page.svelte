@@ -221,387 +221,400 @@
 </a>
 
 <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[2fr_1fr]">
-	<article class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-6 border p-6 shadow-xl">
-		<div class="flex flex-wrap items-center gap-2 text-xs">
-			{#if editingType}
-				<!-- TM-19: support cuma boleh dipilih kalau task masih di Request (server juga ngecek). -->
-				{#each taskTypes.filter((t) => t !== 'support' || task.status === 'request' || task.type === 'support') as t (t)}
-					{@const Icon = typeIcons[t]}
-					<form
-						method="POST"
-						action="?/updateType"
-						use:enhance={() =>
-							async ({ result, update }) => {
-								await update();
-								if (result.type === 'success') editingType = false;
-							}}
-					>
-						<input type="hidden" name="type" value={t} />
-						<button type="submit" class="badge {typeFilledClass[t]} cursor-pointer"><Icon class="size-3" /> {t}</button>
-					</form>
-				{/each}
-				<button type="button" class="badge preset-tonal" onclick={() => (editingType = false)}>Cancel</button>
-			{:else if canEdit}
-				<button
-					type="button"
-					class="badge cursor-pointer {typeFilledClass[task.type]}"
-					title="Click to change"
-					onclick={() => (editingType = true)}
-				>
-					<TypeIcon class="size-3" /> {task.type}
-				</button>
-			{:else}
-				<span class="badge {typeFilledClass[task.type]}"><TypeIcon class="size-3" /> {task.type}</span>
-			{/if}
-
-			{#if editingPlatform}
-				{#each platforms as p (p)}
-					{@const Icon = platformIcons[p]}
-					{@const pc = platformColors[p]}
-					<form
-						method="POST"
-						action="?/updatePlatform"
-						use:enhance={() =>
-							async ({ result, update }) => {
-								await update();
-								if (result.type === 'success') editingPlatform = false;
-							}}
-					>
-						<input type="hidden" name="platform" value={p} />
-						<button
-							type="submit"
-							class="badge cursor-pointer"
-							style="background-color: {pc.bg}; color: {pc.fg}"><Icon class="size-3" /> {platformLabels[p]}</button
+	<div class="flex min-w-0 flex-col gap-6">
+		<article class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-6 border p-6 shadow-xl">
+			<div class="flex flex-wrap items-center gap-2 text-xs">
+				{#if editingType}
+					<!-- TM-19: support cuma boleh dipilih kalau task masih di Request (server juga ngecek). -->
+					{#each taskTypes.filter((t) => t !== 'support' || task.status === 'request' || task.type === 'support') as t (t)}
+						{@const Icon = typeIcons[t]}
+						<form
+							method="POST"
+							action="?/updateType"
+							use:enhance={() =>
+								async ({ result, update }) => {
+									await update();
+									if (result.type === 'success') editingType = false;
+								}}
 						>
-					</form>
-				{/each}
-				<button type="button" class="badge preset-tonal" onclick={() => (editingPlatform = false)}>Cancel</button>
-			{:else if canEdit}
-				{@const Icon = platformIcons[task.platform]}
-				{@const pc = platformColors[task.platform]}
-				<button
-					type="button"
-					class="badge cursor-pointer"
-					style="background-color: {pc.bg}; color: {pc.fg}"
-					title="Click to change"
-					onclick={() => (editingPlatform = true)}
-				>
-					<Icon class="size-3" />
-					{platformLabels[task.platform]}
-				</button>
-			{:else}
-				{@const Icon = platformIcons[task.platform]}
-				{@const pc = platformColors[task.platform]}
-				<span class="badge" style="background-color: {pc.bg}; color: {pc.fg}"
-					><Icon class="size-3" /> {platformLabels[task.platform]}</span
-				>
-			{/if}
-
-			<span class="badge preset-tonal">{statusLabels[task.status]}</span>
-
-			<button
-				type="button"
-				class="badge preset-tonal ml-auto cursor-pointer transition hover:brightness-90"
-				title="Copy link to this task"
-				onclick={copyTaskLink}
-			>
-				{#if linkCopied}<CheckIcon class="size-3" /> Link copied{:else}<LinkIcon class="size-3" /> Copy link{/if}
-			</button>
-		</div>
-		{#if task.status === 'done-live'}
-			<div class="flex items-center gap-4">
-				<span class="live-stamp inline-block -rotate-6" style="opacity: 0.85" aria-hidden="true">Live</span>
-				{#if liveSince}<span class="text-sm opacity-70">Live since {liveSince}</span>{/if}
-			</div>
-		{/if}
-		{#if form?.editError && (editingType || editingPlatform)}
-			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
-		{/if}
-
-		{#if editingTitle}
-			<form
-				method="POST"
-				action="?/updateTitle"
-				use:enhance={() =>
-					async ({ result, update }) => {
-						await update();
-						if (result.type === 'success') editingTitle = false;
-					}}
-				class="flex flex-wrap items-center gap-2"
-			>
-				<input
-					class="input h3 min-w-0 flex-1"
-					name="title"
-					value={task.title}
-					maxlength="120"
-					required
-					use:focusOnMount
-				/>
-				<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
-				<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingTitle = false)}
-					>Cancel</button
-				>
-			</form>
-		{:else}
-			<h1 class="h3">
-				{#if canEdit}
+							<input type="hidden" name="type" value={t} />
+							<button type="submit" class="badge {typeFilledClass[t]} cursor-pointer"><Icon class="size-3" /> {t}</button>
+						</form>
+					{/each}
+					<button type="button" class="badge preset-tonal" onclick={() => (editingType = false)}>Cancel</button>
+				{:else if canEdit}
 					<button
 						type="button"
-						class="cursor-text text-left decoration-dashed underline-offset-4 hover:underline"
-						title="Click to edit"
-						onclick={() => (editingTitle = true)}
+						class="badge cursor-pointer {typeFilledClass[task.type]}"
+						title="Click to change"
+						onclick={() => (editingType = true)}
 					>
-						{task.title}
+						<TypeIcon class="size-3" /> {task.type}
 					</button>
 				{:else}
-					{task.title}
+					<span class="badge {typeFilledClass[task.type]}"><TypeIcon class="size-3" /> {task.type}</span>
 				{/if}
-			</h1>
-		{/if}
-		{#if form?.editError && editingTitle}
-			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
-		{/if}
-		<p class="text-sm opacity-70">by {task.createdBy} · {task.createdAt}</p>
-		<!-- TM-21: rantai recreate (task Rejected → task baru). -->
-		{#if task.recreatedFrom}
-			<p class="text-sm">
-				<span class="opacity-70">Recreated from</span>
-				<a href="/task/{task.recreatedFrom.id}" class="anchor">{task.recreatedFrom.title}</a>
-			</p>
-		{/if}
-		{#if task.recreatedAs}
-			<p class="text-sm">
-				<span class="opacity-70">Recreated as</span>
-				<a href="/task/{task.recreatedAs.id}" class="anchor">{task.recreatedAs.title}</a>
-			</p>
-		{/if}
 
-		<section>
-			<h2 class="mb-2 font-semibold">Description</h2>
-			{#if editingDescription}
+				{#if editingPlatform}
+					{#each platforms as p (p)}
+						{@const Icon = platformIcons[p]}
+						{@const pc = platformColors[p]}
+						<form
+							method="POST"
+							action="?/updatePlatform"
+							use:enhance={() =>
+								async ({ result, update }) => {
+									await update();
+									if (result.type === 'success') editingPlatform = false;
+								}}
+						>
+							<input type="hidden" name="platform" value={p} />
+							<button
+								type="submit"
+								class="badge cursor-pointer"
+								style="background-color: {pc.bg}; color: {pc.fg}"><Icon class="size-3" /> {platformLabels[p]}</button
+							>
+						</form>
+					{/each}
+					<button type="button" class="badge preset-tonal" onclick={() => (editingPlatform = false)}>Cancel</button>
+				{:else if canEdit}
+					{@const Icon = platformIcons[task.platform]}
+					{@const pc = platformColors[task.platform]}
+					<button
+						type="button"
+						class="badge cursor-pointer"
+						style="background-color: {pc.bg}; color: {pc.fg}"
+						title="Click to change"
+						onclick={() => (editingPlatform = true)}
+					>
+						<Icon class="size-3" />
+						{platformLabels[task.platform]}
+					</button>
+				{:else}
+					{@const Icon = platformIcons[task.platform]}
+					{@const pc = platformColors[task.platform]}
+					<span class="badge" style="background-color: {pc.bg}; color: {pc.fg}"
+						><Icon class="size-3" /> {platformLabels[task.platform]}</span
+					>
+				{/if}
+
+				<span class="badge preset-tonal">{statusLabels[task.status]}</span>
+
+				<button
+					type="button"
+					class="badge preset-tonal ml-auto cursor-pointer transition hover:brightness-90"
+					title="Copy link to this task"
+					onclick={copyTaskLink}
+				>
+					{#if linkCopied}<CheckIcon class="size-3" /> Link copied{:else}<LinkIcon class="size-3" /> Copy link{/if}
+				</button>
+			</div>
+			{#if task.status === 'done-live'}
+				<div class="flex items-center gap-4">
+					<span class="live-stamp inline-block -rotate-6" style="opacity: 0.85" aria-hidden="true">Live</span>
+					{#if liveSince}<span class="text-sm opacity-70">Live since {liveSince}</span>{/if}
+				</div>
+			{/if}
+			{#if form?.editError && (editingType || editingPlatform)}
+				<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
+			{/if}
+
+			{#if editingTitle}
 				<form
 					method="POST"
-					action="?/updateDescription"
+					action="?/updateTitle"
 					use:enhance={() =>
 						async ({ result, update }) => {
 							await update();
-							if (result.type === 'success') editingDescription = false;
+							if (result.type === 'success') editingTitle = false;
 						}}
-					class="flex flex-col gap-3"
+					class="flex flex-wrap items-center gap-2"
 				>
-					<RichTextEditor
-						name="description"
-						value={task.descriptionHtml}
+					<input
+						class="input h3 min-w-0 flex-1"
+						name="title"
+						value={task.title}
+						maxlength="120"
 						required
-						placeholder="Describe the details: what happened, where, how often"
-						invalid={Boolean(form?.editError)}
+						use:focusOnMount
 					/>
-					{#if form?.editError}
-						<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
-					{/if}
-					<div class="flex justify-end gap-3">
+					<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+					<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingTitle = false)}
+						>Cancel</button
+					>
+				</form>
+			{:else}
+				<h1 class="h3">
+					{#if canEdit}
 						<button
 							type="button"
-							class="btn btn-sm btn-outline-neutral"
-							onclick={() => (editingDescription = false)}>Cancel</button
+							class="cursor-text text-left decoration-dashed underline-offset-4 hover:underline"
+							title="Click to edit"
+							onclick={() => (editingTitle = true)}
 						>
-						<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
-					</div>
-				</form>
-			{:else if canEdit}
-				<!-- Klik buat edit: sengaja bukan <label>, biar gak kena bug forwarding klik yang sama kayak TM-10. -->
-				<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-				<div
-					class="rich-text rounded-container -m-2 cursor-pointer p-2 transition hover:bg-surface-100-900"
-					role="button"
-					tabindex="0"
-					title="Click to edit"
-					onclick={() => (editingDescription = true)}
-					onkeydown={(e) => {
-						if (e.key === 'Enter' || e.key === ' ') {
-							e.preventDefault();
-							editingDescription = true;
-						}
-					}}
-				>
-					<!-- TM-10: task.descriptionHtml sudah disaring server (getTaskDetail -> renderDescriptionHtml),
-					     nol markup mentah dari user yang nyampe ke sini. Sama sumbernya dengan {@html} di bawah
-					     (dua cabang if/else yang gak pernah render bareng), bukan input mentah baru. -->
-					{@html task.descriptionHtml}
-				</div>
-			{:else}
-				<div class="rich-text">{@html task.descriptionHtml}</div>
+							{task.title}
+						</button>
+					{:else}
+						{task.title}
+					{/if}
+				</h1>
 			{/if}
-		</section>
+			{#if form?.editError && editingTitle}
+				<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
+			{/if}
+			<p class="text-sm opacity-70">by {task.createdBy} · {task.createdAt}</p>
+			<!-- TM-21: rantai recreate (task Rejected → task baru). -->
+			{#if task.recreatedFrom}
+				<p class="text-sm">
+					<span class="opacity-70">Recreated from</span>
+					<a href="/task/{task.recreatedFrom.id}" class="anchor">{task.recreatedFrom.title}</a>
+				</p>
+			{/if}
+			{#if task.recreatedAs}
+				<p class="text-sm">
+					<span class="opacity-70">Recreated as</span>
+					<a href="/task/{task.recreatedAs.id}" class="anchor">{task.recreatedAs.title}</a>
+				</p>
+			{/if}
 
-		<section>
-			<div class="mb-3 flex flex-wrap items-center gap-2">
-				<h2 class="font-semibold">Attachments ({task.attachments.length})</h2>
-				{#if canEditFiles}
+			<section>
+				<h2 class="mb-2 font-semibold">Description</h2>
+				{#if editingDescription}
 					<form
 						method="POST"
-						action="?/addAttachments"
-						enctype="multipart/form-data"
-						class="ml-auto"
-						use:enhance={() => {
-							uploading = true;
-							return async ({ update }) => {
+						action="?/updateDescription"
+						use:enhance={() =>
+							async ({ result, update }) => {
 								await update();
-								uploading = false;
-							};
-						}}
+								if (result.type === 'success') editingDescription = false;
+							}}
+						class="flex flex-col gap-3"
 					>
-						<label class="btn btn-xs btn-outline-primary cursor-pointer {uploading ? 'pointer-events-none opacity-60' : ''}">
-							<PlusIcon class="size-3" />
-							{uploading ? 'Uploading…' : 'Add files'}
-							<input
-								type="file"
-								name="attachments"
-								multiple
-								accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
-								class="sr-only"
-								disabled={uploading}
-								onchange={onPickFiles}
-							/>
-						</label>
-					</form>
-				{/if}
-			</div>
-			{#if fileError || form?.attachmentError}
-				<div class="card preset-filled-error-500 mb-3 p-3 text-sm" role="alert">{fileError || form?.attachmentError}</div>
-			{/if}
-			{#if task.attachments.length > 0}
-				<ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-					{#each task.attachments as file (file.id)}
-						<li class="relative flex flex-col gap-1">
+						<RichTextEditor
+							name="description"
+							value={task.descriptionHtml}
+							required
+							placeholder="Describe the details: what happened, where, how often"
+							invalid={Boolean(form?.editError)}
+						/>
+						{#if form?.editError}
+							<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
+						{/if}
+						<div class="flex justify-end gap-3">
 							<button
 								type="button"
-								onclick={() => openViewer(file)}
-								aria-label="View {file.name}"
-								class="border-surface-300-700 hover:border-primary-500 rounded-container block cursor-pointer overflow-hidden border shadow-md transition hover:shadow-xl"
+								class="btn btn-sm btn-outline-neutral"
+								onclick={() => (editingDescription = false)}>Cancel</button
 							>
-								{#if file.mime.startsWith('image/')}
-									<img
-										src="/attachment/{file.id}"
-										alt={file.name}
-										loading="lazy"
-										class="aspect-video w-full object-cover"
-									/>
-								{:else}
-									<div class="preset-outlined-surface-300-700 flex aspect-video w-full items-center justify-center">
-										<FileTextIcon class="size-8 opacity-60" />
-									</div>
-								{/if}
-							</button>
-							{#if canEditFiles}
+							<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+						</div>
+					</form>
+				{:else if canEdit}
+					<!-- Klik buat edit: sengaja bukan <label>, biar gak kena bug forwarding klik yang sama kayak TM-10. -->
+					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+					<div
+						class="rich-text rounded-container -m-2 cursor-pointer p-2 transition hover:bg-surface-100-900"
+						role="button"
+						tabindex="0"
+						title="Click to edit"
+						onclick={() => (editingDescription = true)}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								editingDescription = true;
+							}
+						}}
+					>
+						<!-- TM-10: task.descriptionHtml sudah disaring server (getTaskDetail -> renderDescriptionHtml),
+						     nol markup mentah dari user yang nyampe ke sini. Sama sumbernya dengan {@html} di bawah
+						     (dua cabang if/else yang gak pernah render bareng), bukan input mentah baru. -->
+						{@html task.descriptionHtml}
+					</div>
+				{:else}
+					<div class="rich-text">{@html task.descriptionHtml}</div>
+				{/if}
+			</section>
+
+			<section>
+				<div class="mb-3 flex flex-wrap items-center gap-2">
+					<h2 class="font-semibold">Attachments ({task.attachments.length})</h2>
+					{#if canEditFiles}
+						<form
+							method="POST"
+							action="?/addAttachments"
+							enctype="multipart/form-data"
+							class="ml-auto"
+							use:enhance={() => {
+								uploading = true;
+								return async ({ update }) => {
+									await update();
+									uploading = false;
+								};
+							}}
+						>
+							<label class="btn btn-xs btn-outline-primary cursor-pointer {uploading ? 'pointer-events-none opacity-60' : ''}">
+								<PlusIcon class="size-3" />
+								{uploading ? 'Uploading…' : 'Add files'}
+								<input
+									type="file"
+									name="attachments"
+									multiple
+									accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
+									class="sr-only"
+									disabled={uploading}
+									onchange={onPickFiles}
+								/>
+							</label>
+						</form>
+					{/if}
+				</div>
+				{#if fileError || form?.attachmentError}
+					<div class="card preset-filled-error-500 mb-3 p-3 text-sm" role="alert">{fileError || form?.attachmentError}</div>
+				{/if}
+				{#if task.attachments.length > 0}
+					<ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+						{#each task.attachments as file (file.id)}
+							<li class="relative flex flex-col gap-1">
 								<button
 									type="button"
-									class="btn-icon btn-icon-sm preset-filled-error-500 absolute top-1.5 right-1.5 size-7 shadow-md"
-									aria-label="Remove {file.name}"
-									title="Remove"
-									onclick={() => askRemoveAttachment(file)}
+									onclick={() => openViewer(file)}
+									aria-label="View {file.name}"
+									class="border-surface-300-700 hover:border-primary-500 rounded-container block cursor-pointer overflow-hidden border shadow-md transition hover:shadow-xl"
 								>
-									<Trash2Icon class="size-3.5" />
+									{#if file.mime.startsWith('image/')}
+										<img
+											src="/attachment/{file.id}"
+											alt={file.name}
+											loading="lazy"
+											class="aspect-video w-full object-cover"
+										/>
+									{:else}
+										<div class="preset-outlined-surface-300-700 flex aspect-video w-full items-center justify-center">
+											<FileTextIcon class="size-8 opacity-60" />
+										</div>
+									{/if}
 								</button>
-							{/if}
-							<span class="truncate text-xs opacity-70" title={file.name}>{file.name} · {sizeLabel(file.size)}</span>
-						</li>
-					{/each}
-				</ul>
-			{:else}
-				<p class="text-sm opacity-50">No attachments</p>
-			{/if}
-		</section>
-
-		<!-- TM-23: komentar. Isi udah disaring server (renderDescriptionHtml), sama kayak description. -->
-		<section>
-			<h2 class="mb-3 font-semibold">Comments ({task.comments.length})</h2>
-			{#if task.comments.length > 0}
-				<!-- Compact: gak dibungkus card, antar komentar cuma dipisah garis. -->
-				<ol class="mb-6 flex flex-col text-sm">
-					{#each task.comments as c, i (c.id)}
-						<li>
-							{#if i > 0}<hr class="border-surface-300-700 my-3" />{/if}
-							<div class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-								<span class="font-semibold">{c.by}</span>
-								<span class="opacity-60">{c.at}</span>
-								{#if c.edits.length > 0}
+								{#if canEditFiles}
 									<button
 										type="button"
-										class="cursor-pointer underline decoration-dotted underline-offset-2 opacity-70 hover:opacity-100"
-										aria-expanded={openCommentEdits.includes(c.id)}
-										onclick={() => toggleCommentEdits(c.id)}>edited</button
+										class="btn-icon btn-icon-sm preset-filled-error-500 absolute top-1.5 right-1.5 size-7 shadow-md"
+										aria-label="Remove {file.name}"
+										title="Remove"
+										onclick={() => askRemoveAttachment(file)}
 									>
+										<Trash2Icon class="size-3.5" />
+									</button>
 								{/if}
-								{#if canWriteComments && editingComment !== c.id}
-									<span class="ml-auto flex gap-1">
+								<span class="truncate text-xs opacity-70" title={file.name}>{file.name} · {sizeLabel(file.size)}</span>
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="text-sm opacity-50">No attachments</p>
+				{/if}
+			</section>
+
+			<!-- TM-23: komentar. Isi udah disaring server (renderDescriptionHtml), sama kayak description. -->
+			<section>
+				<h2 class="mb-3 font-semibold">Comments ({task.comments.length})</h2>
+				{#if task.comments.length > 0}
+					<!-- Compact: gak dibungkus card, antar komentar cuma dipisah garis. -->
+					<ol class="flex flex-col text-sm">
+						{#each task.comments as c, i (c.id)}
+							<li>
+								{#if i > 0}<hr class="border-surface-300-700 my-3" />{/if}
+								<div class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+									<span class="font-semibold">{c.by}</span>
+									<span class="opacity-60">{c.at}</span>
+									{#if c.edits.length > 0}
 										<button
 											type="button"
-											class="btn-icon btn-icon-sm hover:preset-tonal size-7"
-											aria-label="Edit comment"
-											title="Edit"
-											onclick={() => (editingComment = c.id)}
+											class="cursor-pointer underline decoration-dotted underline-offset-2 opacity-70 hover:opacity-100"
+											aria-expanded={openCommentEdits.includes(c.id)}
+											onclick={() => toggleCommentEdits(c.id)}>edited</button
 										>
-											<PencilIcon class="size-3.5" />
-										</button>
-										<button
-											type="button"
-											class="btn-icon btn-icon-sm hover:preset-tonal text-error-500 size-7"
-											aria-label="Delete comment"
-											title="Delete"
-											onclick={() => askDeleteComment(c.id)}
-										>
-											<Trash2Icon class="size-3.5" />
-										</button>
-									</span>
-								{/if}
-							</div>
-							{#if editingComment === c.id}
-								<form
-									method="POST"
-									action="?/updateComment"
-									use:enhance={() =>
-										async ({ result, update }) => {
-											await update({ reset: false });
-											if (result.type === 'success') editingComment = null;
-										}}
-									class="flex flex-col gap-2"
-								>
-									<input type="hidden" name="comment_id" value={c.id} />
-									<RichTextEditor name="body" value={c.bodyHtml} required compact>
-										{#snippet actions()}
-											<button type="button" class="btn btn-xs btn-outline-neutral" onclick={() => (editingComment = null)}
-												>Cancel</button
-											>
-											<button type="submit" class="btn btn-xs btn-outline-primary">Save</button>
-										{/snippet}
-									</RichTextEditor>
-									{#if form?.commentError && form?.commentId === c.id}
-										<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
 									{/if}
-								</form>
-							{:else}
-								<div class="rich-text">{@html c.bodyHtml}</div>
-							{/if}
-							{#if openCommentEdits.includes(c.id)}
-								<!-- Jejak edit komentar: tampilannya sama kayak Edit history description. -->
-								<ol class="border-surface-300-700 mt-3 flex flex-col gap-3 border-t pt-3 text-xs">
-									{#each c.edits as e (e.id)}
-										<li class="border-l-2 pl-3" style="border-color: {editBorder.description}">
-											<p class="mb-1 opacity-70">{e.by} · {e.at}</p>
-											<p class="mb-0.5 font-semibold tracking-wide uppercase opacity-50">Before</p>
-											<div class="rich-text opacity-60 line-through">{@html e.oldValue}</div>
-											<p class="mt-2 mb-0.5 font-semibold tracking-wide uppercase opacity-50">After</p>
-											<div class="rich-text">{@html e.newValue}</div>
-										</li>
-									{/each}
-								</ol>
-							{/if}
-						</li>
-					{/each}
-				</ol>
-			{/if}
-			{#if canWriteComments}
+									{#if canWriteComments && editingComment !== c.id}
+										<span class="ml-auto flex gap-1">
+											<button
+												type="button"
+												class="btn-icon btn-icon-sm hover:preset-tonal size-7"
+												aria-label="Edit comment"
+												title="Edit"
+												onclick={() => (editingComment = c.id)}
+											>
+												<PencilIcon class="size-3.5" />
+											</button>
+											<button
+												type="button"
+												class="btn-icon btn-icon-sm hover:preset-tonal text-error-500 size-7"
+												aria-label="Delete comment"
+												title="Delete"
+												onclick={() => askDeleteComment(c.id)}
+											>
+												<Trash2Icon class="size-3.5" />
+											</button>
+										</span>
+									{/if}
+								</div>
+								{#if editingComment === c.id}
+									<form
+										method="POST"
+										action="?/updateComment"
+										use:enhance={() =>
+											async ({ result, update }) => {
+												await update({ reset: false });
+												if (result.type === 'success') editingComment = null;
+											}}
+										class="flex flex-col gap-2"
+									>
+										<input type="hidden" name="comment_id" value={c.id} />
+										<RichTextEditor name="body" value={c.bodyHtml} required compact>
+											{#snippet actions()}
+												<button type="button" class="btn btn-xs btn-outline-neutral" onclick={() => (editingComment = null)}
+													>Cancel</button
+												>
+												<button type="submit" class="btn btn-xs btn-outline-primary">Save</button>
+											{/snippet}
+										</RichTextEditor>
+										{#if form?.commentError && form?.commentId === c.id}
+											<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
+										{/if}
+									</form>
+								{:else}
+									<div class="rich-text">{@html c.bodyHtml}</div>
+								{/if}
+								{#if openCommentEdits.includes(c.id)}
+									<!-- Jejak edit komentar: tampilannya sama kayak Edit history description. -->
+									<ol class="border-surface-300-700 mt-3 flex flex-col gap-3 border-t pt-3 text-xs">
+										{#each c.edits as e (e.id)}
+											<li class="border-l-2 pl-3" style="border-color: {editBorder.description}">
+												<p class="mb-1 opacity-70">{e.by} · {e.at}</p>
+												<p class="mb-0.5 font-semibold tracking-wide uppercase opacity-50">Before</p>
+												<div class="rich-text opacity-60 line-through">{@html e.oldValue}</div>
+												<p class="mt-2 mb-0.5 font-semibold tracking-wide uppercase opacity-50">After</p>
+												<div class="rich-text">{@html e.newValue}</div>
+											</li>
+										{/each}
+									</ol>
+								{/if}
+							</li>
+						{/each}
+					</ol>
+				{/if}
+				{#if task.comments.length === 0}<p class="text-sm opacity-50">No comments</p>{/if}
+				{#if !canWriteComments}
+					<p class="mt-2 text-sm opacity-50">Comments are locked once the task is Live or Rejected.</p>
+				{/if}
+			</section>
+		</article>
+
+		<!-- TM-23: kotak tulis komentar = card sendiri di bawah card task, isinya editor penuh (padding 0). -->
+		{#if canWriteComments}
+			<section
+				class="card preset-filled-surface-50-950 border-surface-300-700 overflow-hidden border p-0 shadow-xl"
+				aria-label="Write a comment"
+			>
 				{#key commentFormKey}
 					<form
 						method="POST"
@@ -611,25 +624,20 @@
 								await update({ reset: false });
 								if (result.type === 'success') commentFormKey++;
 							}}
-						class="flex flex-col gap-2"
 					>
-						<RichTextEditor name="body" required placeholder="Write a comment" compact>
+						<RichTextEditor name="body" required placeholder="Write a comment" compact frameless>
 							{#snippet actions()}
 								<button type="submit" class="btn btn-xs btn-outline-primary"><SendIcon class="size-3" /> Comment</button>
 							{/snippet}
 						</RichTextEditor>
-						{#if form?.commentError && !form?.commentId}
-							<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
-						{/if}
 					</form>
 				{/key}
-			{:else}
-				<p class="text-sm opacity-50">
-					{task.comments.length === 0 ? 'No comments. ' : ''}Comments are locked once the task is Live or Rejected.
-				</p>
+			</section>
+			{#if form?.commentError && !form?.commentId}
+				<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
 			{/if}
-		</section>
-	</article>
+		{/if}
+	</div>
 
 	<div class="flex h-fit flex-col gap-6">
 		{#if canMove && nextStatuses.length > 0}

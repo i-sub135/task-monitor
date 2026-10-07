@@ -14,6 +14,7 @@
 		placeholder = '',
 		invalid = false,
 		compact = false,
+		frameless = false,
 		actions
 	}: {
 		name: string;
@@ -25,6 +26,8 @@
 		compact?: boolean;
 		/** TM-23: tombol (mis. kirim) di baris bawah sebelah kanan, sejajar toolbar. Cuma dipakai pas `compact`. */
 		actions?: Snippet;
+		/** TM-23: tanpa garis/sudut sendiri, buat editor yang ditaruh langsung di dalam card (padding 0). */
+		frameless?: boolean;
 	} = $props();
 
 	let mount = $state<HTMLDivElement>();
@@ -112,7 +115,7 @@
 
 <!-- compact (komentar): panelnya kotak sudut tumpul, bukan sudut bulet gede kayak card. -->
 <div
-	class="rich-text-editor border-surface-300-700 border {compact ? 'rounded-md' : 'rounded-container'}"
+	class="rich-text-editor border-surface-300-700 {frameless ? '' : `border ${compact ? 'rounded-md' : 'rounded-container'}`}"
 	class:border-error-500={invalid}
 >
 	{#if !compact}
