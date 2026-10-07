@@ -54,6 +54,8 @@ enum TaskEditField {
   description
   type
   platform
+  /// TM-21: task ini hasil recreate. old_value = id task asal, new_value = judul task asal.
+  recreate
 
   @@map("task_edit_field")
 }
@@ -89,22 +91,26 @@ model User {
 }
 
 model Task {
-  id          String       @id @default(uuid()) @db.Uuid
-  title       String
-  description String
-  type        TaskType
-  platform    TaskPlatform @default(other)
-  status      TaskStatus   @default(request)
+  id              String       @id @default(uuid()) @db.Uuid
+  title           String
+  description     String
+  type            TaskType
+  platform        TaskPlatform @default(other)
+  status          TaskStatus   @default(request)
   /// Urutan antrean, kecil = duluan. Dipakai di kolom request dan queue, diabaikan di status lain.
-  ordering    Int          @default(0)
-  createdById String       @map("created_by") @db.Uuid
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  ordering        Int          @default(0)
+  createdById     String       @map("created_by") @db.Uuid
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  /// TM-21: task Rejected yang di-recreate jadi task ini. Unik = satu task cuma bisa di-recreate sekali.
+  recreatedFromId String?      @unique @map("recreated_from") @db.Uuid
 
-  createdBy   User             @relation(fields: [createdById], references: [id])
-  history     TaskHistory[]
-  attachments TaskAttachment[]
-  edits       TaskEdit[]
+  createdBy     User             @relation(fields: [createdById], references: [id])
+  recreatedFrom Task?            @relation("TaskRecreate", fields: [recreatedFromId], references: [id])
+  recreatedAs   Task?            @relation("TaskRecreate")
+  history       TaskHistory[]
+  attachments   TaskAttachment[]
+  edits         TaskEdit[]
 
   @@index([status, ordering])
   @@map("task")

@@ -8,7 +8,8 @@
 		DownloadIcon,
 		XIcon,
 		CheckIcon,
-		LinkIcon
+		LinkIcon,
+		RotateCcwIcon
 	} from '@lucide/svelte';
 	import { copyText } from '$lib/utils/clipboard';
 	import { canAdvance } from '$lib/utils/roles';
@@ -58,11 +59,12 @@
 	};
 	const historyBorder = (from: Status | null, to: Status) =>
 		from === 'done-live' && to === 'done' ? '#f97316' : statusBorder[to];
-	const editBorder: Record<'title' | 'description' | 'type' | 'platform', string> = {
+	const editBorder: Record<'title' | 'description' | 'type' | 'platform' | 'recreate', string> = {
 		title: '#7c3aed',
 		description: '#db2777',
 		type: '#a16207',
-		platform: '#78716c'
+		platform: '#78716c',
+		recreate: '#0e7490'
 	};
 	// Salin link task ini (URL lengkap), sama kayak tombol rantai di kartu board.
 	let linkCopied = $state(false);
@@ -288,6 +290,19 @@
 			<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.editError}</div>
 		{/if}
 		<p class="text-sm opacity-70">by {task.createdBy} · {task.createdAt}</p>
+		<!-- TM-21: rantai recreate (task Rejected → task baru). -->
+		{#if task.recreatedFrom}
+			<p class="text-sm">
+				<span class="opacity-70">Recreated from</span>
+				<a href="/task/{task.recreatedFrom.id}" class="anchor">{task.recreatedFrom.title}</a>
+			</p>
+		{/if}
+		{#if task.recreatedAs}
+			<p class="text-sm">
+				<span class="opacity-70">Recreated as</span>
+				<a href="/task/{task.recreatedAs.id}" class="anchor">{task.recreatedAs.title}</a>
+			</p>
+		{/if}
 
 		<section>
 			<h2 class="mb-2 font-semibold">Description</h2>
@@ -412,6 +427,20 @@
 			</section>
 		{/if}
 
+		<!-- TM-21: task Rejected bisa diajuin ulang sekali (one-to-one). Isi lama dibawa ke form New task. -->
+		{#if task.status === 'rejected' && !task.recreatedAs}
+			<section class="card preset-filled-surface-50-950 border-surface-300-700 flex flex-col gap-3 border p-6 shadow-xl">
+				<h2 class="font-semibold">Recreate</h2>
+				<p class="text-sm opacity-70">
+					Submit this task again as a new request. Title, description, type and platform are copied and can be
+					changed; attachments are not. This task stays rejected and links to the new one.
+				</p>
+				<a href="/task/new?from={task.id}" class="btn btn-outline-primary inline-flex items-center justify-center gap-1">
+					<RotateCcwIcon class="size-4" /> Recreate
+				</a>
+			</section>
+		{/if}
+
 		<aside class="card preset-filled-surface-50-950 border-surface-300-700 border p-6 shadow-xl">
 			<h2 class="mb-4 font-semibold">Status history</h2>
 			<ol class="flex flex-col gap-4 text-sm">
@@ -446,16 +475,22 @@
 					{#each task.edits as e (e.id)}
 						<li class="border-l-2 pl-3" style="border-color: {editBorder[e.field]}">
 							<p class="font-medium">
-								{e.field === 'title'
-									? 'Title'
-									: e.field === 'description'
-										? 'Description'
-										: e.field === 'type'
-											? 'Type'
-											: 'Platform'} edited
+								{e.field === 'recreate'
+									? 'Recreated from a rejected task'
+									: `${e.field === 'title'
+											? 'Title'
+											: e.field === 'description'
+												? 'Description'
+												: e.field === 'type'
+													? 'Type'
+													: 'Platform'} edited`}
 							</p>
 							<p class="text-xs opacity-70">{e.by}{e.via ? ` via ${e.via}` : ''} · {e.at}</p>
-							{#if e.field === 'description'}
+							{#if e.field === 'recreate'}
+								<p class="mt-1 text-xs break-words">
+									<a href="/task/{e.oldValue}" class="anchor">{e.newValue}</a>
+								</p>
+							{:else if e.field === 'description'}
 								<!-- Description bisa multi-baris, jadi lama/baru dipisah jelas pakai label + garis. -->
 								<div class="mt-2 flex flex-col gap-2 text-xs">
 									<div>

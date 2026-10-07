@@ -9,13 +9,16 @@
 
 	let { form, data } = $props();
 
+	// TM-21: isi form = yang dikirim balik server (validasi gagal) → isi task yang di-recreate → kosong.
+	const values = $derived(form?.values ?? data.recreateFrom ?? undefined);
+
 	const MAX_FILES = $derived(data.maxFiles);
 	const MAX_FILE_BYTES = $derived(data.maxFileBytes);
 
 	// Chip platform butuh warna per-pilihan (hex spesifik, bukan preset Tailwind statis kayak Type),
 	// jadi state kepilih dilacak di sini dan style-nya di-apply langsung, bukan lewat has-[:checked].
 	// Disinkron ulang dari form.values kalau validasi field lain gagal dan server nge-echo balik pilihan lama.
-	let selectedPlatform = $state(untrack(() => form?.values?.platform ?? ''));
+	let selectedPlatform = $state(untrack(() => form?.values?.platform ?? data.recreateFrom?.platform ?? ''));
 	$effect(() => {
 		if (form?.values?.platform) selectedPlatform = form.values.platform;
 	});
@@ -91,8 +94,17 @@
 	class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy mx-auto flex max-w-2xl flex-col gap-6 border p-6 shadow-xl"
 >
 	<div>
-		<h1 class="h3">New task</h1>
+		<h1 class="h3">{data.recreateFrom ? 'Recreate task' : 'New task'}</h1>
 		<p class="text-sm opacity-70">A task goes into the Request column and is visible to everyone.</p>
+		{#if data.recreateFrom}
+			<!-- TM-21: sumber recreate; dikirim lagi ke server dan dicek ulang di sana. -->
+			<input type="hidden" name="recreate_from" value={data.recreateFrom.id} />
+			<p class="card preset-tonal-primary mt-3 p-3 text-sm">
+				Recreating rejected task
+				<a href="/task/{data.recreateFrom.id}" class="anchor font-semibold">{data.recreateFrom.title}</a>. Change
+				what you need, then submit. Attachments from the old task are not copied.
+			</p>
+		{/if}
 	</div>
 
 	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug, feature dan support">
@@ -135,7 +147,7 @@
 			maxlength="120"
 			required
 			placeholder="Summarize the problem or request"
-			value={form?.values?.title ?? ''}
+			value={values?.title ?? ''}
 		/>
 		{#if form?.errors?.title}<span class="text-error-500 text-sm">{form.errors.title}</span>{/if}
 	</label>
@@ -146,7 +158,7 @@
 			<label
 				class="chip preset-outlined-surface-300-700 cursor-pointer has-[:checked]:preset-filled-error-500 has-[:focus-visible]:ring-2"
 			>
-				<input class="sr-only" type="radio" name="type" value="bug" required checked={form?.values?.type === 'bug'} />
+				<input class="sr-only" type="radio" name="type" value="bug" required checked={values?.type === 'bug'} />
 				<BugIcon class="size-3.5" /> bug
 			</label>
 			<label
@@ -157,7 +169,7 @@
 					type="radio"
 					name="type"
 					value="feature"
-					checked={form?.values?.type === 'feature'}
+					checked={values?.type === 'feature'}
 				/>
 				<SparklesIcon class="size-3.5" /> feature
 			</label>
@@ -169,7 +181,7 @@
 					type="radio"
 					name="type"
 					value="support"
-					checked={form?.values?.type === 'support'}
+					checked={values?.type === 'support'}
 				/>
 				<LifeBuoyIcon class="size-3.5" /> support
 			</label>
@@ -208,7 +220,7 @@
 		<span class="label-text font-semibold">Description</span>
 		<RichTextEditor
 			name="description"
-			value={form?.values?.description ?? ''}
+			value={values?.description ?? ''}
 			required
 			placeholder="Describe the details: what happened, where, how often"
 			invalid={Boolean(form?.errors?.description)}

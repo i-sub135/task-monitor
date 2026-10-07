@@ -178,7 +178,8 @@ export type AttachmentInfo = { id: string; name: string; mime: string; size: num
 /** TM-11/TM-12: satu baris per edit title/description/type/platform yang sukses. */
 export type EditEntry = {
 	id: string;
-	field: 'title' | 'description' | 'type' | 'platform';
+	/** TM-21: `recreate` = task ini hasil recreate (old = id task asal, new = judul task asal). */
+	field: 'title' | 'description' | 'type' | 'platform' | 'recreate';
 	by: string;
 	/** TM-17: nama API token kalau lewat API, null kalau lewat UI. */
 	via: string | null;
@@ -200,6 +201,9 @@ export type TaskDetail = {
 	status: Status;
 	createdBy: string;
 	createdAt: string;
+	/** TM-21: task Rejected asal (kalau task ini hasil recreate) / task baru hasil recreate task ini. */
+	recreatedFrom: { id: string; title: string } | null;
+	recreatedAs: { id: string; title: string } | null;
 	attachments: AttachmentInfo[];
 	history: HistoryEntry[];
 	edits: EditEntry[];

@@ -13,10 +13,12 @@
 	// TM-18: aktivitas token. Nama yang udah gak ada di daftar token = token yang udah di-revoke.
 	const activeNames = $derived(new Set(data.tokens.map((t) => t.name)));
 	const filterNames = $derived([...new Set([...data.tokens.map((t) => t.name), ...data.activityNames])].sort());
-	const fieldLabels = { title: 'title', description: 'description', type: 'type', platform: 'platform' };
+	const fieldLabels = { title: 'title', description: 'description', type: 'type', platform: 'platform', recreate: 'recreate' };
 	const activityLabel = (a: TokenActivity) =>
 		a.kind === 'edit'
-			? `Edited ${fieldLabels[a.field]}`
+			? a.field === 'recreate'
+				? 'Recreated task'
+				: `Edited ${fieldLabels[a.field]}`
 			: a.from === null
 				? 'Created task'
 				: a.from === 'done-live' && a.to === 'done'

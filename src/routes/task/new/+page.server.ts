@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { checkUploads, removeStored, storeFiles, type StoredFile } from '$lib/server/attachments';
 import { getDb } from '$lib/server/db';
 import { logger } from '$lib/server/logger';
-import { createTask } from '$lib/server/tasks';
+import { RecreateError, createTask, getRecreateSource } from '$lib/server/tasks';
 import { getStorage } from '$lib/server/storage';
 import { getUploadLimitBytes } from '$lib/server/upload-config';
 import { descriptionText, sanitizeDescription } from '$lib/server/richtext';
@@ -11,16 +11,32 @@ import { MAX_FILES } from '$lib/utils/upload-limits';
 import { platforms, taskTypes, type Platform, type TaskType } from '$lib/utils/tasks';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = () => ({
-	maxFiles: MAX_FILES,
-	maxFileBytes: getUploadLimitBytes()
-});
+// TM-21: `?from=<id task Rejected>` = recreate; form diisi dari task itu. Gak sah (gak ada / bukan Rejected /
+// udah pernah di-recreate) = halaman error, bukan form kosong diam-diam.
+const recreateSourceOr404 = async (id: string) => {
+	try {
+		return await getRecreateSource(getDb(), id);
+	} catch (e) {
+		if (e instanceof RecreateError) error(e.status, e.message);
+		throw e;
+	}
+};
+
+export const load: PageServerLoad = async ({ url }) => {
+	const from = url.searchParams.get('from');
+	return {
+		maxFiles: MAX_FILES,
+		maxFileBytes: getUploadLimitBytes(),
+		recreateFrom: from ? await recreateSourceOr404(from) : null
+	};
+};
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
 		if (!locals.user) redirect(303, '/');
 
 		const form = await request.formData();
+		const recreateFrom = String(form.get('recreate_from') ?? '') || null;
 		const title = String(form.get('title') ?? '').trim();
 		// TM-10: description sekarang HTML dari rich text editor. Disaring di sini (bukan cuma di
 		// render) sebelum disentuh lagi, jadi apa yang kesimpan dan yang di-echo balik ke form
@@ -60,7 +76,8 @@ export const actions: Actions = {
 				type: type as TaskType,
 				platform: platform as Platform,
 				userId: locals.user.id,
-				attachments: stored
+				attachments: stored,
+				recreatedFromId: recreateFrom
 			});
 		} catch (e) {
 			await removeStored(storage, stored).catch((cleanup) =>
@@ -70,6 +87,11 @@ export const actions: Actions = {
 					error: cleanup instanceof Error ? cleanup.message : String(cleanup)
 				})
 			);
+			// TM-21: recreate ditolak (mis. keduluan orang lain) = pesan jelas, bukan "gagal simpan".
+			if (e instanceof RecreateError) {
+				const recreateErrors: Record<string, string> = { form: e.message };
+				return fail(e.status, { errors: recreateErrors, values: { title, description, type, platform } });
+			}
 			logger.error('task.create.failed', {
 				storage: storage.name,
 				error: e instanceof Error ? e.message : String(e)

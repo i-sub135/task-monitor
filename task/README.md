@@ -6,11 +6,11 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-_(kosong)_
+- [TM-21](running/TM-21.md) — Recreate task yang udah di-reject — Running (kode jadi, nunggu deploy + cek visual)
 
 ## Backlog
 
-- [TM-21](backlog/TM-21.md) — Recreate task yang udah di-reject (isi ke-copy ke New task, history nyatet asalnya) — Backlog (nunggu keputusan)
+_(kosong)_
 
 ## Done
 

@@ -134,6 +134,8 @@ export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskD
 		where: { id },
 		include: {
 			createdBy: { select: { name: true } },
+			recreatedFrom: { select: { id: true, title: true } },
+			recreatedAs: { select: { id: true, title: true } },
 			attachments: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
 			history: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { createdBy: { select: { name: true } } } },
 			edits: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: { editedBy: { select: { name: true } } } }
@@ -150,6 +152,8 @@ export const getTaskDetail = async (db: PrismaClient, id: string): Promise<TaskD
 		status: statusToApp[t.status],
 		createdBy: t.createdBy.name,
 		createdAt: formatJakarta(t.createdAt),
+		recreatedFrom: t.recreatedFrom,
+		recreatedAs: t.recreatedAs,
 		attachments: t.attachments.map((a) => ({ id: a.id, name: a.fileName, mime: a.mimeType, size: a.size })),
 		history: t.history.map((h) => ({
 			id: h.id,
@@ -191,13 +195,46 @@ export type NewTask = {
 	attachments: StoredFile[];
 	/** TM-17: nama API token kalau lewat API, null/kosong kalau lewat UI. */
 	via?: string | null;
+	/** TM-21: id task Rejected yang di-recreate jadi task ini. */
+	recreatedFromId?: string | null;
 };
+
+/** TM-21: recreate gak sah (task asal gak ada / bukan Rejected / udah pernah di-recreate). */
+export class RecreateError extends Error {
+	constructor(
+		readonly status: number,
+		message: string
+	) {
+		super(message);
+	}
+}
+
+export type RecreateSource = { id: string; title: string; description: string; type: TaskType; platform: Platform };
+
+/** TM-21: cek task asal recreate di dalam/luar transaksi. Lempar RecreateError kalau gak boleh. */
+const loadRecreateSource = async (db: Tx | PrismaClient, id: string): Promise<RecreateSource> => {
+	if (!UUID_PATTERN.test(id)) throw new RecreateError(404, 'Task to recreate not found');
+	const t = await db.task.findUnique({
+		where: { id },
+		select: { id: true, title: true, description: true, type: true, platform: true, status: true, recreatedAs: { select: { id: true } } }
+	});
+	if (!t) throw new RecreateError(404, 'Task to recreate not found');
+	if (t.status !== 'rejected') throw new RecreateError(400, 'Only rejected tasks can be recreated');
+	if (t.recreatedAs) throw new RecreateError(409, 'This task has already been recreated');
+	return { id: t.id, title: t.title, description: t.description, type: t.type, platform: platformToApp[t.platform] };
+};
+
+/** TM-21: isi awal form New task waktu recreate (`/task/new?from=<id>`). */
+export const getRecreateSource = (db: PrismaClient, id: string): Promise<RecreateSource> => loadRecreateSource(db, id);
 
 /** Task + baris history pertama + lampiran dalam 1 transaksi. Masuk kolom request, paling belakang. */
 export const createTask = async (db: PrismaClient, input: NewTask): Promise<void> => {
 	const now = Date.now();
 	await db.$transaction(async (tx) => {
 		await lockOrdering(tx);
+		// TM-21: dicek ulang di dalam transaksi (di bawah lock) — dua orang klik Recreate barengan, satu yang menang;
+		// kalaupun lolos, unique index `recreated_from` tetep nolak yang kedua.
+		const source = input.recreatedFromId ? await loadRecreateSource(tx, input.recreatedFromId) : null;
 		const last = await tx.task.aggregate({ where: { status: 'request' }, _max: { ordering: true } });
 		await tx.task.create({
 			data: {
@@ -209,6 +246,11 @@ export const createTask = async (db: PrismaClient, input: NewTask): Promise<void
 				status: 'request',
 				ordering: (last._max.ordering ?? 0) + 1,
 				createdById: input.userId,
+				recreatedFromId: source?.id ?? null,
+				// TM-21: jejak recreate di Edit history task baru (old = id task asal, new = judul task asal).
+				...(source
+					? { edits: { create: { field: 'recreate', oldValue: source.id, newValue: source.title, editedById: input.userId } } }
+					: {}),
 				history: {
 					create: { statusBefore: null, statusAfter: 'request', createdById: input.userId, via: input.via ?? null }
 				},
@@ -552,7 +594,7 @@ export type TokenActivity = {
 	taskTitle: string;
 } & (
 	| { kind: 'status'; from: Status | null; to: Status }
-	| { kind: 'edit'; field: 'title' | 'description' | 'type' | 'platform' }
+	| { kind: 'edit'; field: 'title' | 'description' | 'type' | 'platform' | 'recreate' }
 );
 
 export const TOKEN_ACTIVITY_LIMIT = 50;
