@@ -322,11 +322,12 @@
 					{#snippet footerActions()}
 						{@const live = liveTarget(task)}
 						{#if live}
-							<!-- Bulet kecil di kotak footer, seukuran avatar: ijo tua = mark live, merah = unmark. -->
+							<!-- Bulet kecil di kotak footer = status live kartu ini (ijo ngejreng kayak garis badge LIVE = udah live,
+							     merah = belum). Diklik buat mark / unmark; aksinya di tooltip + aria-label. -->
 							<button
 								type="button"
 								class="relative z-10 size-4 shrink-0 cursor-pointer rounded-full shadow ring-1 ring-white transition hover:scale-125"
-								style="background-color: {live === 'done-live' ? '#1f7a3a' : '#e73f1e'}"
+								style="background-color: {live === 'done' ? '#00c853' : '#e73f1e'}"
 								aria-label={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
 								title={live === 'done-live' ? 'Mark as live' : 'Unmark live'}
 								onclick={() => openLiveDialog(task, live)}
