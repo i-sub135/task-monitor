@@ -609,10 +609,10 @@
 			</section>
 		</article>
 
-		<!-- TM-23: kotak tulis komentar = card sendiri di bawah card task (kotak sudut tumpul, padding sama kayak card task). -->
+		<!-- TM-23: kotak tulis komentar = card sendiri di bawah card task (bentuk + padding sama kayak card task). -->
 		{#if canWriteComments}
 			<section
-				class="card preset-filled-surface-50-950 border-surface-300-700 rounded-md! border p-6 shadow-xl"
+				class="card preset-filled-surface-50-950 border-surface-300-700 border p-6 shadow-xl"
 				aria-label="Write a comment"
 			>
 				{#key commentFormKey}
