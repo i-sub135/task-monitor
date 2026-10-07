@@ -6,9 +6,6 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-- [TM-17](running/TM-17.md) — API token per user (maks 5) + API kirim/update task — Running (kode jadi, nunggu deploy + cek visual)
-- [TM-18](running/TM-18.md) — Log aktivitas per token di /account/tokens — Running (kode jadi, nunggu cek visual)
-- [TM-19](running/TM-19.md) — Type baru "support" (Request → Done langsung) — Running (kode jadi, nunggu deploy + cek visual)
 
 ## Backlog
 
@@ -32,3 +29,6 @@ _(kosong)_
 - [TM-14](done/TM-14.md) — Role baru QA: cuma QA + admin yang boleh geser Ready to test → Done — Done
 - [TM-15](done/TM-15.md) — Status Live (done-live) nempel di kolom Done, badge LIVE — Done
 - [TM-16](done/TM-16.md) — Filter di /board dan /board/list (type, platform, pembuat, cari judul) — Done
+- [TM-17](done/TM-17.md) — API token per user (maks 5) + API kirim/update task — Done
+- [TM-18](done/TM-18.md) — Log aktivitas per token di /account/tokens — Done
+- [TM-19](done/TM-19.md) — Type baru "support" (Request → Done langsung) — Done
