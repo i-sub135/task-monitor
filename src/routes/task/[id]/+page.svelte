@@ -609,10 +609,10 @@
 			</section>
 		</article>
 
-		<!-- TM-23: kotak tulis komentar = card sendiri di bawah card task (kotak sudut tumpul), isinya editor penuh (padding 0). -->
+		<!-- TM-23: kotak tulis komentar = card sendiri di bawah card task (kotak sudut tumpul, padding sama kayak card task). -->
 		{#if canWriteComments}
 			<section
-				class="card preset-filled-surface-50-950 border-surface-300-700 overflow-hidden rounded-md! border p-0 shadow-xl"
+				class="card preset-filled-surface-50-950 border-surface-300-700 rounded-md! border p-6 shadow-xl"
 				aria-label="Write a comment"
 			>
 				{#key commentFormKey}
@@ -625,7 +625,7 @@
 								if (result.type === 'success') commentFormKey++;
 							}}
 					>
-						<RichTextEditor name="body" required placeholder="Write a comment" compact frameless>
+						<RichTextEditor name="body" required placeholder="Write a comment" compact>
 							{#snippet actions()}
 								<button type="submit" class="btn btn-xs btn-outline-primary"><SendIcon class="size-3" /> Comment</button>
 							{/snippet}
