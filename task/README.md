@@ -6,9 +6,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-- [TM-21](running/TM-21.md) — Recreate task yang udah di-reject — Running (kode jadi, nunggu deploy + cek visual)
-- [TM-22](running/TM-22.md) — Edit lampiran task sampai sebelum Done — Running (kode jadi, nunggu deploy + cek visual)
-- [TM-23](running/TM-23.md) — Komentar di dalam task — Running (kode jadi, nunggu deploy + cek visual)
+_(kosong)_
 
 ## Backlog
 
@@ -36,3 +34,6 @@ _(kosong)_
 - [TM-18](done/TM-18.md) — Log aktivitas per token di /account/tokens — Done
 - [TM-19](done/TM-19.md) — Type baru "support" (Request → Done langsung) — Done
 - [TM-20](done/TM-20.md) — Rapihin kode: `src/lib/utils/` + standar arrow function — Done
+- [TM-21](done/TM-21.md) — Recreate task yang udah di-reject (one-to-one, rantai A → B → C) — Done
+- [TM-22](done/TM-22.md) — Tambah/hapus lampiran dari detail sampai sebelum Done (UI + API) — Done
+- [TM-23](done/TM-23.md) — Komentar di task (rich text, jejak edit, hard delete, kunci di Live/Rejected) — Done
