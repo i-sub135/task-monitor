@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import { CalendarIcon, PaperclipIcon } from '@lucide/svelte';
+	import { CalendarIcon, CheckIcon, LinkIcon, PaperclipIcon } from '@lucide/svelte';
+	import { copyText } from '$lib/utils/clipboard';
 	import { typeFilledClass, typeIcons, typeTextClass } from '$lib/utils/type-styles';
 	import { platformLabels, type BoardTask } from '$lib/utils/tasks';
 	import { platformIcons, platformColors } from '$lib/utils/platform-icons';
@@ -42,6 +43,13 @@
 		for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
 		return AVATAR_COLORS[h % AVATAR_COLORS.length];
 	};
+
+	// Tombol share: salin link detail task (URL lengkap) ke clipboard, ikon jadi centang sebentar.
+	let copied = $state<'ok' | 'fail' | null>(null);
+	const shareLink = async () => {
+		copied = (await copyText(`${location.origin}/task/${task.id}`)) ? 'ok' : 'fail';
+		setTimeout(() => (copied = null), 1500);
+	};
 </script>
 
 <article
@@ -64,21 +72,28 @@
 				><PlatformIcon class="size-3" /> {platformLabels[task.platform]}</span
 			>
 		</div>
-		<!-- Grup kanan dalam satu wadah (kalau LIVE sama ▲▼ masing-masing ml-auto, sisa ruang kebagi dua). Wadahnya
-		     gak di-z-10 biar klik di LIVE tetep buka task; tombol di `actions` yang pasang z-10 sendiri. -->
-		{#if task.status === 'done-live' || actions}
-			<div class="flex shrink-0 items-center gap-1">
-				{#if task.status === 'done-live'}
-					<!-- TM-15: latar = latar tema, garis ijo ngejreng tebel biar ketangkep mata di atas kartu Done
-					     yang udah ijo, tulisan biru (#2D7495). -->
-					<span
-						class="badge bg-surface-50-950 border-2 font-black tracking-wider"
-						style="color: #2d7495; border-color: #00c853">LIVE</span
-					>
-				{/if}
-				{@render actions?.()}
-			</div>
-		{/if}
+		<!-- Grup kanan dalam satu wadah: LIVE, ▲▼ (`actions`), tombol salin link. Wadahnya gak di-z-10 biar klik di
+		     LIVE tetep buka task; tiap tombol pasang z-10 sendiri biar gak ketutup link kartu. -->
+		<div class="flex shrink-0 items-center gap-1">
+			{#if task.status === 'done-live'}
+				<!-- TM-15: latar = latar tema, garis ijo ngejreng tebel biar ketangkep mata di atas kartu Done
+				     yang udah ijo, tulisan biru (#2D7495). -->
+				<span
+					class="badge bg-surface-50-950 border-2 font-black tracking-wider"
+					style="color: #2d7495; border-color: #00c853">LIVE</span
+				>
+			{/if}
+			{@render actions?.()}
+			<button
+				type="button"
+				class="badge preset-tonal relative z-10 cursor-pointer px-1.5 transition hover:brightness-90"
+				aria-label="Copy link to this task"
+				title={copied === 'ok' ? 'Link copied' : copied === 'fail' ? 'Could not copy link' : 'Copy link to this task'}
+				onclick={shareLink}
+			>
+				{#if copied === 'ok'}<CheckIcon class="size-3" />{:else}<LinkIcon class="size-3" />{/if}
+			</button>
+		</div>
 	</div>
 
 	<a
