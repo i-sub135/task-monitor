@@ -107,36 +107,39 @@
 		{/if}
 	</div>
 
-	<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug, feature dan support">
-		<p class="flex items-center gap-2 font-semibold"><InfoIcon class="size-4" /> Ini bug, feature, atau support?</p>
-		<ul class="flex flex-col gap-2">
-			<li class="flex gap-2">
-				<BugIcon class="mt-0.5 size-4 shrink-0" />
-				<span
-					><strong>Bug</strong>: sesuatu yang sudah ada tapi rusak atau gak jalan sebagaimana mestinya.
-					Contoh: banner gak muncul, tombol gak bisa diklik, ada salah ketik.</span
-				>
-			</li>
-			<li class="flex gap-2">
-				<SparklesIcon class="mt-0.5 size-4 shrink-0" />
-				<span
-					><strong>Feature</strong>: sesuatu yang belum ada dan kamu mau ditambah atau diubah. Contoh:
-					filter baru di laporan, halaman baru, tombol export.</span
-				>
-			</li>
-			<li class="flex gap-2">
-				<LifeBuoyIcon class="mt-0.5 size-4 shrink-0" />
-				<span
-					><strong>Support</strong>: minta bantuan operasional, bukan ngubah aplikasi. Contoh: bikinin akun
-					admin, reset password, atur akses. Langsung dari Request ke Done.</span
-				>
-			</li>
-		</ul>
-		<p>
-			Patokan gampang: kalau dulu pernah jalan bener terus sekarang nggak, itu <strong>bug</strong>.
-			Kalau belum pernah ada, itu <strong>feature</strong>.
-		</p>
-	</aside>
+	<!-- TM-21: pas recreate, type-nya udah dipilih di task lama; penjelasan ini cuma buat task baru. -->
+	{#if !data.recreateFrom}
+		<aside class="card preset-tonal-primary flex flex-col gap-3 p-4 text-sm" aria-label="Bedanya bug, feature dan support">
+			<p class="flex items-center gap-2 font-semibold"><InfoIcon class="size-4" /> Ini bug, feature, atau support?</p>
+			<ul class="flex flex-col gap-2">
+				<li class="flex gap-2">
+					<BugIcon class="mt-0.5 size-4 shrink-0" />
+					<span
+						><strong>Bug</strong>: sesuatu yang sudah ada tapi rusak atau gak jalan sebagaimana mestinya.
+						Contoh: banner gak muncul, tombol gak bisa diklik, ada salah ketik.</span
+					>
+				</li>
+				<li class="flex gap-2">
+					<SparklesIcon class="mt-0.5 size-4 shrink-0" />
+					<span
+						><strong>Feature</strong>: sesuatu yang belum ada dan kamu mau ditambah atau diubah. Contoh:
+						filter baru di laporan, halaman baru, tombol export.</span
+					>
+				</li>
+				<li class="flex gap-2">
+					<LifeBuoyIcon class="mt-0.5 size-4 shrink-0" />
+					<span
+						><strong>Support</strong>: minta bantuan operasional, bukan ngubah aplikasi. Contoh: bikinin akun
+						admin, reset password, atur akses. Langsung dari Request ke Done.</span
+					>
+				</li>
+			</ul>
+			<p>
+				Patokan gampang: kalau dulu pernah jalan bener terus sekarang nggak, itu <strong>bug</strong>.
+				Kalau belum pernah ada, itu <strong>feature</strong>.
+			</p>
+		</aside>
+	{/if}
 
 	<label class="label">
 		<span class="label-text font-semibold">Title</span>
