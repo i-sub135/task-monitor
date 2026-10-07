@@ -451,8 +451,8 @@
 							};
 						}}
 					>
-						<label class="btn btn-sm btn-outline-primary cursor-pointer {uploading ? 'pointer-events-none opacity-60' : ''}">
-							<PlusIcon class="size-4" />
+						<label class="btn btn-xs btn-outline-primary cursor-pointer {uploading ? 'pointer-events-none opacity-60' : ''}">
+							<PlusIcon class="size-3" />
 							{uploading ? 'Uploading…' : 'Add files'}
 							<input
 								type="file"
@@ -570,10 +570,10 @@
 									<input type="hidden" name="comment_id" value={c.id} />
 									<RichTextEditor name="body" value={c.bodyHtml} required compact>
 										{#snippet actions()}
-											<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingComment = null)}
+											<button type="button" class="btn btn-xs btn-outline-neutral" onclick={() => (editingComment = null)}
 												>Cancel</button
 											>
-											<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+											<button type="submit" class="btn btn-xs btn-outline-primary">Save</button>
 										{/snippet}
 									</RichTextEditor>
 									{#if form?.commentError && form?.commentId === c.id}
@@ -615,7 +615,7 @@
 					>
 						<RichTextEditor name="body" required placeholder="Write a comment" compact>
 							{#snippet actions()}
-								<button type="submit" class="btn btn-sm btn-outline-primary"><SendIcon class="size-4" /> Comment</button>
+								<button type="submit" class="btn btn-xs btn-outline-primary"><SendIcon class="size-3" /> Comment</button>
 							{/snippet}
 						</RichTextEditor>
 						{#if form?.commentError && !form?.commentId}
@@ -633,7 +633,7 @@
 
 	<div class="flex h-fit flex-col gap-6">
 		{#if canMove && nextStatuses.length > 0}
-			<button type="button" class="btn btn-outline-primary xs:hidden" onclick={openMove}>Change status</button>
+			<button type="button" class="btn btn-xs btn-outline-primary xs:hidden" onclick={openMove}>Change status</button>
 			<section class="card preset-filled-surface-50-950 border-surface-300-700 hidden flex-col gap-4 border p-6 shadow-xl xs:flex">
 				<h2 class="font-semibold">Change status</h2>
 				{#if form?.transitionError}
@@ -652,7 +652,7 @@
 						{/if}
 						<button
 							type="submit"
-							class="btn {to === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
+							class="btn btn-xs {to === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
 						>
 							{tabLabel(to)}
 						</button>
