@@ -6,8 +6,11 @@
 		ZoomInIcon,
 		ZoomOutIcon,
 		DownloadIcon,
-		XIcon
+		XIcon,
+		CheckIcon,
+		LinkIcon
 	} from '@lucide/svelte';
+	import { copyText } from '$lib/utils/clipboard';
 	import { canAdvance } from '$lib/utils/roles';
 	import {
 		allowedTargets,
@@ -60,6 +63,12 @@
 		description: '#db2777',
 		type: '#a16207',
 		platform: '#78716c'
+	};
+	// Salin link task ini (URL lengkap), sama kayak tombol rantai di kartu board.
+	let linkCopied = $state<'ok' | 'fail' | null>(null);
+	const copyTaskLink = async () => {
+		linkCopied = (await copyText(`${location.origin}/task/${task.id}`)) ? 'ok' : 'fail';
+		setTimeout(() => (linkCopied = null), 1500);
 	};
 	let editingTitle = $state(false);
 	let editingDescription = $state(false);
@@ -214,6 +223,15 @@
 			{/if}
 
 			<span class="badge preset-tonal">{statusLabels[task.status]}</span>
+
+			<button
+				type="button"
+				class="btn btn-sm btn-outline-neutral ml-auto"
+				title={linkCopied === 'fail' ? 'Could not copy link' : 'Copy link to this task'}
+				onclick={copyTaskLink}
+			>
+				{#if linkCopied === 'ok'}<CheckIcon class="size-4" /> Link copied{:else}<LinkIcon class="size-4" /> Copy link{/if}
+			</button>
 		</div>
 		{#if task.status === 'done-live'}
 			<div class="flex items-center gap-4">
