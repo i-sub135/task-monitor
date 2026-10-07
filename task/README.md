@@ -11,7 +11,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Backlog
 
-_(kosong)_
+- [TM-23](backlog/TM-23.md) — Komentar di dalam task — Backlog (nunggu keputusan Iyan)
 
 ## Done
 
