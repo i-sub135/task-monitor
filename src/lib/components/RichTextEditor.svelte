@@ -12,13 +12,16 @@
 		value = '',
 		required = false,
 		placeholder = '',
-		invalid = false
+		invalid = false,
+		compact = false
 	}: {
 		name: string;
 		value?: string;
 		required?: boolean;
 		placeholder?: string;
 		invalid?: boolean;
+		/** TM-23: kotak isi mulai setinggi 1 baris (buat komentar), melar sendiri pas isinya nambah. */
+		compact?: boolean;
 	} = $props();
 
 	let mount = $state<HTMLDivElement>();
@@ -57,7 +60,7 @@
 			content: value,
 			editorProps: {
 				attributes: {
-					class: 'rich-text rich-text-input focus:outline-none min-h-[8rem] px-3 py-2 text-sm'
+					class: `rich-text rich-text-input focus:outline-none ${compact ? '' : 'min-h-[8rem]'} px-3 py-2 text-sm`
 				}
 			},
 			onUpdate: ({ editor: e }) => {

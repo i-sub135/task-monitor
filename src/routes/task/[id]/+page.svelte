@@ -517,9 +517,11 @@
 		<section>
 			<h2 class="mb-3 font-semibold">Comments ({task.comments.length})</h2>
 			{#if task.comments.length > 0}
-				<ol class="mb-4 flex flex-col gap-3">
-					{#each task.comments as c (c.id)}
-						<li class="border-surface-300-700 rounded-container border p-3 text-sm">
+				<!-- Compact: gak dibungkus card, antar komentar cuma dipisah garis. -->
+				<ol class="mb-4 flex flex-col text-sm">
+					{#each task.comments as c, i (c.id)}
+						<li>
+							{#if i > 0}<hr class="border-surface-300-700 my-3" />{/if}
 							<div class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
 								<span class="font-semibold">{c.by}</span>
 								<span class="opacity-60">{c.at}</span>
@@ -566,7 +568,7 @@
 									class="flex flex-col gap-2"
 								>
 									<input type="hidden" name="comment_id" value={c.id} />
-									<RichTextEditor name="body" value={c.bodyHtml} required />
+									<RichTextEditor name="body" value={c.bodyHtml} required compact />
 									{#if form?.commentError && form?.commentId === c.id}
 										<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
 									{/if}
@@ -610,7 +612,7 @@
 							}}
 						class="flex flex-col gap-2"
 					>
-						<RichTextEditor name="body" required placeholder="Write a comment" />
+						<RichTextEditor name="body" required placeholder="Write a comment" compact />
 						{#if form?.commentError && !form?.commentId}
 							<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
 						{/if}
