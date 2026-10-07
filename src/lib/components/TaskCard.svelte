@@ -121,7 +121,7 @@
 	     muda, + bayangan halus. Di ujung kanan ada bulatan besar yang nongol ke atas-bawah pil:
 	     - Done: merah + power off (belum live); Live: ijo + power on. Jadi tombol mark/unmark kalau role-nya boleh.
 	     - Support yang Done: centang biru (warna badge support). Support gak punya Live, jadi cuma penanda.
-	     - Rejected: patah hati abu-abu (senada sama judulnya yang abu dicoret). Penanda aja.
+	     - Rejected: patah hati merah (warna badge bug) di bulatan abu muda. Penanda aja.
 	     - Status lain: hiasan roket, warnanya sama kayak latar kartu (`.card-meta-dot`).
 	     Bulatan = 1.2x tinggi pil (pil 26px, bulatan 32px). Nama gak dipotong: kalau gak muat sebaris, tanggal
 	     yang ngalah — baris dalemnya dikunci setinggi satu baris + overflow hidden, jadi tanggal yang kebungkus ke
@@ -160,10 +160,10 @@
 			</span>
 		{:else if task.status === 'rejected'}
 			<span
-				class="absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-gray-500 text-white shadow-md ring-2 ring-white"
+				class="absolute top-1/2 -right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-gray-200 shadow-md ring-2 ring-white"
 				title="Rejected"
 			>
-				<HeartCrackIcon class="size-4" />
+				<HeartCrackIcon class="text-error-500 size-4" strokeWidth={2.5} />
 			</span>
 		{:else if task.status === 'done' || task.status === 'done-live'}
 			{@const isLive = task.status === 'done-live'}
