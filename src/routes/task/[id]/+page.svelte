@@ -518,7 +518,7 @@
 			<h2 class="mb-3 font-semibold">Comments ({task.comments.length})</h2>
 			{#if task.comments.length > 0}
 				<!-- Compact: gak dibungkus card, antar komentar cuma dipisah garis. -->
-				<ol class="mb-4 flex flex-col text-sm">
+				<ol class="mb-6 flex flex-col text-sm">
 					{#each task.comments as c, i (c.id)}
 						<li>
 							{#if i > 0}<hr class="border-surface-300-700 my-3" />{/if}
