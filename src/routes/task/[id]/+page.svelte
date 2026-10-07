@@ -568,16 +568,17 @@
 									class="flex flex-col gap-2"
 								>
 									<input type="hidden" name="comment_id" value={c.id} />
-									<RichTextEditor name="body" value={c.bodyHtml} required compact />
+									<RichTextEditor name="body" value={c.bodyHtml} required compact>
+										{#snippet actions()}
+											<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingComment = null)}
+												>Cancel</button
+											>
+											<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+										{/snippet}
+									</RichTextEditor>
 									{#if form?.commentError && form?.commentId === c.id}
 										<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
 									{/if}
-									<div class="flex justify-end gap-2">
-										<button type="button" class="btn btn-sm btn-outline-neutral" onclick={() => (editingComment = null)}
-											>Cancel</button
-										>
-										<button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
-									</div>
 								</form>
 							{:else}
 								<div class="rich-text">{@html c.bodyHtml}</div>
@@ -612,13 +613,14 @@
 							}}
 						class="flex flex-col gap-2"
 					>
-						<RichTextEditor name="body" required placeholder="Write a comment" compact />
+						<RichTextEditor name="body" required placeholder="Write a comment" compact>
+							{#snippet actions()}
+								<button type="submit" class="btn btn-sm btn-outline-primary"><SendIcon class="size-4" /> Comment</button>
+							{/snippet}
+						</RichTextEditor>
 						{#if form?.commentError && !form?.commentId}
 							<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.commentError}</div>
 						{/if}
-						<div class="flex justify-end">
-							<button type="submit" class="btn btn-sm btn-outline-primary"><SendIcon class="size-4" /> Comment</button>
-						</div>
 					</form>
 				{/key}
 			{:else}

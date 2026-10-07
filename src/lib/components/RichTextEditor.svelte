@@ -1,7 +1,7 @@
 <script lang="ts">
 	// TM-10: wrapper Svelte 5 tipis di atas Tiptap (vanilla @tiptap/core, bukan paket React).
 	// Editor cuma nulis ke elemen DOM yang di-bind, jadi gak butuh binding framework resmi.
-	import { onDestroy } from 'svelte';
+	import { onDestroy, type Snippet } from 'svelte';
 	import { Editor } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import Placeholder from '@tiptap/extension-placeholder';
@@ -13,7 +13,8 @@
 		required = false,
 		placeholder = '',
 		invalid = false,
-		compact = false
+		compact = false,
+		actions
 	}: {
 		name: string;
 		value?: string;
@@ -22,6 +23,8 @@
 		invalid?: boolean;
 		/** TM-23: kotak isi mulai setinggi 1 baris (buat komentar), melar sendiri pas isinya nambah. */
 		compact?: boolean;
+		/** TM-23: tombol (mis. kirim) di baris bawah sebelah kanan, sejajar toolbar. Cuma dipakai pas `compact`. */
+		actions?: Snippet;
 	} = $props();
 
 	let mount = $state<HTMLDivElement>();
@@ -90,24 +93,38 @@
 	];
 </script>
 
+{#snippet toolbarButtons()}
+	{#each toolbar as tool (tool.key)}
+		<!-- compact: tombol kotak sudut tumpul (bukan bulet), biar nyatu sama baris bawah. -->
+		<button
+			type="button"
+			class="btn-icon btn-icon-sm {compact ? 'rounded-md!' : ''}"
+			class:preset-filled-primary-500={active[tool.key]}
+			class:btn-outline-neutral={!active[tool.key]}
+			aria-label={tool.label}
+			aria-pressed={active[tool.key]}
+			title={tool.label}
+			onclick={tool.run}
+		>
+			<tool.Icon class="size-4" />
+		</button>
+	{/each}
+{/snippet}
+
 <div class="rich-text-editor rounded-container border-surface-300-700 border" class:border-error-500={invalid}>
-	<div class="border-surface-300-700 flex justify-end gap-1 border-b p-1 pr-3">
-		{#each toolbar as tool (tool.key)}
-			<button
-				type="button"
-				class="btn-icon btn-icon-sm"
-				class:preset-filled-primary-500={active[tool.key]}
-				class:btn-outline-neutral={!active[tool.key]}
-				aria-label={tool.label}
-				aria-pressed={active[tool.key]}
-				title={tool.label}
-				onclick={tool.run}
-			>
-				<tool.Icon class="size-4" />
-			</button>
-		{/each}
-	</div>
+	{#if !compact}
+		<div class="border-surface-300-700 flex justify-end gap-1 border-b p-1 pr-3">
+			{@render toolbarButtons()}
+		</div>
+	{/if}
 	<div bind:this={mount}></div>
+	{#if compact}
+		<!-- TM-23: toolbar kiri bawah, tombol aksi (kirim/simpan) kanan bawah, satu baris. -->
+		<div class="border-surface-300-700 flex flex-wrap items-center gap-1 border-t p-1.5">
+			{@render toolbarButtons()}
+			{#if actions}<div class="ml-auto flex items-center gap-2">{@render actions()}</div>{/if}
+		</div>
+	{/if}
 	<!-- Isi editor disinkron ke sini tiap update, jadi form action server tetap baca FormData biasa. -->
 	<input bind:this={hiddenInput} id={name} type="hidden" {name} {required} />
 </div>
