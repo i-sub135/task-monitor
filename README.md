@@ -2,7 +2,7 @@
 
 Papan antrean request buat tim non-teknis. Marketing ngajuin request lewat form, developer nge-triase, semua orang liat sendiri request-nya ada di kolom mana dan nomor berapa di antrean — tanpa nanya.
 
-Enam kolom, maju doang: `request → queue → in-progress → ready-to-test → done`, plus `rejected` dari `request` dan dari `ready-to-test` (QA + admin).
+Enam kolom, maju doang: `request → queue → in-progress → ready-to-test → done`, plus `rejected` dari `request` dan dari `ready-to-test` (QA + admin). QA + admin juga bisa balikin `ready-to-test` → `queue`.
 
 ## Stack
 

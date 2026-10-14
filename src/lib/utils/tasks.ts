@@ -37,14 +37,14 @@ export const platforms = Object.keys(platformLabels) as Platform[];
 
 /**
  * Transisi maju doang (brainstorming.md bagian 3), rejected terminal. TM-15: done ↔ done-live (mark live /
- * unmark) satu-satunya jalan mundur, buat salah tandai atau rollback deploy. TM-24: reject juga bisa dari
- * Ready to test (cuma QA + admin, lihat restrictedTransitions).
+ * unmark) satu-satunya jalan mundur, buat salah tandai atau rollback deploy. TM-24: dari Ready to test QA + admin
+ * juga bisa reject atau balikin ke Queue (lihat restrictedTransitions).
  */
 export const transitions: Record<Status, Status[]> = {
 	request: ['queue', 'rejected'],
 	queue: ['in-progress'],
 	'in-progress': ['ready-to-test'],
-	'ready-to-test': ['done', 'rejected'],
+	'ready-to-test': ['done', 'queue', 'rejected'],
 	done: ['done-live'],
 	'done-live': ['done'],
 	rejected: []
@@ -103,6 +103,8 @@ const restrictedTransitions: Partial<Record<`${Status}>${Status}`, Role[]>> = {
 	'ready-to-test>done': ['qa', 'admin'],
 	// TM-24: QA yang ngetes boleh nolak task di Ready to test (alasan tetep wajib, sama kayak reject biasa).
 	'ready-to-test>rejected': ['qa', 'admin'],
+	// TM-24: QA balikin task yang belum lolos tes ke Queue (masuk paling bawah antrean).
+	'ready-to-test>queue': ['qa', 'admin'],
 	// TM-15: mark live / unmark cuma developer + admin.
 	'done>done-live': ['developer', 'admin'],
 	'done-live>done': ['developer', 'admin']

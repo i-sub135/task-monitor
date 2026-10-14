@@ -122,7 +122,9 @@
 				? 'Mark as live'
 				: task.status === 'done-live' && to === 'done'
 					? 'Unmark live'
-					: `Move to ${statusLabels[to]}`;
+					: task.status === 'ready-to-test' && to === 'queue'
+						? 'Back to Queue'
+						: `Move to ${statusLabels[to]}`;
 	const noteLabel = (to: Status) =>
 		to === 'rejected'
 			? 'Reason (required)'
