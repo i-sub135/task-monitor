@@ -251,3 +251,8 @@
 	text-transform: uppercase;
 	opacity: 0.3;
 }
+
+/* Latar sama persis kayak halaman (dipakai Skeleton di <html>), buat elemen sticky biar konten di bawahnya ketutup. */
+.page-bg {
+	background-color: light-dark(var(--color-root-bg-light), var(--color-root-bg-dark));
+}

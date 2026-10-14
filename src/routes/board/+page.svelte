@@ -205,24 +205,48 @@
 	<title>Board · Task Monitor</title>
 </svelte:head>
 
-<div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
-	<h1 class="h3">Task board</h1>
+<!-- HP (< 500px): judul + filter + tab status nempel di atas pas di-scroll. Desktop: biasa (gak nempel). -->
+<div class="page-bg sticky top-0 z-30 -mx-4 -mt-3 px-4 pt-3 pb-1 xs:static xs:m-0 xs:p-0 xs:bg-transparent">
+	<div class="mb-1 flex flex-wrap items-baseline justify-between gap-x-4">
+		<h1 class="h3">Task board</h1>
+	</div>
+
+	<!-- Teks bantuan cuma di tampilan desktop/tablet; di HP (< 500px) disembunyiin biar board langsung keliatan. -->
+	<p class="mb-6 hidden text-sm opacity-70 xs:block">
+		{#if canDrag}
+			Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done, Rejected, or back to Queue. Support tasks go straight from Request to Done. {filtering
+				? 'Reordering is off while a filter is active.'
+				: 'To reorder, drag a card onto another card in the same column, or use the ▲▼ arrows.'}
+		{:else}
+			The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.{filtering
+				? ' Reordering is off while a filter is active.'
+				: ''}
+		{/if}
+	</p>
+
+	<BoardFilterBar {filter} {creators} />
+
+	<!-- HP: 6 tab status jadi satu button group satu baris (segmen menyambung). Label dipendekin biar muat di 1/6 lebar. -->
+	<div class="mb-4 flex xs:hidden" role="tablist" aria-label="Status columns">
+		{#each boardColumns as status (status)}
+			<button
+				type="button"
+				role="tab"
+				aria-selected={activeTab === status}
+				aria-label={statusLabels[status]}
+				title={statusLabels[status]}
+				data-tab-status={status}
+				class="btn relative min-h-10 min-w-0 flex-1 rounded-none! px-1 text-[11px] leading-tight -ml-px first:ml-0 first:rounded-s-full! last:rounded-e-full! aria-selected:z-10 {activeTab ===
+				status
+					? 'preset-filled-primary-500'
+					: 'btn-outline-neutral'}"
+				onclick={() => (activeTab = status)}
+			>
+				{tabLabels[status]}
+			</button>
+		{/each}
+	</div>
 </div>
-
-<!-- Teks bantuan cuma di tampilan desktop/tablet; di HP (< 500px) disembunyiin biar board langsung keliatan. -->
-<p class="mb-6 hidden text-sm opacity-70 xs:block">
-	{#if canDrag}
-		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done, Rejected, or back to Queue. Support tasks go straight from Request to Done. {filtering
-			? 'Reordering is off while a filter is active.'
-			: 'To reorder, drag a card onto another card in the same column, or use the ▲▼ arrows.'}
-	{:else}
-		The marketing role can view the board, create tasks and reorder the Request column, but cannot change status.{filtering
-			? ' Reordering is off while a filter is active.'
-			: ''}
-	{/if}
-</p>
-
-<BoardFilterBar {filter} {creators} />
 
 {#if form?.moveError}
 	<div class="card preset-filled-error-500 mb-6 p-4 text-sm" role="alert">{form.moveError}</div>
@@ -238,26 +262,6 @@
 	<input type="hidden" name="position" value={reorderFields.position} />
 </form>
 
-<!-- HP: 6 tab status jadi satu button group satu baris (segmen menyambung). Label dipendekin biar muat di 1/6 lebar. -->
-<div class="mb-4 flex xs:hidden" role="tablist" aria-label="Status columns">
-	{#each boardColumns as status (status)}
-		<button
-			type="button"
-			role="tab"
-			aria-selected={activeTab === status}
-			aria-label={statusLabels[status]}
-			title={statusLabels[status]}
-			data-tab-status={status}
-			class="btn relative min-h-10 min-w-0 flex-1 rounded-none! px-1 text-[11px] leading-tight -ml-px first:ml-0 first:rounded-s-full! last:rounded-e-full! aria-selected:z-10 {activeTab ===
-			status
-				? 'preset-filled-primary-500'
-				: 'btn-outline-neutral'}"
-			onclick={() => (activeTab = status)}
-		>
-			{tabLabels[status]}
-		</button>
-	{/each}
-</div>
 
 <div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xl:grid-cols-6">
 	{#each boardColumns as status (status)}
