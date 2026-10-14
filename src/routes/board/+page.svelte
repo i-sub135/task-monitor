@@ -211,7 +211,7 @@
 
 <p class="mb-6 text-sm opacity-70">
 	{#if canDrag}
-		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done. Support tasks go straight from Request to Done. {filtering
+		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done or Rejected. Support tasks go straight from Request to Done. {filtering
 			? 'Reordering is off while a filter is active.'
 			: 'To reorder, drag a card onto another card in the same column, or use the ▲▼ arrows.'}
 	{:else}

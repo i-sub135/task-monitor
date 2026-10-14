@@ -6,7 +6,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-_(kosong)_
+- [TM-24](running/TM-24.md) — QA bisa reject task di Ready to test — Running (kode jadi, nunggu deploy + cek visual)
 
 ## Backlog
 
