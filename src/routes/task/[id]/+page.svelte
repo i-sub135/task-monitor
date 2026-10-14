@@ -131,6 +131,17 @@
 				: to === 'done'
 					? 'Note / result link (optional)'
 					: 'Note (optional)';
+	// Panel pindah status (desktop): satu catatan buat semua target.
+	const panelNeedsNote = $derived(nextStatuses.some((to) => to === 'rejected' || to === 'done' || to === 'done-live'));
+	const panelNoteLabel = $derived(
+		nextStatuses.includes('rejected')
+			? nextStatuses.length > 1
+				? 'Note / reason (reason required to reject)'
+				: noteLabel('rejected')
+			: noteLabel(nextStatuses.find((to) => to === 'done' || to === 'done-live') ?? nextStatuses[0])
+	);
+	let panelNote = $state('');
+	let panelNoteError = $state('');
 	const openMove = () => {
 		moveTarget = nextStatuses[0];
 		moveOpen = true;
@@ -631,25 +642,48 @@
 				{#if form?.transitionError}
 					<div class="card preset-filled-error-500 p-3 text-sm" role="alert">{form.transitionError}</div>
 				{/if}
-				{#each nextStatuses as to (to)}
-					<form method="POST" action="?/transition" use:enhance class="form-comfy flex flex-col gap-3">
-						<input type="hidden" name="to" value={to} />
-						{#if to === 'rejected' || to === 'done' || to === 'done-live'}
-							<label class="label">
-								<span class="label-text font-semibold">
-									{noteLabel(to)}
-								</span>
-								<textarea class="textarea" name="note" rows="2" required={to === 'rejected'}></textarea>
-							</label>
-						{/if}
-						<button
-							type="submit"
-							class="btn btn-xs {to === 'rejected' ? 'btn-outline-error' : 'btn-outline-primary'}"
-						>
-							{tabLabel(to)}
-						</button>
-					</form>
-				{/each}
+				<!-- Satu kolom catatan buat semua target (mis. Done & Reject di Ready to test), tombolnya digabung jadi
+				     group; tombol yang diklik ngirim `to`. Alasan wajib cuma buat Reject (dicek di sini + di server). -->
+				<form
+					method="POST"
+					action="?/transition"
+					class="form-comfy flex flex-col gap-3"
+					use:enhance={({ submitter, cancel }) => {
+						panelNoteError = '';
+						if ((submitter as HTMLButtonElement | null)?.value === 'rejected' && !panelNote.trim()) {
+							panelNoteError = 'A reason is required to reject a task';
+							cancel();
+							return;
+						}
+						return async ({ result, update }) => {
+							await update();
+							if (result.type === 'success') panelNote = '';
+						};
+					}}
+				>
+					{#if panelNeedsNote}
+						<label class="label">
+							<span class="label-text font-semibold">{panelNoteLabel}</span>
+							<textarea class="textarea" name="note" rows="2" bind:value={panelNote}></textarea>
+						</label>
+						{#if panelNoteError}<span class="text-error-500 text-sm">{panelNoteError}</span>{/if}
+					{/if}
+					<div class="flex" role="group" aria-label="Move to">
+						{#each nextStatuses as to (to)}
+							<button
+								type="submit"
+								name="to"
+								value={to}
+								class="btn btn-xs relative -ml-px min-w-0 flex-1 rounded-none! first:ml-0 first:rounded-s-full! last:rounded-e-full! hover:z-10 {to ===
+								'rejected'
+									? 'btn-outline-error'
+									: 'btn-outline-primary'}"
+							>
+								{tabLabel(to)}
+							</button>
+						{/each}
+					</div>
+				</form>
 			</section>
 		{/if}
 
