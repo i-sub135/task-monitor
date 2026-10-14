@@ -209,7 +209,8 @@
 	<h1 class="h3">Task board</h1>
 </div>
 
-<p class="mb-6 text-sm opacity-70">
+<!-- Teks bantuan cuma di tampilan desktop/tablet; di HP (< 500px) disembunyiin biar board langsung keliatan. -->
+<p class="mb-6 hidden text-sm opacity-70 xs:block">
 	{#if canDrag}
 		Drag a card to the next column to change its status. Moves only go forward: Request → Queue → In progress → Ready to test → Done, or Request → Rejected. Only QA and admin can move Ready to test → Done, Rejected, or back to Queue. Support tasks go straight from Request to Done. {filtering
 			? 'Reordering is off while a filter is active.'
