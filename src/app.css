@@ -51,7 +51,7 @@
  * Dipakai bareng .btn / .btn-icon: <button class="btn btn-outline-primary">.
  * Yang sedang aktif (tab, menu terpilih) tetap pakai preset-filled-primary-500 biar kelihatan beda.
  */
-:is(.btn-outline-primary, .btn-outline-error, .btn-outline-success, .btn-outline-neutral) {
+:is(.btn-outline-primary, .btn-outline-error, .btn-outline-success, .btn-outline-neutral, .btn-outline-info) {
 	background-color: transparent;
 	border: 1px solid var(--outline-color);
 	color: var(--outline-color);
@@ -70,14 +70,18 @@
 .btn-outline-neutral {
 	--outline-color: var(--color-surface-700);
 }
-:is(.btn-outline-primary, .btn-outline-error, .btn-outline-success, .btn-outline-neutral):is(:hover, :focus-visible):not(
+/* TM-24: biru status Queue (garis kiri history Queue juga #578ef5), buat tombol "Back to Queue". */
+.btn-outline-info {
+	--outline-color: #578ef5;
+}
+:is(.btn-outline-primary, .btn-outline-error, .btn-outline-success, .btn-outline-neutral, .btn-outline-info):is(:hover, :focus-visible):not(
 		:disabled
 	) {
 	background-color: var(--outline-color);
 	color: #fff;
 	filter: none;
 }
-:is(.btn-outline-primary, .btn-outline-error, .btn-outline-success, .btn-outline-neutral):disabled {
+:is(.btn-outline-primary, .btn-outline-error, .btn-outline-success, .btn-outline-neutral, .btn-outline-info):disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
 }

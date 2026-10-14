@@ -676,10 +676,11 @@
 								type="submit"
 								name="to"
 								value={to}
-								class="btn btn-xs relative -ml-px min-w-0 flex-1 rounded-none! first:ml-0 first:rounded-s-full! last:rounded-e-full! hover:z-10 {to ===
-								'rejected'
+								class="btn btn-xs relative -ml-px min-w-0 flex-1 rounded-none! first:ml-0 first:rounded-s-full! last:rounded-e-full! hover:z-10 {to === 'rejected'
 									? 'btn-outline-error'
-									: 'btn-outline-primary'}"
+									: task.status === 'ready-to-test' && to === 'queue'
+										? 'btn-outline-info'
+										: 'btn-outline-primary'}"
 							>
 								{tabLabel(to)}
 							</button>
