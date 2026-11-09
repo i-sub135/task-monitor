@@ -6,7 +6,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-- [TM-24](running/TM-24.md) — QA bisa reject task di Ready to test — Running (kode jadi, nunggu deploy + cek visual)
+_(kosong)_
 
 ## Backlog
 
@@ -37,3 +37,4 @@ _(kosong)_
 - [TM-21](done/TM-21.md) — Recreate task yang udah di-reject (one-to-one, rantai A → B → C) — Done
 - [TM-22](done/TM-22.md) — Tambah/hapus lampiran dari detail sampai sebelum Done (UI + API) — Done
 - [TM-23](done/TM-23.md) — Komentar di task (rich text, jejak edit, hard delete, kunci di Live/Rejected) — Done
+- [TM-24](done/TM-24.md) — QA bisa reject task di Ready to test — Done
