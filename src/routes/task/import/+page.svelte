@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { CircleAlertIcon, CircleCheckIcon, FileUpIcon, Trash2Icon } from '@lucide/svelte';
-	import { platformLabels } from '$lib/utils/tasks';
+	import { CheckIcon, CircleAlertIcon, CircleCheckIcon, CopyIcon, FileUpIcon, Trash2Icon } from '@lucide/svelte';
+	import { copyText } from '$lib/utils/clipboard';
+	import { platformLabels, platforms, taskTypes } from '$lib/utils/tasks';
 	import { typeFilledClass, typeIcons } from '$lib/utils/type-styles';
 	import { platformColors, platformIcons } from '$lib/utils/platform-icons';
 
@@ -34,6 +35,34 @@
 
 	const remove = (n: number) => {
 		rows = rows.filter((r) => r.n !== n);
+	};
+
+	// Contoh bentuk file (docs/task-import-format.md), buat disalin terus diisi.
+	const TEMPLATE = JSON.stringify(
+		[
+			{
+				title: 'Checkout button does not respond on Android 12',
+				description: '<p>The <strong>Pay</strong> button cannot be tapped.</p><ul><li>Device: Samsung A52</li></ul>',
+				type: 'bug',
+				platform: 'mobile',
+				created_by: 'budi.santoso@maal.id'
+			},
+			{
+				title: 'Export sales report to Excel',
+				description: '<p>Store admins need a daily .xlsx export.</p>',
+				type: 'feature',
+				platform: 'web',
+				created_by: 'siti.rahma@maal.id'
+			}
+		],
+		null,
+		2
+	);
+	let templateCopied = $state(false);
+	const copyTemplate = async () => {
+		if ((await copyText(TEMPLATE, 'Copy this JSON:')) !== 'copied') return;
+		templateCopied = true;
+		setTimeout(() => (templateCopied = false), 2000);
 	};
 </script>
 
@@ -127,7 +156,7 @@
 		action="?/preview"
 		enctype="multipart/form-data"
 		use:enhance
-		class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy flex h-fit flex-col gap-5 border p-6 shadow-xl"
+		class="card preset-filled-surface-50-950 border-surface-300-700 form-comfy flex h-fit min-w-0 flex-col gap-5 border p-6 shadow-xl"
 	>
 		<h2 class="h5 flex items-center gap-2"><FileUpIcon class="size-5" /> Upload JSON</h2>
 		<label class="label">
@@ -141,10 +170,27 @@
 			</div>
 		{/if}
 		<button type="submit" class="btn btn-outline-primary">Preview</button>
-		<p class="text-xs opacity-70">
-			An array of objects with exactly <code>title</code>, <code>description</code>, <code>type</code>,
-			<code>platform</code>, <code>created_by</code>. Nothing is saved until you click Import.
-		</p>
+		<p class="text-xs opacity-70">Nothing is saved until you click Import.</p>
+
+		<div class="border-surface-300-700 flex flex-col gap-2 border-t pt-4">
+			<div class="flex items-center justify-between gap-2">
+				<span class="text-sm font-semibold">JSON format</span>
+				<button type="button" class="btn btn-xs btn-outline-neutral" onclick={copyTemplate}>
+					{#if templateCopied}<CheckIcon class="size-3" /> Copied{:else}<CopyIcon class="size-3" /> Copy{/if}
+				</button>
+			</div>
+			<pre
+				class="bg-surface-100-900 border-surface-300-700 max-h-72 w-full overflow-auto rounded-[0.5rem]! border p-3 whitespace-pre text-[11px] leading-snug">{TEMPLATE}</pre>
+			<ul class="flex flex-col gap-0.5 text-xs opacity-70">
+				<li><code>type</code>: {taskTypes.join(' | ')}</li>
+				<li><code>platform</code>: {platforms.join(' | ')}</li>
+				<li><code>created_by</code>: lowercase email; unknown emails become new marketing users</li>
+				<li>
+					<code>description</code>: plain text or HTML with only
+					{data.allowedTags.map((t) => `<${t}>`).join(' ')}
+				</li>
+			</ul>
+		</div>
 	</form>
 
 	<!-- Kanan: review per baris + submit di bawah. -->

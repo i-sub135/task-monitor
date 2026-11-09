@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { hasRole, requireRole } from '$lib/server/auth';
 import { getDb } from '$lib/server/db';
 import { logger } from '$lib/server/logger';
+import { ALLOWED_TAGS } from '$lib/server/richtext';
 import { parseImport, parseImportRows } from '$lib/server/task-import';
 import { importTasks, previewImport } from '$lib/server/tasks';
 import type { Actions, PageServerLoad } from './$types';
@@ -14,7 +15,7 @@ const MAX_BYTES = 1024 * 1024;
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireRole(locals, 'admin');
-	return { maxBytes: MAX_BYTES };
+	return { maxBytes: MAX_BYTES, allowedTags: ALLOWED_TAGS };
 };
 
 /** Isi JSON dari file yang dipilih (preview) atau dari field tersembunyi (import). */

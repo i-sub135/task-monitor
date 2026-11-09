@@ -4,7 +4,7 @@
  * dialog `prompt` yang udah keblok, tinggal Ctrl/Cmd+C. (Sengaja gak pakai `document.execCommand('copy')`:
  * udah deprecated.)
  */
-export const copyText = async (text: string): Promise<'copied' | 'shown'> => {
+export const copyText = async (text: string, promptLabel = 'Copy this link:'): Promise<'copied' | 'shown'> => {
 	if (navigator.clipboard && window.isSecureContext) {
 		try {
 			await navigator.clipboard.writeText(text);
@@ -13,6 +13,6 @@ export const copyText = async (text: string): Promise<'copied' | 'shown'> => {
 			// izin ditolak dll: lanjut ke prompt
 		}
 	}
-	window.prompt('Copy this link:', text);
+	window.prompt(promptLabel, text);
 	return 'shown';
 };
