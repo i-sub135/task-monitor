@@ -3,7 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { AppBar, Navigation } from '@skeletonlabs/skeleton-svelte';
-	import { KanbanIcon, LogOutIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
+	import { FileUpIcon, KanbanIcon, LogOutIcon, PlusIcon, UsersIcon, UserIcon } from '@lucide/svelte';
 	import { canUseApi } from '$lib/utils/roles';
 
 	let { children, data } = $props();
@@ -11,6 +11,7 @@
 	const allNavItems = [
 		{ href: '/board', label: 'Board', icon: KanbanIcon, adminOnly: false },
 		{ href: '/task/new', label: 'New task', icon: PlusIcon, adminOnly: false },
+		{ href: '/task/import', label: 'Import', icon: FileUpIcon, adminOnly: true },
 		{ href: '/users', label: 'Users', icon: UsersIcon, adminOnly: true }
 	];
 	// Board dilebarin penuh biar 6 kolom gak sempit di layar lebar. Halaman lain tetap dibatasi.

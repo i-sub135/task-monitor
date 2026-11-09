@@ -3,7 +3,7 @@ import sanitizeHtml from 'sanitize-html';
 // TM-10: description task sekarang boleh berisi rich text (list, bold, underline, italic,
 // blockquote sebagai "indent"). Ini satu-satunya tempat yang boleh nentuin tag apa yang lolos —
 // dipanggil pas simpan (task/new, nanti edit TM-11) dan pas render (dobel proteksi, murah).
-const ALLOWED_TAGS = ['p', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'br', 'blockquote'];
+export const ALLOWED_TAGS = ['p', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'br', 'blockquote'];
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
 	allowedTags: ALLOWED_TAGS,

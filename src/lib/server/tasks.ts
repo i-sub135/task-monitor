@@ -25,6 +25,7 @@ import {
 import type { Prisma, PrismaClient } from './generated/prisma/client.ts';
 import type { TaskStatus, TaskPlatform } from './generated/prisma/enums.ts';
 import type { StoredFile } from './attachments.ts';
+import { nameFromEmail, type ImportTask } from './task-import.ts';
 
 // Di DB label enum pakai tanda hubung (@map), di client Prisma jadi in_progress dst. Di app tetap 'in-progress'.
 const statusToApp: Record<TaskStatus, Status> = {
@@ -300,6 +301,81 @@ export const createTask = async (db: PrismaClient, input: NewTask): Promise<void
 		});
 	});
 };
+
+export type ImportPreviewRow = ImportTask & {
+	/** Pembuat belum terdaftar, bakal dibikin pas import (marketing, active). */
+	newUser: boolean;
+	/** Judul + platform sama (gak peduli huruf besar/kecil) udah ada di board, atau dobel di file ini sendiri. */
+	duplicate: 'board' | 'file' | null;
+};
+
+const duplicateKey = (title: string, platform: Platform) => `${platform}\n${title.trim().toLowerCase()}`;
+
+/** TM-25: cek sebelum import, nol tulis. Dobel cuma ditandain, yang mutusin tetep admin. */
+export const previewImport = async (db: PrismaClient, tasks: ImportTask[]): Promise<ImportPreviewRow[]> => {
+	const emails = [...new Set(tasks.map((t) => t.createdBy))];
+	const [known, existing] = await Promise.all([
+		db.user.findMany({ where: { email: { in: emails } }, select: { email: true } }),
+		db.task.findMany({ select: { title: true, platform: true } })
+	]);
+	const knownEmails = new Set(known.map((u) => u.email));
+	const onBoard = new Set(existing.map((t) => duplicateKey(t.title, platformToApp[t.platform])));
+	const inFile = new Set<string>();
+	return tasks.map((t) => {
+		const key = duplicateKey(t.title, t.platform);
+		const duplicate = onBoard.has(key) ? 'board' : inFile.has(key) ? 'file' : null;
+		inFile.add(key);
+		return { ...t, newUser: !knownEmails.has(t.createdBy), duplicate };
+	});
+};
+
+/**
+ * TM-25: semua task dari file JSON masuk Request (urutan = urutan di file, di bawah Request yang udah ada) dalam
+ * 1 transaksi, satu gagal = nol yang masuk. Pembuat yang belum ada dibikin role marketing; yang udah ada gak diubah.
+ */
+export const importTasks = async (
+	db: PrismaClient,
+	tasks: ImportTask[]
+): Promise<{ imported: number; newUsers: string[] }> =>
+	db.$transaction(async (tx) => {
+		await lockOrdering(tx);
+		const userIds = new Map<string, string>();
+		const newUsers: string[] = [];
+		for (const email of new Set(tasks.map((t) => t.createdBy))) {
+			const found = await tx.user.findUnique({ where: { email }, select: { id: true } });
+			if (found) {
+				userIds.set(email, found.id);
+				continue;
+			}
+			const created = await tx.user.create({ data: { name: nameFromEmail(email), email, role: 'marketing' } });
+			userIds.set(email, created.id);
+			newUsers.push(email);
+		}
+
+		const last = await tx.task.aggregate({ where: { status: 'request' }, _max: { ordering: true } });
+		const start = last._max.ordering ?? 0;
+		const now = Date.now();
+		for (const [i, t] of tasks.entries()) {
+			const createdById = userIds.get(t.createdBy)!;
+			// createdAt selisih 1 ms per task, biar urutan waktu tetep ngikutin urutan di file.
+			const createdAt = new Date(now + i);
+			await tx.task.create({
+				data: {
+					title: t.title,
+					description: t.description,
+					type: t.type,
+					platform: platformToDb[t.platform],
+					status: 'request',
+					ordering: start + i + 1,
+					createdById,
+					createdAt,
+					history: { create: { statusBefore: null, statusAfter: 'request', createdById, createdAt } }
+				}
+			});
+		}
+		return { imported: tasks.length, newUsers };
+		// Bawaan Prisma 5 detik; file ratusan task bisa lewat itu, dan kalau kepotong semuanya batal.
+	}, { timeout: 60_000 });
 
 export type ActionResult = RuleResult;
 

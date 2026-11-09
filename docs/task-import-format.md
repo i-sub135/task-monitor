@@ -4,6 +4,10 @@ Dokumen ini buat siapa pun yang nyiapin data task untuk dimasukin langsung ke da
 Hasil akhirnya **satu file JSON** berisi array task. JSON ini nanti dibaca script import; script yang
 ngurus id, tanggal, status, urutan, history, dan bikin user yang belum ada.
 
+Cara masukinnya (TM-25): admin buka **Import** di app (`/task/import`), pilih file, cek preview, klik Import.
+Aturannya sama persis dengan `scripts/import-tasks.mjs` (jalur darurat lewat psql). "Script" di bawah = dua-duanya.
+Di preview, task yang judul + platform-nya sama dengan yang udah ada di board ditandai, tapi tetep bisa diimport.
+
 ## Bentuk file
 
 Satu array JSON, satu object per task. Gak ada wrapper, gak ada komentar.

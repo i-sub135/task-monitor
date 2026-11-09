@@ -6,7 +6,7 @@ Urutan backlog = urutan pengerjaan. Tiap tiket bisa dites sendiri sebelum lanjut
 
 ## Running
 
-_(kosong)_
+- [TM-25](running/TM-25.md) — Import task dari file JSON lewat UI (admin, preview dulu) — Running (kode jadi, nunggu deploy + cek visual)
 
 ## Backlog
 
