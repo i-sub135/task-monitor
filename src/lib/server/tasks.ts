@@ -25,7 +25,7 @@ import {
 import type { Prisma, PrismaClient } from './generated/prisma/client.ts';
 import type { TaskStatus, TaskPlatform } from './generated/prisma/enums.ts';
 import type { StoredFile } from './attachments.ts';
-import { nameFromEmail, type ImportTask } from './task-import.ts';
+import { nameFromEmail, type ImportRow, type ImportTask } from './task-import.ts';
 
 // Di DB label enum pakai tanda hubung (@map), di client Prisma jadi in_progress dst. Di app tetap 'in-progress'.
 const statusToApp: Record<TaskStatus, Status> = {
@@ -302,17 +302,20 @@ export const createTask = async (db: PrismaClient, input: NewTask): Promise<void
 	});
 };
 
-export type ImportPreviewRow = ImportTask & {
-	/** Pembuat belum terdaftar, bakal dibikin pas import (marketing, active). */
+export type ImportPreviewRow = ImportRow & {
+	/** Pembuat belum terdaftar, bakal dibikin pas import (marketing, active). False buat baris yang gak lolos cek. */
 	newUser: boolean;
-	/** Judul + platform sama (gak peduli huruf besar/kecil) udah ada di board, atau dobel di file ini sendiri. */
-	duplicate: 'board' | 'file' | null;
+	/** Judul + platform sama (gak peduli huruf besar/kecil) udah ada di board. */
+	onBoard: boolean;
+	/** Kunci judul + platform, buat nandain dobel di file ini sendiri (dihitung ulang di browser tiap baris dihapus). */
+	key: string | null;
 };
 
 const duplicateKey = (title: string, platform: Platform) => `${platform}\n${title.trim().toLowerCase()}`;
 
-/** TM-25: cek sebelum import, nol tulis. Dobel cuma ditandain, yang mutusin tetep admin. */
-export const previewImport = async (db: PrismaClient, tasks: ImportTask[]): Promise<ImportPreviewRow[]> => {
+/** TM-25: tabel review sebelum import, nol tulis. Dobel cuma ditandain, yang mutusin tetep admin. */
+export const previewImport = async (db: PrismaClient, rows: ImportRow[]): Promise<ImportPreviewRow[]> => {
+	const tasks = rows.flatMap((r) => (r.task ? [r.task] : []));
 	const emails = [...new Set(tasks.map((t) => t.createdBy))];
 	const [known, existing] = await Promise.all([
 		db.user.findMany({ where: { email: { in: emails } }, select: { email: true } }),
@@ -320,12 +323,9 @@ export const previewImport = async (db: PrismaClient, tasks: ImportTask[]): Prom
 	]);
 	const knownEmails = new Set(known.map((u) => u.email));
 	const onBoard = new Set(existing.map((t) => duplicateKey(t.title, platformToApp[t.platform])));
-	const inFile = new Set<string>();
-	return tasks.map((t) => {
-		const key = duplicateKey(t.title, t.platform);
-		const duplicate = onBoard.has(key) ? 'board' : inFile.has(key) ? 'file' : null;
-		inFile.add(key);
-		return { ...t, newUser: !knownEmails.has(t.createdBy), duplicate };
+	return rows.map((r) => {
+		const key = r.task ? duplicateKey(r.task.title, r.task.platform) : null;
+		return { ...r, newUser: !!r.task && !knownEmails.has(r.task.createdBy), onBoard: !!key && onBoard.has(key), key };
 	});
 };
 
